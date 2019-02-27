@@ -42,7 +42,7 @@ instance StructureModels MMTF where
         groupsRaws = snd $ mapAccumL getGroups (0, 0) groupsCnts
         groups     = cutter chainsCnts groupsRaws
         chainNames = cutter chainsCnts (elems $ chainNameList $ chain m)
-        chainResis = fmap (fmap (l2a . (fmap mkResidue))) groups
+        chainResis = fmap (fmap (l2a . fmap mkResidue)) groups
 
         getGroups :: (Int, Int) -> Int -> ((Int, Int), [(GroupType, SecondaryStructure, [Atom])])
         getGroups (chOffset, atOffset) sz = let chEnd        = chOffset + sz
@@ -64,7 +64,9 @@ instance StructureModels MMTF where
                              in  (end, mkAtom <$> zip4 cl nl el ics)
 
         mkResidue :: (GroupType, SecondaryStructure, [Atom]) -> Residue
-        mkResidue (gt, ss, atoms) = Residue (gtGroupName gt) (l2a atoms) (mkBonds (gtBondAtomList gt) (gtBondOrderList gt)) ss
+        mkResidue (gt, ss, atoms) = Residue (gtGroupName gt) (l2a atoms)
+                                            (mkBonds (gtBondAtomList gt) (gtBondOrderList gt))
+                                             ss (gtChemCompType gt)
 
         mkBonds :: Array Int (Int32, Int32) -> Array Int Int32 -> Array Int Bond
         mkBonds bal bol = let ball = bimap fromIntegral fromIntegral <$> elems bal
