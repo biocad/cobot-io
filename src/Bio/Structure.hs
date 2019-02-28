@@ -53,10 +53,11 @@ instance NFData Bond
 
 -- | A set of atoms, organized to a residues
 --
-data Residue = Residue { resName      :: Text               -- ^ residue name
-                       , resAtoms     :: Array Int Atom     -- ^ a set of residue atoms
-                       , resBonds     :: Array Int Bond     -- ^ a set of residue bonds
-                       , resSecondary :: SecondaryStructure -- ^ residue secondary structure
+data Residue = Residue { resName         :: Text               -- ^ residue name
+                       , resAtoms        :: Array Int Atom     -- ^ a set of residue atoms
+                       , resBonds        :: Array Int Bond     -- ^ a set of residue bonds
+                       , resSecondary    :: SecondaryStructure -- ^ residue secondary structure
+                       , resChemCompType :: Text               -- ^ chemical component type
                        }
   deriving (Show, Eq, Generic, NFData)
 

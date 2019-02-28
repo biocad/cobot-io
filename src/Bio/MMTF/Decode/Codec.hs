@@ -94,7 +94,7 @@ codec9 bd = integerDec (binaryParam bd) $ codec7 bd
 -- numbers using the divisor parameter.
 --
 codec10 :: BinaryData -> [Float]
-codec10 bd = integerDec (binaryParam bd) $ map fromIntegral $ deltaDec $ codec3 bd
+codec10 bd = integerDec (binaryParam bd) . map fromIntegral . deltaDec . recIndexDec $ codec3 bd
 
 -- | Interpret bytes as array of 16-bit signed integers, then integer
 -- decode into array of 32-bit floating-point numbers using the divisor parameter.
