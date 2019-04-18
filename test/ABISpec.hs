@@ -1,11 +1,10 @@
 module ABISpec where
 
-import           Bio.ABI
-import           Bio.MMTF.Decode.Codec
-import           Bio.Sequence
-import           Control.Monad.Except  (runExceptT)
-import           Data.ByteString.Lazy  as BSL (readFile)
-import           Data.Foldable         (Foldable (..))
+import           Bio.ABI              ()
+import           Bio.Sequence         (Sequence, Weighted (..), SequenceDecodable (..))
+import           Data.ByteString.Lazy as BSL (readFile)
+import           Data.Foldable        (Foldable (..))
+import           Data.Text            (Text)
 import           Test.Hspec
 
 abiExtractSpec :: Spec
@@ -14,7 +13,7 @@ abiExtractSpec =
 
     it "decode good ABI file" $ do
       file <- BSL.readFile "test/ABI/test.ab1"
-      let Right r = extract file
+      let Right r = sequenceDecode file
       let list = toList r
       length list `shouldBe` 465
       fmap _object list `shouldBe` goodSequence
@@ -22,7 +21,7 @@ abiExtractSpec =
 
     it "not decode non-ABI file" $ do
       file <- BSL.readFile "test/ABI/not_ab1.txt"
-      let result = extract file
+      let result = sequenceDecode file :: Either Text (Sequence (Weighted Char))
       result `shouldBe` Left "Error reading root: not enough bytes"
 
 goodSequence :: String

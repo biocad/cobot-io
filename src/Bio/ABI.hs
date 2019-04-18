@@ -1,6 +1,4 @@
-module Bio.ABI 
-  ( extract
-  ) where
+module Bio.ABI () where
 
-import Bio.ABI.Extract
+import Bio.ABI.Decode ()
 
