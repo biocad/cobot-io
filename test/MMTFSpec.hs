@@ -1,13 +1,14 @@
+module MMTFSpec where
+
 import           Bio.MMTF
-import qualified Data.ByteString.Lazy as B
-import           Data.Int             (Int8)
-import           Data.Array           ((!))
+import           Bio.MMTF.Decode.Codec
+import           Data.Array            ((!))
+import qualified Data.ByteString.Lazy  as B
+import           Data.Int              (Int8)
 import           Test.Hspec
 
-import Bio.MMTF.Decode.Codec
-
-codecSpec :: Spec
-codecSpec =
+mmtfCodecSpec :: Spec
+mmtfCodecSpec =
   describe "MMTF decoding" $ do
     it "unpacks by Run-length encoding" $ do
       let sample = [ 1, 10, 2, 1, 1, 4 ] :: [Int8]
@@ -22,8 +23,8 @@ codecSpec =
       let sample = [ 100, 100, 100, 100, 50, 50 ] :: [Int8]
       integerDec 100 sample `shouldBe` [ 1.00, 1.00, 1.00, 1.00, 0.50, 0.50 ]
 
-parserSpec :: Spec
-parserSpec =
+mmtfParserSpec :: Spec
+mmtfParserSpec =
   describe "MMTF parser" $
   it "should parse 1FSD" $ do
     m <- fetch "1FSD"
@@ -34,7 +35,3 @@ parserSpec =
     ((! 0) . xCoordList . atom) m `shouldBe` (-12.847)
     ((! 20663) . xCoordList . atom) m `shouldBe` 5.672
 
-main :: IO ()
-main = hspec $ do
-         codecSpec
-         parserSpec
