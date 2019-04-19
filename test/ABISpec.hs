@@ -1,7 +1,8 @@
 module ABISpec where
 
-import           Bio.ABI              ()
-import           Bio.Sequence         (Sequence, Weighted (..), SequenceDecodable (..))
+import           Bio.ABI              (Cleanable (..))
+import           Bio.Sequence         (Sequence, SequenceDecodable (..),
+                                       Weighted (..))
 import           Data.ByteString.Lazy as BSL (readFile)
 import           Data.Foldable        (Foldable (..))
 import           Data.Text            (Text)
@@ -9,20 +10,47 @@ import           Test.Hspec
 
 abiExtractSpec :: Spec
 abiExtractSpec =
-  describe "decoding ABI file" $ do
-
+  describe "ABI decode" $ do
     it "decode good ABI file" $ do
-      file <- BSL.readFile "test/ABI/test.ab1"
-      let Right r = sequenceDecode file
-      let list = toList r
-      length list `shouldBe` 465
-      fmap _object list `shouldBe` goodSequence
-      fmap _weight list `shouldBe` goodQuality
+      Right dat <- readData "test/ABI/test.ab1"
+      length dat `shouldBe` 465
+      fmap _object dat `shouldBe` goodSequence
+      fmap _weight dat `shouldBe` goodQuality
 
     it "not decode non-ABI file" $ do
-      file <- BSL.readFile "test/ABI/not_ab1.txt"
-      let result = sequenceDecode file :: Either Text (Sequence (Weighted Char))
-      result `shouldBe` Left "Error reading root: not enough bytes"
+      datM <- readData "test/ABI/not_ab1.txt"
+      datM `shouldBe` Left "Error reading root: not enough bytes"
+
+
+abiCleanSpec :: Spec
+abiCleanSpec =
+  describe "ABI clean" $ do
+    it "clean good ABI file" $
+      checkFile "test/ABI/test.ab1" 465 428 "AGGGGT"
+
+    it "clean another good ABI file" $
+      checkFile "test/ABI/bad_at_the_end.ab1" 1116 955 "TTCCTT"
+
+    it "totally clean bad ABI file" $ do
+      Right dat <- readData "test/ABI/bad_quality.ab1"
+      clean dat `shouldBe` Nothing
+  where
+    checkFile :: FilePath -> Int -> Int -> String -> IO ()
+    checkFile path lengthBefore lengthAfter start = do
+        Right dat <- readData path
+        length dat `shouldBe` lengthBefore
+
+        let Just cleaned = clean dat :: Maybe [Weighted Char]
+        length cleaned `shouldBe` lengthAfter
+
+        fmap _object cleaned `shouldStartWith` start
+
+readData :: FilePath -> IO (Either Text [Weighted Char])
+readData path = do
+    bsl <- BSL.readFile path
+    let result = sequenceDecode bsl :: Either Text (Sequence (Weighted Char))
+    pure $ toList <$> result
+
 
 goodSequence :: String
 goodSequence = "AATTGGCAGTATTTAGTAATAACAAATAGGGGTTCCGCGCACATTTCCCCGAAAAGTGCCACCTGCGGCCGCTGTACACTAGTGATCGTACGGGCCCATGCATGCTAGCAAGCTTGTCGACATTACCCTGTTATCCCTATTCGCTACCTTAGGACCGTTATAGTTACGACCCATACACTAGTGATCGTACGGGCCCATGCATGCTAGCAAGCTTGTCGACATTACCCTGTTATCCCTATTCGCTACCTTAGGACCGTTATAGTTACGCTTGTCGACATTACCCTGTTATCCCTATTCGCTACCTTAGGACCGTTATAGTTACGACCCATAATACCCATAATAGCTGTTTGCCAATCTAGAGGTACCTCCGGAATGTCGCTTCCTCGCTCACTGACTCGCTGCGCTCGGTCGTTCGGCTGCGGCGAGCGGTATCAGCTCACTCAAAGGCGGTAATACGGTTATCAA"

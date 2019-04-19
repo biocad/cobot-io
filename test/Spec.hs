@@ -1,5 +1,3 @@
-module Main where
-
 import           ABISpec
 import           MMTFSpec
 import           System.IO
@@ -14,3 +12,4 @@ main = do
          mmtfParserSpec
          -- ABI
          abiExtractSpec
+         abiCleanSpec
