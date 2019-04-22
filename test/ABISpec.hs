@@ -1,0 +1,61 @@
+module ABISpec where
+
+import           Bio.ABI              (Cleanable (..))
+import           Bio.Sequence         (Sequence, SequenceDecodable (..),
+                                       Weighted (..))
+import           Data.ByteString.Lazy as BSL (readFile)
+import           Data.Foldable        (Foldable (..))
+import           Data.Text            (Text)
+import           Test.Hspec
+
+abiExtractSpec :: Spec
+abiExtractSpec =
+  describe "ABI decode" $ do
+    it "decode good ABI file" $ do
+      Right dat <- readData "test/ABI/test.ab1"
+      length dat `shouldBe` 465
+      fmap _object dat `shouldBe` goodSequence
+      fmap _weight dat `shouldBe` goodQuality
+
+    it "not decode non-ABI file" $ do
+      datM <- readData "test/ABI/not_ab1.txt"
+      datM `shouldBe` Left "Error reading root: not enough bytes"
+
+
+abiCleanSpec :: Spec
+abiCleanSpec =
+  describe "ABI clean" $ do
+    it "clean good ABI file" $
+      checkFile "test/ABI/test.ab1" 465 428 "AGGGGT"
+
+    it "clean another good ABI file" $
+      checkFile "test/ABI/bad_at_the_end.ab1" 1116 955 "TTCCTT"
+
+    it "totally clean bad ABI file" $ do
+      Right dat <- readData "test/ABI/bad_quality.ab1"
+      clean dat `shouldBe` Nothing
+  where
+    checkFile :: FilePath -> Int -> Int -> String -> IO ()
+    checkFile path lengthBefore lengthAfter start = do
+        Right dat <- readData path
+        length dat `shouldBe` lengthBefore
+
+        let Just cleaned = clean dat :: Maybe [Weighted Char]
+        length cleaned `shouldBe` lengthAfter
+
+        fmap _object cleaned `shouldStartWith` start
+
+readData :: FilePath -> IO (Either Text [Weighted Char])
+readData path = do
+    bsl <- BSL.readFile path
+    let result = sequenceDecode bsl :: Either Text (Sequence (Weighted Char))
+    pure $ toList <$> result
+
+
+goodSequence :: String
+goodSequence = "AATTGGCAGTATTTAGTAATAACAAATAGGGGTTCCGCGCACATTTCCCCGAAAAGTGCCACCTGCGGCCGCTGTACACTAGTGATCGTACGGGCCCATGCATGCTAGCAAGCTTGTCGACATTACCCTGTTATCCCTATTCGCTACCTTAGGACCGTTATAGTTACGACCCATACACTAGTGATCGTACGGGCCCATGCATGCTAGCAAGCTTGTCGACATTACCCTGTTATCCCTATTCGCTACCTTAGGACCGTTATAGTTACGCTTGTCGACATTACCCTGTTATCCCTATTCGCTACCTTAGGACCGTTATAGTTACGACCCATAATACCCATAATAGCTGTTTGCCAATCTAGAGGTACCTCCGGAATGTCGCTTCCTCGCTCACTGACTCGCTGCGCTCGGTCGTTCGGCTGCGGCGAGCGGTATCAGCTCACTCAAAGGCGGTAATACGGTTATCAA"
+
+goodQuality :: [Double]
+goodQuality = [11.0,6.0,3.0,3.0,3.0,3.0,4.0,4.0,6.0,4.0,5.0,11.0,23.0,6.0,14.0,5.0,4.0,10.0,26.0,6.0,7.0,7.0,26.0,26.0,26.0,51.0,39.0,41.0,51.0,58.0,49.0,49.0,58.0,54.0,58.0,58.0,54.0,58.0,36.0,29.0,48.0,46.0,28.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,41.0,41.0,62.0,62.0,62.0,47.0,49.0,62.0,62.0,49.0,62.0,54.0,54.0,47.0,41.0,24.0,24.0,27.0,22.0,27.0,22.0,22.0,14.0,11.0,16.0,32.0,51.0,62.0,59.0,59.0,59.0,59.0,28.0,35.0,54.0,62.0,62.0,62.0,59.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,59.0,59.0,59.0,59.0,62.0,62.0,59.0,62.0,59.0,59.0,46.0,54.0,48.0,62.0,59.0,62.0,62.0,59.0,59.0,59.0,62.0,59.0,59.0,62.0,62.0,62.0,59.0,62.0,62.0,62.0,62.0,54.0,54.0,59.0,59.0,62.0,62.0,62.0,62.0,62.0,59.0,62.0,62.0,62.0,62.0,62.0,62.0,59.0,62.0,62.0,62.0,62.0,62.0,54.0,54.0,62.0,54.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,59.0,62.0,62.0,62.0,62.0,59.0,62.0,62.0,62.0,62.0,59.0,59.0,62.0,59.0,59.0,59.0,59.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,59.0,59.0,62.0,62.0,62.0,62.0,59.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,59.0,59.0,59.0,50.0,59.0,59.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,59.0,62.0,54.0,62.0,62.0,54.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,59.0,62.0,59.0,62.0,62.0,62.0,62.0,62.0,62.0,59.0,62.0,59.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,59.0,62.0,62.0,62.0,62.0,59.0,62.0,51.0,62.0,62.0,62.0,62.0,54.0,49.0,62.0,62.0,62.0,62.0,59.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,59.0,62.0,59.0,62.0,62.0,62.0,62.0,62.0,62.0,59.0,62.0,59.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,59.0,62.0,62.0,62.0,51.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,59.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,56.0,56.0,62.0,62.0,56.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,43.0,43.0,62.0,62.0,62.0,59.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,59.0,59.0,46.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,56.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,62.0,49.0,49.0,62.0,62.0,62.0,62.0,56.0,42.0,42.0,56.0,46.0,56.0,43.0,36.0,43.0,51.0,62.0,7.0,8.0,8.0,9.0,5.0]
+
+
