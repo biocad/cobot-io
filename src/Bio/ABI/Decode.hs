@@ -2,7 +2,9 @@
 
 module Bio.ABI.Decode () where
 
-import           Bio.Sequence               (Sequence, Weighted (..), SequenceDecodable (..))
+import           Bio.ABI.Type               (ABIRaw)
+import           Bio.Sequence               (SequenceDecodable (..),
+                                             WeightedSequence, weightedSequence)
 import           Data.Array                 (listArray)
 import           Data.ByteString            as BS (ByteString)
 import           Data.ByteString.Lazy       as BSL (ByteString, fromStrict)
@@ -15,22 +17,21 @@ import           Hyrax.Abif                 (Abif (..), Directory (..))
 import           Hyrax.Abif.Read            (getAbif)
 
 -- | Converts 'Data.ByteString.Lazy.ByteString' (that should be content of ABI file)
--- into 'Sequence' with 'Weighted Char' inside.
+-- into 'Sequence with 'Weighted Char' inside.
 --
-instance SequenceDecodable BSL.ByteString (Weighted Char) where
-    sequenceDecode :: BSL.ByteString -> Either Text (Sequence (Weighted Char))
+instance SequenceDecodable BSL.ByteString ABIRaw where
+    sequenceDecode :: BSL.ByteString -> Either Text ABIRaw
     sequenceDecode bs = do
         abif      <- getAbif bs
         sequence' <- extractSequence abif
         quality'  <- extractQuality  abif
-        let list   = zipWith Weighted sequence' quality' :: [Weighted Char]
-        pure . listArray (0, length list - 1) $ list
+        weightedSequence sequence' quality'
 
 -- | Converts 'Data.ByteString.ByteString' (that should be content of ABI file)
--- into 'Sequence' with 'Weighted Char' inside.
+-- into 'Sequence with 'Weighted Char' inside.
 --
-instance SequenceDecodable BS.ByteString (Weighted Char) where
-    sequenceDecode :: BS.ByteString -> Either Text (Sequence (Weighted Char))
+instance SequenceDecodable BS.ByteString ABIRaw where
+    sequenceDecode :: BS.ByteString -> Either Text ABIRaw
     sequenceDecode = sequenceDecode . BSL.fromStrict
 
 -------------------------------------------------------------------------------
@@ -42,7 +43,7 @@ instance SequenceDecodable BS.ByteString (Weighted Char) where
 extractSequence :: Abif -> Either Text String
 extractSequence abif = findDataByDirectory "PBAS" abif >>= checkACGT
 
--- | Extracts quality from ABI file. 
+-- | Extracts quality from ABI file.
 -- Number are encoded with letters, thus we have function @fromIntegral . ord@.
 --
 extractQuality :: Abif -> Either Text [Double]
@@ -52,7 +53,7 @@ extractQuality abif = map (fromIntegral . ord) <$> findDataByDirectory "PCON" ab
 --
 checkACGT :: String -> Either Text String
 checkACGT str | all validChar str = Right str
-              | otherwise         = Left "Bio.ABI.Extract: could not parse sequence"
+              | otherwise         = Left "Bio.ABI.Decode: could not parse sequence"
   where
     validChar :: Char -> Bool
     validChar ch = ch `elem` ['A', 'C', 'G', 'T']
@@ -65,7 +66,7 @@ findDataByDirectory dirName abif =
     in maybe (Left errorMsg) (Right . getData) directoryM
   where
     errorMsg :: Text
-    errorMsg = "Bio.ABI.Extract: could not find directory " <> dirName
+    errorMsg = "Bio.ABI.Decode: could not find directory " <> dirName
 
     getData :: Directory -> String
     getData = BSL8.unpack . dData

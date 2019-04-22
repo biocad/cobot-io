@@ -1,8 +1,9 @@
 module ABISpec where
 
 import           Bio.ABI              (Cleanable (..))
-import           Bio.Sequence         (Sequence, SequenceDecodable (..),
-                                       Weighted (..))
+import           Bio.ABI.Type         (ABIRaw)
+import           Bio.Sequence         (SequenceDecodable (..))
+import qualified Bio.Sequence         as S (getWeights, length, toList)
 import           Data.ByteString.Lazy as BSL (readFile)
 import           Data.Foldable        (Foldable (..))
 import           Data.Text            (Text)
@@ -13,9 +14,9 @@ abiExtractSpec =
   describe "ABI decode" $ do
     it "decode good ABI file" $ do
       Right dat <- readData "test/ABI/test.ab1"
-      length dat `shouldBe` 465
-      fmap _object dat `shouldBe` goodSequence
-      fmap _weight dat `shouldBe` goodQuality
+      S.length dat     `shouldBe` 465
+      S.toList dat     `shouldBe` goodSequence
+      S.getWeights dat `shouldBe` goodQuality
 
     it "not decode non-ABI file" $ do
       datM <- readData "test/ABI/not_ab1.txt"
@@ -38,18 +39,17 @@ abiCleanSpec =
     checkFile :: FilePath -> Int -> Int -> String -> IO ()
     checkFile path lengthBefore lengthAfter start = do
         Right dat <- readData path
-        length dat `shouldBe` lengthBefore
+        S.length dat `shouldBe` lengthBefore
 
-        let Just cleaned = clean dat :: Maybe [Weighted Char]
-        length cleaned `shouldBe` lengthAfter
+        let Just cleaned = clean dat :: Maybe ABIRaw
+        S.length cleaned `shouldBe` lengthAfter
 
-        fmap _object cleaned `shouldStartWith` start
+        S.toList cleaned `shouldStartWith` start
 
-readData :: FilePath -> IO (Either Text [Weighted Char])
+readData :: FilePath -> IO (Either Text ABIRaw)
 readData path = do
     bsl <- BSL.readFile path
-    let result = sequenceDecode bsl :: Either Text (Sequence (Weighted Char))
-    pure $ toList <$> result
+    pure $ sequenceDecode bsl
 
 
 goodSequence :: String
