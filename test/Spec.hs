@@ -1,5 +1,6 @@
 import           ABISpec
 import           MMTFSpec
+import           UniprotSpec
 import           System.IO
 import           Test.Hspec
 
@@ -13,3 +14,6 @@ main = do
          -- ABI
          abiExtractSpec
          abiCleanSpec
+         -- Uniprot
+         uniprotSectionSpec
+         uniprotFullSpec
