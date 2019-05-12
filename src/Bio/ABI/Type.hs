@@ -10,8 +10,8 @@ newtype ABIRaw = ABIRaw (WeightedSequence Double Char)
 
 instance IsSequence ABIRaw where
   type Element ABIRaw  = Char
-  type Marking' ABIRaw = ()
-  type Weight' ABIRaw  = Double
+  type Marking ABIRaw = ()
+  type Weight ABIRaw  = Double
 
   toSequence = coerce
   fromSequence = coerce

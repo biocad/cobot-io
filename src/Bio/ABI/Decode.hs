@@ -4,8 +4,7 @@ module Bio.ABI.Decode () where
 
 import           Bio.ABI.Type               (ABIRaw)
 import           Bio.Sequence               (SequenceDecodable (..),
-                                             WeightedSequence, weightedSequence)
-import           Data.Array                 (listArray)
+                                             weightedSequence)
 import           Data.ByteString            as BS (ByteString)
 import           Data.ByteString.Lazy       as BSL (ByteString, fromStrict)
 import           Data.ByteString.Lazy.Char8 as BSL8 (unpack)

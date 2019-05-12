@@ -4,11 +4,9 @@ module Bio.ABI.Clean
   ) where
 
 import           Bio.ABI.Type  (ABIRaw)
-import           Bio.Sequence  (Sequence, Weight, WeightedSequence, mean,
-                                meanInRange)
-import qualified Bio.Sequence  as S (drop, length, reverse, tail, take)
-import           Data.Array    (Array, listArray)
-import           Data.Foldable (Foldable (..))
+import           Bio.Sequence  (mean, meanInRange)
+import qualified Bio.Sequence  as S (drop, length, reverse, tail)
+import           Control.Monad (join)
 
 -- | Ability to clean initial data.
 -- Returns cleaned variant or 'Nothing' if it can not be cleaned.
@@ -52,15 +50,16 @@ defaultThresholds :: Thresholds
 defaultThresholds = Thresholds 10 20 30
 
 instance Cleanable ABIRaw where
-  cleanWith thr input = if checkInner thr fromBoth
-                          then Just fromBoth
+  cleanWith thr input = if fmap (checkInner thr) fromBoth == Just True
+                          then fromBoth
                           else Nothing
     where
       fromLeft = cutEdge defaultThresholds input
-      fromBoth = S.reverse
-               . cutEdge defaultThresholds
-               . S.reverse
-               $ fromLeft
+      fromBoth = fmap S.reverse
+               . join
+               $ cutEdge defaultThresholds
+               .  S.reverse
+              <$> fromLeft
 
 -------------------------------------------------------------------------------
 -- INTERNAL
@@ -69,7 +68,10 @@ instance Cleanable ABIRaw where
 checkInner :: Thresholds -> ABIRaw -> Bool
 checkInner Thresholds{..} = (> innerThreshold) . mean
 
-cutEdge :: Thresholds -> ABIRaw -> ABIRaw
-cutEdge t@Thresholds{..} sequ | S.length sequ < frameSize = sequ
-                              | meanInRange sequ (0, frameSize - 1) < edgeThreshold = cutEdge t $ S.tail sequ
-                              | otherwise = S.drop frameSize sequ
+cutEdge :: Thresholds -> ABIRaw -> Maybe ABIRaw
+cutEdge t@Thresholds{..} sequ | S.length sequ < frameSize                    = Just sequ
+                              | meanInR < edgeThreshold && S.length sequ > 1 = cutEdge t $ S.tail sequ
+                              | S.length sequ > frameSize                    = Just $ S.drop frameSize sequ
+                              | otherwise                                    = Nothing
+  where
+    meanInR = meanInRange sequ (0, frameSize - 1)
