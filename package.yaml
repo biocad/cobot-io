@@ -1,9 +1,9 @@
 name:                cobot-io
-version:             0.1.0.1
+version:             0.1.1.0
 github:              "less-wrong/cobot-io"
 license:             BSD3
 category:            Bio 
-author:              "Pavel Yakovlev, Bogdan Neterebskii"
+author:              "Pavel Yakovlev, Bogdan Neterebskii, Alexander Sadovnikov"
 maintainer:          "pavel@yakovlev.me"
 copyright:           "2018-2019, Less Wrong Bio"
 synopsis:            Biological data file formats and IO

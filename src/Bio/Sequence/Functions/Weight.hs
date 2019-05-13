@@ -1,5 +1,4 @@
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ViewPatterns         #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Bio.Sequence.Functions.Weight
   ( mean, meanInRange
