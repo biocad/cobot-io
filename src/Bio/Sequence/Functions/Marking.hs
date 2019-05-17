@@ -7,6 +7,7 @@ module Bio.Sequence.Functions.Marking
   , unsafeToMarked
   , addMarkings
   , unsafeAddMarkings
+  , listMarkings
   ) where
 
 import           Bio.Sequence.Class              (ContainsMarking,
@@ -21,6 +22,7 @@ import           Bio.Sequence.Utilities          (Range, checkRange,
                                                   unsafeEither)
 import           Control.Lens
 import           Control.Monad.Except            (MonadError, throwError)
+import           Data.List                       (nub)
 import qualified Data.List                       as L (find)
 import           Data.List.NonEmpty              (NonEmpty (..))
 import           Data.Maybe                      (isJust)
@@ -71,7 +73,7 @@ unsafeToMarked (toSequence -> s) = unsafeMarkedSequence (V.toList $ s ^. sequ)
 -- > sequ' = Sequence ['a', 'a', 'b', 'a'] [("Letter A", (0, 2)), ("Letter A", (3, 4))] mempty
 -- > addMarkings sequ' [("Letter B", (2, 3))] == sequ
 --
-addMarkings :: (IsSequence s, Marking s ~ mk, MonadError Text m) => s -> [(mk, Range)] -> m s
+addMarkings :: (ContainsMarking s, Marking s ~ mk, MonadError Text m) => s -> [(mk, Range)] -> m s
 addMarkings (toSequence -> s) markings' | all (checkRange (length s) . snd) markings' = pure res
                                         | otherwise                                   = throwError rangesError
   where
@@ -80,8 +82,17 @@ addMarkings (toSequence -> s) markings' | all (checkRange (length s) . snd) mark
     rangesError :: Text
     rangesError = "Bio.Sequence.Functions.Marking: can't add markings to Sequence, because some of them are out of range."
 
-unsafeAddMarkings :: (IsSequence s, Marking s ~ mk) => s -> [(mk, Range)] -> s
+unsafeAddMarkings :: (ContainsMarking s, Marking s ~ mk) => s -> [(mk, Range)] -> s
 unsafeAddMarkings s = unsafeEither . addMarkings s
+
+-- | Retrieves all 'Marking's from given sequence that 'ContainsMarking'.
+--   Result is list of 'Marking's without dublicates.
+--
+-- > sequ = Sequence ['a', 'a', 'b', 'a'] [("Letter A", (0, 2)), ("Letter A", (3, 4)), ("Letter B", (2, 3))] mempty
+-- > listMarkings sequ == ["Letter A", "Letter B"]
+--
+listMarkings :: ContainsMarking s => s -> [Marking s]
+listMarkings (toSequence -> s) = nub $ fst <$> s ^. markings
 
 --------------------------------------------------------------------------------
 -- Inner functions.

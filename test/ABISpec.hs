@@ -1,7 +1,7 @@
 module ABISpec where
 
 import           Bio.ABI              (Cleanable (..))
-import           Bio.ABI.Type         (ABIProcessed)
+import           Bio.ABI.Type         (ABIBasecalled)
 import           Bio.Sequence         (SequenceDecodable (..))
 import qualified Bio.Sequence         as S (getWeights, length, toList)
 import           Data.ByteString.Lazy as BSL (readFile)
@@ -46,7 +46,7 @@ abiCleanSpec =
 
         S.toList cleaned `shouldStartWith` start
 
-readData :: FilePath -> IO (Either Text ABIProcessed)
+readData :: FilePath -> IO (Either Text ABIBasecalled)
 readData path = do
     bsl <- BSL.readFile path
     pure $ sequenceDecode bsl

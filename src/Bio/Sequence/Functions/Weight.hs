@@ -72,7 +72,7 @@ unsafeGetWeight sequ' = unsafeEither . getWeight sequ'
 
 -- | Get 'Weight's of all elements in @s@.
 --
-getWeights :: (ContainsWeight s) => s -> [Weight s]
+getWeights :: ContainsWeight s => s -> [Weight s]
 getWeights = V.toList . (^. weights) . toSequence
 
 -- | Converts 'IsBareSequence' @s@ to 'IsWeightedSequence' @s'@ that is weighted using provided list

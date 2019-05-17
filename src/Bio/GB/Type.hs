@@ -1,5 +1,5 @@
 module Bio.GB.Type
-  ( GenBankStructure (..)
+  ( GenBankSequence (..)
   , Meta (..)
   , Form (..)
   , Locus (..)
@@ -7,19 +7,17 @@ module Bio.GB.Type
   , Source (..)
   , Reference (..)
   , Feature (..)
-  , GenBankSequence (..)
   ) where
 
-import           Bio.Sequence (IsMarking, IsSequence (..), MarkedSequence)
-import           Data.Coerce  (coerce)
+import           Bio.Sequence (IsMarking, MarkedSequence)
 import           Data.Text    (Text)
 
 -- | Type that represents contents of .gb file that is used to store information about
 -- genetic constructions.
 --
-data GenBankStructure = GenBankStructure { meta      :: Meta            -- ^ meta-information about the sequence
-                                         , structSeq :: GenBankSequence -- ^ sequence that is marked by 'Feature's
-                                         }
+data GenBankSequence = GenBankSequence { meta  :: Meta                        -- ^ meta-information about the sequence
+                                       , gbSeq :: MarkedSequence Feature Char -- ^ sequence that is marked by 'Feature's
+                                       }
   deriving (Eq, Show)
 
 --------------------------------------------------------------------------------
@@ -95,27 +93,10 @@ data Reference = Reference { referenceT :: Text       -- ^ reference itself
 -- | One single feature.
 --
 data Feature = Feature { fName     :: Text           -- ^ main information about feature
-                       , f53Strand :: Bool           -- ^ set to True if sequence is contained on 5'-3' strand.
+                       , fStrand53 :: Bool           -- ^ set to True if sequence is contained on 5'-3' strand.
                                                      --   Set to False otherwise
                        , fProps    :: [(Text, Text)] -- ^ properties of feature (such as "label", "gene", "note" etc.)
                        }
   deriving (Eq, Show, Ord)
 
 instance IsMarking Feature
-
---------------------------------------------------------------------------------
--- GenBankSequence.
---------------------------------------------------------------------------------
-
--- | GenBankSequence stores sequence from .gb file alongside its markings by 'Feature's.
---
-newtype GenBankSequence = GenBankSequence (MarkedSequence Feature Char)
-  deriving (Eq, Show)
-
-instance IsSequence GenBankSequence where
-  type Element GenBankSequence = Char
-  type Marking GenBankSequence = Feature
-  type Weight GenBankSequence  = ()
-
-  toSequence = coerce
-  fromSequence = coerce

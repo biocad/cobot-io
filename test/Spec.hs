@@ -1,4 +1,5 @@
 import           ABISpec
+import           GBParserSpec
 import           MMTFSpec
 import           SequenceSpec
 import           System.IO
@@ -23,3 +24,5 @@ main = do
          -- Uniprot
          uniprotSectionSpec
          uniprotFullSpec
+         -- GB
+         gBParserSpec

@@ -4,8 +4,9 @@
 
 ## [0.1.1.0] - 2019-05-13
 ### Added
-- New version of module Bio.Sequence hat introduces `IsSequence` typeclass and `Sequence` datatype.
-- Type `GenBankStructure` describing structure of .gb-file.
+- New version of module Bio.Sequence hat introduces `IsSequence` type class and `Sequence` datatype.
+- Type `GenBankSequence` describing structure of .gb file.
+- Parser for `GenBankSequence`.
 ### Changed
 - ABI cleaner and decoder now work with type `ABIRaw`.
 

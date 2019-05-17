@@ -10,13 +10,14 @@ module Bio.Sequence.Class
   , WeightedSequence
   , MarkedSequence
   , BareSequence
+  , Range
   , sequ
   , markings
   , weights
 
   -- classes for weights and markings of sequence
-  , IsMarking,
-   IsWeight (..)
+  , IsMarking
+  , IsWeight (..)
   -- classes, that are abstractions over 'Sequence'
   , IsSequence (..)
   , IsWeightedSequence
@@ -77,7 +78,7 @@ instance Semigroup (Sequence mk w a) where
       addInd :: Int -> Int
       addInd = (+ V.length (sequA ^. sequ))
 
-instance Monoid (Sequence () () a) where
+instance Monoid (Sequence mk () a) where
   mempty = Sequence mempty mempty mempty
 
 instance Foldable (Sequence mk w) where
@@ -140,7 +141,7 @@ class IsWeight w where
   toDouble :: w -> Double
 
 instance IsWeight () where
-  toDouble = error "Bio.Sequence: () can't be valid 'Weight'."
+  toDouble = error "Bio.Sequence.Class: () can't be valid 'Weight'."
 
 instance IsWeight Double where
   toDouble = id
@@ -172,10 +173,10 @@ instance IsWeight Double where
 --    'Marking' that is not ().
 --
 -- Constraints and constructors mentioned above gaurantee that 'IsSequence'
--- instances that have no 'Marking's nor 'Weight's will in compile-time
--- have () as types assosiated with their 'Marking's and 'Weight's.
+-- instances that have no 'Weight's will in compile-time
+-- have () as types assosiated with their 'Weight's.
 -- That is used to make functions that rely on 'IsSequence' instance
--- having not null weights or markings type-safe.
+-- having not null weights type-safe.
 --
 class (IsMarking (Marking s), IsWeight (Weight s)) => IsSequence s where
   type Element s :: *
@@ -247,10 +248,10 @@ type ContainsNoWeight s = (IsSequence s, Unit (Weight s))
 -- If any of the markings is invalid or length of weights list is not equal to length
 -- of sequence, an error will be thrown.
 --
-createSequence :: (IsSequence s, NotUnit (Weight s), NotUnit (Marking s), MonadError Text m) => [Element s] -> [(Marking s, Range)] -> [Weight s] -> m s
+createSequence :: (ContainsMarking s, ContainsWeight s, MonadError Text m) => [Element s] -> [(Marking s, Range)] -> [Weight s] -> m s
 createSequence = createSequenceInner True True
 
-unsafeCreateSequence :: (IsSequence s, NotUnit (Weight s), NotUnit (Marking s)) => [Element s] -> [(Marking s, Range)] -> [Weight s] -> s
+unsafeCreateSequence :: (ContainsMarking s, ContainsWeight s) => [Element s] -> [(Marking s, Range)] -> [Weight s] -> s
 unsafeCreateSequence s markings' = unsafeEither . createSequence s markings'
 
 -- | Create 'IsBareSequence' @s@, simple sequence without markings and weights.
@@ -283,18 +284,18 @@ unsafeWeightedSequence s = unsafeEither . weightedSequence s
 --------------------------------------------------------------------------------
 
 type family NotUnit a :: Constraint where
-  NotUnit ()       = TypeError ('Text "Bio.Sequence: this function doesn't work with Sequence that is parametrized by ().")
-  NotUnit _        = ()
+  NotUnit () = TypeError ('Text "cobot-io: this function doesn't work with when parametrized by ().")
+  NotUnit _  = ()
 
 type family Unit a :: Constraint where
-  Unit ()       = ()
-  Unit _        = TypeError ('Text "Bio.Sequence: this function doesn't work with Sequence that is not parametrized by ().")
+  Unit () = ()
+  Unit _  = TypeError ('Text "cobot-io: this function doesn't work with when not parametrized by ().")
 
 createSequenceInner :: (IsSequence s, MonadError Text m) => Bool -> Bool -> [Element s] -> [(Marking s, Range)] -> [Weight s] -> m s
-createSequenceInner checkMk checkW s markings' weights' | checkMk && not checkRanges   = throwError rangesError
-                                                        | checkMk && not checkMarkings = throwError nullMarkingsError
-                                                        | checkW && not checkWeights   = throwError weightsError
-                                                        | otherwise                    = pure resSequence
+createSequenceInner checkMk checkW s markings' weights' | checkMk && not checkRanges     = throwError rangesError
+                                                        | checkW && not checkNullWeights = throwError weightsNullError
+                                                        | checkW && not checkLenWeights  = throwError weightsLenError
+                                                        | otherwise                      = pure resSequence
   where
     seqVector     = V.fromList s
     weightsVector = V.fromList weights'
@@ -304,18 +305,17 @@ createSequenceInner checkMk checkW s markings' weights' | checkMk && not checkRa
     checkRanges :: Bool
     checkRanges = all (checkRange (L.length s)) $ fmap snd markings'
 
-    checkMarkings :: Bool
-    checkMarkings = not (L.null markings')
+    checkNullWeights :: Bool
+    checkNullWeights = not (L.null weights')
 
-    checkWeights :: Bool
-    checkWeights = L.length s == L.length weights'
-
-    nullMarkingsError :: Text
-    nullMarkingsError = "Bio.Sequence: can't create marked sequence with null markings."
+    checkLenWeights :: Bool
+    checkLenWeights = L.length s == L.length weights'
 
     rangesError :: Text
-    rangesError = "Bio.Sequence: invalid 'Range' found in sequence's marking."
+    rangesError = "Bio.Sequence.Class: invalid 'Range' found in sequence's marking."
 
-    weightsError :: Text
-    weightsError = "Bio.Sequence: sequence and weights have different lengths."
+    weightsNullError :: Text
+    weightsNullError = "Bio.Sequence.Class: weights are null for sequence."
 
+    weightsLenError :: Text
+    weightsLenError = "Bio.Sequence.Class: sequence and weights have different lengths."

@@ -29,19 +29,21 @@ weightedSequenceSpec =
       let seqE = weightedSequence ['a', 'b', 'c', 'd'] [1, 2, 3, 4] :: Either Text TestWeightedSequence
       seqE `shouldBe` Right (unsafeWeightedSequence ['a', 'b', 'c', 'd'] [1, 2, 3, 4])
 
-      let seqE = weightedSequence [] [] :: Either Text TestWeightedSequence
-      seqE `shouldBe` Right (unsafeWeightedSequence [] [])
     it "unsuccessful creation of weighted sequence" $ do
-      let seqErr = Left "Bio.Sequence: sequence and weights have different lengths."
+      let seqErr  = Left "Bio.Sequence.Class: sequence and weights have different lengths."
+      let seqErr1 = Left "Bio.Sequence.Class: weights are null for sequence."
 
       let seqE = weightedSequence ['a', 'b', 'c', 'd'] [1, 2, 4] :: Either Text TestWeightedSequence
       seqE `shouldBe` seqErr
 
       let seqE = weightedSequence ['a', 'b', 'c', 'd'] [] :: Either Text TestWeightedSequence
-      seqE `shouldBe` seqErr
+      seqE `shouldBe` seqErr1
 
       let seqE = weightedSequence [] [1] :: Either Text TestWeightedSequence
       seqE `shouldBe` seqErr
+
+      let seqE = weightedSequence [] [] :: Either Text TestWeightedSequence
+      seqE `shouldBe` seqErr1
 
 newtype TestMarking = TestMarking Text
   deriving (Eq, Show, Ord)
@@ -59,8 +61,14 @@ markedSequenceSpec =
 
       let seqE = markedSequence ['a', 'b', 'c', 'a', 'a'] [(TestMarking "bca", (1, 5)), (TestMarking "a", (3, 5))] :: Either Text TestMarkedSequence
       seqE `shouldBe` Right (unsafeMarkedSequence ['a', 'b', 'c', 'a', 'a'] [(TestMarking "bca", (1, 5)), (TestMarking "a", (3, 5))])
+
+      let seqE = markedSequence [] [] :: Either Text TestMarkedSequence
+      seqE `shouldBe` Right (unsafeMarkedSequence [] [])
+
+      let seqE = markedSequence ['a', 'b', 'c', 'a', 'a'] [] :: Either Text TestMarkedSequence
+      seqE `shouldBe` Right (unsafeMarkedSequence ['a', 'b', 'c', 'a', 'a'] [])
     it "unsuccessful creation of marked sequence" $ do
-      let seqErr = Left "Bio.Sequence: invalid 'Range' found in sequence's marking."
+      let seqErr = Left "Bio.Sequence.Class: invalid 'Range' found in sequence's marking."
 
       let seqE = markedSequence ['a', 'b', 'c', 'a', 'a'] [(TestMarking "a", (-1, 1))] :: Either Text TestMarkedSequence
       seqE `shouldBe` seqErr
@@ -74,14 +82,6 @@ markedSequenceSpec =
       let seqE = markedSequence [] [(TestMarking "k", (0, 1))] :: Either Text TestMarkedSequence
       seqE `shouldBe` seqErr
 
-      let seqErr1 = Left "Bio.Sequence: can't create marked sequence with null markings."
-
-      let seqE = markedSequence [] [] :: Either Text TestMarkedSequence
-      seqE `shouldBe` seqErr1
-
-      let seqE = markedSequence ['a', 'b', 'c', 'a', 'a'] [] :: Either Text TestMarkedSequence
-      seqE `shouldBe` seqErr1
-
 type TestMarkedAndWeightedSequence = Sequence TestMarking Int Char
 
 markedAndWeightedSequenceSpec :: Spec
@@ -92,7 +92,7 @@ markedAndWeightedSequenceSpec =
       seqE `shouldBe` Right (unsafeCreateSequence ['a', 'b', 'c', 'a', 'a'] [(TestMarking "a", (0, 1)), (TestMarking "a", (3, 5))] [1, 2.. 5])
 
     it "unsuccessful creation of marked and weighted sequence" $ do
-      let seqErr = Left "Bio.Sequence: invalid 'Range' found in sequence's marking."
+      let seqErr = Left "Bio.Sequence.Class: invalid 'Range' found in sequence's marking."
 
       let seqE = createSequence ['a', 'b', 'c', 'a', 'a'] [(TestMarking "a", (-1, 1))] [1, 2.. 5] :: Either Text TestMarkedAndWeightedSequence
       seqE `shouldBe` seqErr
@@ -109,15 +109,15 @@ markedAndWeightedSequenceSpec =
       let seqE = createSequence ['a', 'b', 'c', 'd'] [(TestMarking "a", (0, 1)), (TestMarking "a", (3, 5))] [1, 2, 4] :: Either Text TestMarkedAndWeightedSequence
       seqE `shouldBe` seqErr
 
-      let seqErr1 = Left "Bio.Sequence: can't create marked sequence with null markings."
-
       let seqE = createSequence ['a', 'b', 'c', 'a', 'a'] [] [1, 2.. 5] :: Either Text TestMarkedAndWeightedSequence
-      seqE `shouldBe` seqErr1
+      seqE `shouldBe` Right (unsafeCreateSequence ['a', 'b', 'c', 'a', 'a'] [] [1, 2.. 5])
 
-      let seqErr2 = Left "Bio.Sequence: sequence and weights have different lengths."
+      let seqErr1 = Left "Bio.Sequence.Class: sequence and weights have different lengths."
 
       let seqE = createSequence ['a', 'b', 'c', 'd'] [(TestMarking "a", (0, 1)), (TestMarking "a", (3, 4))] [1, 2] :: Either Text TestMarkedAndWeightedSequence
-      seqE `shouldBe` seqErr2
+      seqE `shouldBe` seqErr1
+
+      let seqErr2 = Left "Bio.Sequence.Class: weights are null for sequence."
 
       let seqE = createSequence ['a', 'b', 'c', 'd'] [(TestMarking "a", (0, 1)), (TestMarking "a", (3, 4))] [] :: Either Text TestMarkedAndWeightedSequence
       seqE `shouldBe` seqErr2
@@ -232,7 +232,7 @@ toMarkedSpec =
     it "sequence: ['a', 'b', 'c', 'a', 'a']; markings: [(a, (0, 1)), (a, (3, 5))]" $ do
       (toMarked s [(TestMarking "a", (0, 1)), (TestMarking "a", (3, 5))] :: Either Text TestMarkedSequence) `shouldBe` Right (unsafeMarkedSequence ['a', 'b', 'c', 'a', 'a'] [(TestMarking "a", (0, 1)), (TestMarking "a", (3, 5))])
     it "sequence: ['a', 'b', 'c', 'a', 'a']; markings: [(a, (0, 6)), (a, (3, 5))]" $ do
-      let rangesError = Left "Bio.Sequence: invalid 'Range' found in sequence's marking."
+      let rangesError = Left "Bio.Sequence.Class: invalid 'Range' found in sequence's marking."
       (toMarked s [(TestMarking "a", (0, 6)), (TestMarking "a", (3, 5))] :: Either Text TestMarkedSequence) `shouldBe` rangesError
 
 addMarkingsSpec :: Spec
@@ -284,5 +284,5 @@ toWeightedSpec =
     it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]" $ do
       (toWeighted s [1.. 5] :: Either Text TestWeightedSequence) `shouldBe` Right (unsafeWeightedSequence ['a', 'b', 'c', 'a', 'a'] [1.. 5])
     it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 3]" $ do
-      let rangesError = Left "Bio.Sequence: sequence and weights have different lengths."
+      let rangesError = Left "Bio.Sequence.Class: sequence and weights have different lengths."
       (toWeighted s [1.. 3] :: Either Text TestWeightedSequence) `shouldBe` rangesError
