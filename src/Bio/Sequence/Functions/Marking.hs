@@ -1,9 +1,12 @@
 {-# LANGUAGE ViewPatterns #-}
 
 module Bio.Sequence.Functions.Marking
-  ( getMarking, unsafeGetMarking
-  , toMarked, unsafeToMarked
-  , addMarkings, unsafeAddMarkings
+  ( getMarking
+  , unsafeGetMarking
+  , toMarked
+  , unsafeToMarked
+  , addMarkings
+  , unsafeAddMarkings
   ) where
 
 import           Bio.Sequence.Class              (ContainsMarking,
@@ -42,7 +45,7 @@ getMarking (toSequence -> s) mk | not $ mk `member` (s ^. markings) = throwError
     res = foldl1 (<>) $ fmap ((:| []) . unsafeGetRange s) $ (s ^. markings) `lookupAll` mk
 
     markingNotFoundError :: Text
-    markingNotFoundError = "Bio.Sequence: given marking not found in Sequence."
+    markingNotFoundError = "Bio.Sequence.Functions.Marking: given marking not found in Sequence."
 
 unsafeGetMarking :: ContainsMarking s => s -> Marking s -> NonEmpty [Element s]
 unsafeGetMarking mk = unsafeEither . getMarking mk
@@ -75,7 +78,7 @@ addMarkings (toSequence -> s) markings' | all (checkRange (length s) . snd) mark
     res = fromSequence $ _sequenceInner (s ^. sequ) (s ^. markings <> markings') (s ^. weights)
 
     rangesError :: Text
-    rangesError = "Bio.Sequence.Marking: can't add markings to Sequence, because some of them are out of range."
+    rangesError = "Bio.Sequence.Functions.Marking: can't add markings to Sequence, because some of them are out of range."
 
 unsafeAddMarkings :: (IsSequence s, Marking s ~ mk) => s -> [(mk, Range)] -> s
 unsafeAddMarkings s = unsafeEither . addMarkings s

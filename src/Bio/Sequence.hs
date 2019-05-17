@@ -2,7 +2,9 @@
 
 module Bio.Sequence
   ( module Bio.Sequence.Class
-  , module Bio.Sequence.Functions.Sequence, module Bio.Sequence.Functions.Weight, module Bio.Sequence.Functions.Marking
+  , module Bio.Sequence.Functions.Sequence
+  , module Bio.Sequence.Functions.Weight
+  , module Bio.Sequence.Functions.Marking
   ) where
 
 import           Bio.Sequence.Class              hiding (_sequenceInner)

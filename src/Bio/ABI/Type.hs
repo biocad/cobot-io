@@ -1,17 +1,17 @@
 module Bio.ABI.Type
-  ( ABIRaw (..)
+  ( ABIProcessed (..)
   ) where
 
 import           Bio.Sequence (IsSequence (..), WeightedSequence)
 import           Data.Coerce  (coerce)
 
-newtype ABIRaw = ABIRaw (WeightedSequence Double Char)
+newtype ABIProcessed = ABIProcessed (WeightedSequence Double Char)
   deriving (Eq, Show)
 
-instance IsSequence ABIRaw where
-  type Element ABIRaw = Char
-  type Marking ABIRaw = ()
-  type Weight ABIRaw  = Double
+instance IsSequence ABIProcessed where
+  type Element ABIProcessed = Char
+  type Marking ABIProcessed = ()
+  type Weight ABIProcessed  = Double
 
   toSequence = coerce
   fromSequence = coerce

@@ -1,11 +1,13 @@
 {-# LANGUAGE ViewPatterns #-}
 
 module Bio.Sequence.Functions.Weight
-  ( mean, meanInRange
-  , getWeight, unsafeGetWeight
+  ( mean
+  , meanInRange
+  , getWeight
+  , unsafeGetWeight
   , getWeights
-  , toWeighted, unsafeToWeighted
-  , drop, take, tail
+  , toWeighted
+  , unsafeToWeighted
   ) where
 
 import           Bio.Sequence.Class              (ContainsWeight,
@@ -14,8 +16,7 @@ import           Bio.Sequence.Class              (ContainsWeight,
                                                   IsWeight (..),
                                                   IsWeightedSequence, sequ,
                                                   unsafeWeightedSequence,
-                                                  weightedSequence, weights,
-                                                  _sequenceInner)
+                                                  weightedSequence, weights)
 import           Bio.Sequence.Functions.Sequence (length)
 import           Bio.Sequence.Utilities          (unsafeEither)
 import           Control.Lens
@@ -64,7 +65,7 @@ getWeight (toSequence -> s) i | i >= V.length ws = throwError indexError
     ws = s ^. weights
 
     indexError :: Text
-    indexError = "Bio.Seqence.Weight: index out of range."
+    indexError = "Bio.Sequence.Functions.Weight: index out of range."
 
 unsafeGetWeight :: ContainsWeight s => s -> Int -> Weight s
 unsafeGetWeight sequ' = unsafeEither . getWeight sequ'
@@ -86,54 +87,4 @@ toWeighted (toSequence -> s) = weightedSequence (V.toList $ s ^. sequ)
 
 unsafeToWeighted :: (IsBareSequence s, IsWeightedSequence s', Weight s' ~ w, Element s ~ Element s') => s -> [w] -> s'
 unsafeToWeighted (toSequence -> s) = unsafeWeightedSequence (V.toList $ s ^. sequ)
-
--- | Unsafe drop:
---     * if n < 0, an error is thrown;
---     * if n >= length @s@, an error is thrown.
---
--- > sequWeighted = Sequence ['a', 'a', 'b', 'a'] mempty [0.1, 0.2, 0.3, 0.4]
--- > drop 2 sequWeighted == Sequence [b', 'a'] mempty [0.3, 0.4]
--- > drop -1 sequWeighted == error
--- > drop 4 sequWeighted == error
---
-drop :: IsWeightedSequence s => Int -> s -> s
-drop n (toSequence -> s) | n < 0         = error "Bio.Sequence.Weight: drop with negative value."
-                         | n >= length s = error "Bio.Sequence.Weight: empty sequence as result of drop."
-                         | otherwise     = res
-  where
-    droppedSequ = V.drop n $ s ^. sequ
-    newWeights  = V.drop n $ s ^. weights
-
-    res = fromSequence $ _sequenceInner droppedSequ mempty newWeights
-
--- | Unsafe take:
---     * if n < 0, an error is thrown;
---     * if n == 0, an error is thrown.
---
--- > sequWeighted = Sequence ['a', 'a', 'b', 'a'] mempty [0.1, 0.2, 0.3, 0.4]
--- > take 2 sequWeighted == Sequence ['a', 'a'] mempty [0.1, 0.2]
--- > take -1 sequWeighted == error
--- > take 0 sequWeighted == error
---
-take :: IsWeightedSequence s => Int -> s -> s
-take n (toSequence -> s) | n < 0     = error "Bio.Sequence.Weight: take with negative value."
-                         | n == 0    = error "Bio.Sequence.Weight: empty sequence as result of take."
-                         | otherwise = res
-  where
-    takenSequ  = V.take n $ s ^. sequ
-    newWeights = V.take n $ s ^. weights
-
-    res = fromSequence $ _sequenceInner takenSequ mempty newWeights
-
--- | Unsafe tail:
---     * length @s@ == 0, an error is thrown;
---     * length @s@ == 1, an error is thrown.
---
--- > sequWeighted = Sequence ['a', 'a', 'b', 'a'] mempty [0.1, 0.2, 0.3, 0.4]
--- > tail sequWeighted == Sequence [a', 'b', 'a'] mempty [0.2, 0.3, 0.4]
--- > tail (tail (tail (tail (tail sequWeighted)))) == error
---
-tail :: IsWeightedSequence s => s -> s
-tail s | length s == 0 = error "Bio.Sequence.Weight: tail from empty sequence."
-       | otherwise     = drop 1 s
 

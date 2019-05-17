@@ -2,7 +2,7 @@
 
 module Bio.ABI.Decode () where
 
-import           Bio.ABI.Type               (ABIRaw)
+import           Bio.ABI.Type               (ABIProcessed)
 import           Bio.Sequence               (SequenceDecodable (..),
                                              weightedSequence)
 import           Data.ByteString            as BS (ByteString)
@@ -16,10 +16,10 @@ import           Hyrax.Abif                 (Abif (..), Directory (..))
 import           Hyrax.Abif.Read            (getAbif)
 
 -- | Converts 'Data.ByteString.Lazy.ByteString' (that should be content of ABI file)
--- into 'Sequence with 'Weighted Char' inside.
+-- into 'ABIProcessed'.
 --
-instance SequenceDecodable BSL.ByteString ABIRaw where
-    sequenceDecode :: BSL.ByteString -> Either Text ABIRaw
+instance SequenceDecodable BSL.ByteString ABIProcessed where
+    sequenceDecode :: BSL.ByteString -> Either Text ABIProcessed
     sequenceDecode bs = do
         abif      <- getAbif bs
         sequence' <- extractSequence abif
@@ -27,10 +27,10 @@ instance SequenceDecodable BSL.ByteString ABIRaw where
         weightedSequence sequence' quality'
 
 -- | Converts 'Data.ByteString.ByteString' (that should be content of ABI file)
--- into 'Sequence with 'Weighted Char' inside.
+-- into 'ABIProcessed'.
 --
-instance SequenceDecodable BS.ByteString ABIRaw where
-    sequenceDecode :: BS.ByteString -> Either Text ABIRaw
+instance SequenceDecodable BS.ByteString ABIProcessed where
+    sequenceDecode :: BS.ByteString -> Either Text ABIProcessed
     sequenceDecode = sequenceDecode . BSL.fromStrict
 
 -------------------------------------------------------------------------------

@@ -2,27 +2,19 @@
 
 module SequenceSpec where
 
-import           Bio.Sequence.Class              (BareSequence, IsMarking,
-                                                  IsSequence (..),
-                                                  IsWeight (..), MarkedSequence,
-                                                  Sequence, WeightedSequence,
-                                                  bareSequence, createSequence,
-                                                  markedSequence,
-                                                  unsafeCreateSequence,
-                                                  unsafeMarkedSequence,
-                                                  unsafeWeightedSequence,
-                                                  weightedSequence)
-import           Bio.Sequence.Functions.Marking  (addMarkings, getMarking,
-                                                  toMarked)
-import           Bio.Sequence.Functions.Sequence (getRange, reverse)
-import           Bio.Sequence.Functions.Weight   (drop, getWeight, mean,
-                                                  meanInRange, tail, take,
-                                                  toWeighted)
-import           Data.Coerce                     (coerce)
-import qualified Data.List.NonEmpty              as NE (fromList)
-import           Data.Text                       (Text)
-import           Prelude                         hiding (drop, reverse, tail,
-                                                  take)
+import           Bio.Sequence       (BareSequence, IsMarking, IsSequence (..),
+                                     IsWeight (..), MarkedSequence, Sequence,
+                                     WeightedSequence, addMarkings,
+                                     bareSequence, createSequence, drop,
+                                     getMarking, getRange, getWeight,
+                                     markedSequence, mean, meanInRange, reverse,
+                                     tail, take, toMarked, toWeighted,
+                                     unsafeCreateSequence, unsafeMarkedSequence,
+                                     unsafeWeightedSequence, weightedSequence)
+import           Data.Coerce        (coerce)
+import qualified Data.List.NonEmpty as NE (fromList)
+import           Data.Text          (Text)
+import           Prelude            hiding (drop, reverse, tail, take)
 import           Test.Hspec
 
 instance IsWeight Int where
@@ -136,6 +128,9 @@ functionsSpec =
     -- common 'IsSequence' functions
     getRangeSpec
     reverseSpec
+    dropSpec
+    takeSpec
+    tailSpec
 
     -- 'Marking functions
     getMarkingSpec
@@ -146,14 +141,11 @@ functionsSpec =
     meanAndMeanInRangeSpec
     getWeightSpec
     toWeightedSpec
-    dropSpec
-    takeSpec
-    tailSpec
 
 getRangeSpec :: Spec
 getRangeSpec =
   describe "getRange" $ do
-    let getRangeError = Left "Bio.Sequence: invalid range in getRange."
+    let getRangeError = Left "Bio.Sequence.Functions.Sequence: invalid range in getRange."
     let s = unsafeCreateSequence ['a', 'b', 'c', 'a', 'a'] [(TestMarking "a", (0, 1)), (TestMarking "a", (3, 5))] [1, 2.. 5] :: TestMarkedAndWeightedSequence
 
     it "sequence: ['a', 'b', 'c', 'a', 'a']; range: (0, 1)" $ do
@@ -180,6 +172,45 @@ reverseSpec =
     it "sequence: ['a', 'b', 'c', 'd', 'e']; markings: [(abc, (0, 3)), (abcd, (0, 4)), (de, (3, 5)), (abcde, (0, 5))]; weights: []" $ do
       let s = unsafeMarkedSequence ['a', 'b', 'c', 'd', 'e'] [(TestMarking "abc", (0, 3)), (TestMarking "abcd", (0, 4)), (TestMarking "de", (3, 5)), (TestMarking "abcde", (0, 5))] :: TestMarkedSequence
       reverse s `shouldBe` unsafeMarkedSequence ['e', 'd', 'c', 'b', 'a'] [(TestMarking "abc", (2, 5)), (TestMarking "abcd", (1, 5)), (TestMarking "de", (0, 2)), (TestMarking "abcde", (0, 5))]
+
+dropSpec :: Spec
+dropSpec =
+  describe "drop" $ do
+    let s  = unsafeWeightedSequence ['a', 'b', 'c', 'a', 'a'] [1.. 5] :: TestWeightedSequence
+    let sB = bareSequence ['a', 'b', 'c', 'a', 'a'] :: TestBareSequence
+
+    it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]; drop: 2" $ do
+      drop 2 s `shouldBe` unsafeWeightedSequence ['c', 'a', 'a'] [3.. 5]
+    it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]; drop: 4" $ do
+      drop 4 s `shouldBe` unsafeWeightedSequence ['a'] [5]
+    it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]; drop: 4" $ do
+      drop 0 s `shouldBe` s
+    it "sequence: ['a', 'b', 'c', 'a', 'a']; drop: 2" $ do
+      drop 2 sB `shouldBe` bareSequence ['c', 'a', 'a']
+
+takeSpec :: Spec
+takeSpec =
+  describe "take" $ do
+    let s = unsafeWeightedSequence ['a', 'b', 'c', 'a', 'a'] [1.. 5] :: TestWeightedSequence
+
+    it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]; take: 2" $ do
+      take 2 s `shouldBe` unsafeWeightedSequence ['a', 'b'] [1.. 2]
+    it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]; take: 8" $ do
+      take 8 s `shouldBe` s
+
+tailSpec :: Spec
+tailSpec =
+  describe "tail" $ do
+    let s = unsafeWeightedSequence ['a', 'b', 'c', 'a', 'a'] [1.. 5] :: TestWeightedSequence
+
+    it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]" $ do
+      tail s `shouldBe` unsafeWeightedSequence ['b', 'c', 'a', 'a'] [2.. 5]
+    it "sequence: ['b', 'c', 'a', 'a']; weights: [2.. 5]" $ do
+      tail (tail s) `shouldBe` unsafeWeightedSequence ['c', 'a', 'a'] [3.. 5]
+    it "sequence: [c', 'a', 'a']; weights: [3.. 5]" $ do
+      tail (tail (tail s)) `shouldBe` unsafeWeightedSequence ['a', 'a'] [4.. 5]
+    it "sequence: [a', 'a']; weights: [4.. 5]" $ do
+      tail (tail (tail (tail s))) `shouldBe` unsafeWeightedSequence ['a'] [5]
 
 getMarkingSpec :: Spec
 getMarkingSpec =
@@ -208,7 +239,7 @@ addMarkingsSpec :: Spec
 addMarkingsSpec =
   describe "addMarkings" $ do
     let s = unsafeMarkedSequence ['a', 'b', 'c', 'a', 'a'] [(TestMarking "a", (0, 1)), (TestMarking "a", (3, 5))] :: TestMarkedSequence
-    let rangesError = Left "Bio.Sequence.Marking: can't add markings to Sequence, because some of them are out of range."
+    let rangesError = Left "Bio.Sequence.Functions.Marking: can't add markings to Sequence, because some of them are out of range."
 
     it "sequence: ['a', 'b', 'c', 'a', 'a']; markings: [(a, (0, 1)), (a, (3, 5))]; add: [(b, (1, 2))]" $ do
       addMarkings s [(TestMarking "b", (1, 2))] `shouldBe` Right (unsafeMarkedSequence ['a', 'b', 'c', 'a', 'a'] [(TestMarking "a", (0, 1)), (TestMarking "a", (3, 5)), (TestMarking "b", (1, 2))])
@@ -243,7 +274,7 @@ getWeightSpec =
     it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]; ind: 4" $ do
       getWeight s 4 `shouldBe` Right 5
     it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]; ind: 7" $ do
-      getWeight s 7 `shouldBe` Left "Bio.Seqence.Weight: index out of range."
+      getWeight s 7 `shouldBe` Left "Bio.Sequence.Functions.Weight: index out of range."
 
 toWeightedSpec :: Spec
 toWeightedSpec =
@@ -255,39 +286,3 @@ toWeightedSpec =
     it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 3]" $ do
       let rangesError = Left "Bio.Sequence: sequence and weights have different lengths."
       (toWeighted s [1.. 3] :: Either Text TestWeightedSequence) `shouldBe` rangesError
-
-dropSpec :: Spec
-dropSpec =
-  describe "drop" $ do
-    let s = unsafeWeightedSequence ['a', 'b', 'c', 'a', 'a'] [1.. 5] :: TestWeightedSequence
-
-    it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]; drop: 2" $ do
-      drop 2 s `shouldBe` unsafeWeightedSequence ['c', 'a', 'a'] [3.. 5]
-    it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]; drop: 4" $ do
-      drop 4 s `shouldBe` unsafeWeightedSequence ['a'] [5]
-    it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]; drop: 4" $ do
-      drop 0 s `shouldBe` s
-
-takeSpec :: Spec
-takeSpec =
-  describe "take" $ do
-    let s = unsafeWeightedSequence ['a', 'b', 'c', 'a', 'a'] [1.. 5] :: TestWeightedSequence
-
-    it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]; take: 2" $ do
-      take 2 s `shouldBe` unsafeWeightedSequence ['a', 'b'] [1.. 2]
-    it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]; take: 8" $ do
-      take 8 s `shouldBe` s
-
-tailSpec :: Spec
-tailSpec =
-  describe "tail" $ do
-    let s = unsafeWeightedSequence ['a', 'b', 'c', 'a', 'a'] [1.. 5] :: TestWeightedSequence
-
-    it "sequence: ['a', 'b', 'c', 'a', 'a']; weights: [1.. 5]" $ do
-      tail s `shouldBe` unsafeWeightedSequence ['b', 'c', 'a', 'a'] [2.. 5]
-    it "sequence: ['b', 'c', 'a', 'a']; weights: [2.. 5]" $ do
-      tail (tail s) `shouldBe` unsafeWeightedSequence ['c', 'a', 'a'] [3.. 5]
-    it "sequence: [c', 'a', 'a']; weights: [3.. 5]" $ do
-      tail (tail (tail s)) `shouldBe` unsafeWeightedSequence ['a', 'a'] [4.. 5]
-    it "sequence: [a', 'a']; weights: [4.. 5]" $ do
-      tail (tail (tail (tail s))) `shouldBe` unsafeWeightedSequence ['a'] [5]

@@ -6,19 +6,35 @@ module Bio.Sequence.Class
     SequenceDecodable (..)
 
   -- 'Sequence' type itself
-  , Sequence, WeightedSequence, MarkedSequence, BareSequence
-  , sequ, markings, weights
+  , Sequence
+  , WeightedSequence
+  , MarkedSequence
+  , BareSequence
+  , sequ
+  , markings
+  , weights
 
   -- classes for weights and markings of sequence
-  , IsMarking, IsWeight (..)
+  , IsMarking,
+   IsWeight (..)
   -- classes, that are abstractions over 'Sequence'
-  , IsSequence (..), IsWeightedSequence, IsMarkedSequence, IsBareSequence
-  , ContainsMarking, ContainsWeight
+  , IsSequence (..)
+  , IsWeightedSequence
+  , IsMarkedSequence
+  , IsBareSequence
+  , ContainsMarking
+  , ContainsNoMarking
+  , ContainsWeight
+  , ContainsNoWeight
 
   -- constructors for 'IsSequence'
-  , createSequence, unsafeCreateSequence, bareSequence
-  , weightedSequence, unsafeWeightedSequence
-  , markedSequence, unsafeMarkedSequence
+  , createSequence
+  , unsafeCreateSequence
+  , bareSequence
+  , weightedSequence
+  , unsafeWeightedSequence
+  , markedSequence
+  , unsafeMarkedSequence
 
   -- inner unsafe constructor that should be used only in module Bio.Sequence
   , _sequenceInner
@@ -63,6 +79,9 @@ instance Semigroup (Sequence mk w a) where
 
 instance Monoid (Sequence () () a) where
   mempty = Sequence mempty mempty mempty
+
+instance Foldable (Sequence mk w) where
+  foldMap f = foldMap f . _sequ
 
 -- | Exported constructor for 'Sequence'. Should be used ONLY in module Bio.Sequence.
 --
@@ -137,8 +156,8 @@ instance IsWeight Double where
 --
 -- Special cases, when 'IsSequence' has no markings, has no weights, or
 -- has no weights and no markings at the same time are aliased:
---  * 'IsWeightedSequence' is alias for sequence with 'Weight' type set to ().
---  * 'IsMarkedSequence' is alias for sequence with 'Marking' type set to ().
+--  * 'IsWeightedSequence' is alias for sequence with 'Marking' type set to () and 'Weight' not set to ()
+--  * 'IsMarkedSequence' is alias for sequence with 'Weight' type set to () and 'Marking' not set to ().
 --  * 'IsBareSequence' is alias for sequence with 'Marking' and 'Weight' types
 --     set to ().
 --
@@ -200,14 +219,24 @@ type IsMarkedSequence s = (IsSequence s, NotUnit (Marking s), Unit (Weight s))
 type IsBareSequence s = (IsSequence s, Unit (Marking s), Unit (Weight s))
 
 -- | Type alias for constraint that checks whether given instance @s@ of 'IsSequence'
--- has no markings, weights of @s@ are not checked.
+-- has markings, weights of @s@ are not checked.
 --
 type ContainsMarking s = (IsSequence s, NotUnit (Marking s))
+
+-- | Type alias for constraint that checks whether given instance @s@ of 'IsSequence'
+-- has no markings, weights of @s@ are not checked.
+--
+type ContainsNoMarking s = (IsSequence s, Unit (Marking s))
 
 -- | Type alias for constraint that checks whether given instance @s@ of 'IsSequence'
 -- has weights, markings of @s@ are not checked.
 --
 type ContainsWeight s = (IsSequence s, NotUnit (Weight s))
+
+-- | Type alias for constraint that checks whether given instance @s@ of 'IsSequence'
+-- has no weights, markings of @s@ are not checked.
+--
+type ContainsNoWeight s = (IsSequence s, Unit (Weight s))
 
 
 --------------------------------------------------------------------------------

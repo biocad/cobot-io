@@ -1,6 +1,11 @@
 module Bio.GB.Type
   ( GenBankStructure (..)
-  , Meta (..), Form (..), Locus (..), Version (..), Source (..), Reference (..)
+  , Meta (..)
+  , Form (..)
+  , Locus (..)
+  , Version (..)
+  , Source (..)
+  , Reference (..)
   , Feature (..)
   , GenBankSequence (..)
   ) where
@@ -30,7 +35,7 @@ data Meta = Meta { locus      :: Locus         -- ^ general info about sequence
                  , keywords   :: Maybe Text    -- ^ word or phrase describing the sequence
                  , source     :: Maybe Source  -- ^ free-format information including an abbreviated form of the organism name,
                                                --   sometimes followed by a molecule type
-                 , references :: [Reference]   -- ^ bublications by the authors of the sequence that discuss the data reported in the record
+                 , references :: [Reference]   -- ^ publications by the authors of the sequence that discuss the data reported in the record
                  , comments   :: [Text]        -- ^ comments about the sequence (note that there can be (!!!) empty comments)
                  }
   deriving (Eq, Show)
