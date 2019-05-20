@@ -23,17 +23,15 @@ import           Bio.Sequence.Utilities          (Range, checkRange,
 import           Control.Lens
 import           Control.Monad.Except            (MonadError, throwError)
 import           Data.List                       (nub)
-import qualified Data.List                       as L (find)
 import           Data.List.NonEmpty              (NonEmpty (..))
-import           Data.Maybe                      (isJust)
 import           Data.Text                       (Text)
 import qualified Data.Vector                     as V (toList)
 import           Prelude                         hiding (drop, head, length,
                                                   null, reverse, tail, take,
                                                   (!!))
 
--- | Function that retreives all elements in 'IsSequence' @s@ that are covered by given 'Marking'' @s@.
--- Returns 'NonEmpty' list, because if 'Marking is present in @s@, then list of
+-- | Function that retrieves all elements in 'IsSequence' @s@ that are covered by given 'Marking'' @s@.
+-- Returns 'NonEmpty' list, because if 'Marking' is present in @s@, then list of
 -- all 'Marking's for @s@ can't be empty. If given 'Marking is not found in @s@, an
 -- error will be thrown.
 --
@@ -44,7 +42,7 @@ getMarking :: (ContainsMarking s, MonadError Text m) => s -> Marking s -> m (Non
 getMarking (toSequence -> s) mk | not $ mk `member` (s ^. markings) = throwError markingNotFoundError
                                 | otherwise                         = pure $ res
   where
-    res = foldl1 (<>) $ fmap ((:| []) . unsafeGetRange s) $ (s ^. markings) `lookupAll` mk
+    res = foldl1 (<>) $ fmap ((:| []) . unsafeGetRange s) $  mk `lookupAll` (s ^. markings)
 
     markingNotFoundError :: Text
     markingNotFoundError = "Bio.Sequence.Functions.Marking: given marking not found in Sequence."
@@ -99,9 +97,7 @@ listMarkings (toSequence -> s) = nub $ fst <$> s ^. markings
 --------------------------------------------------------------------------------
 
 member :: Eq a => a -> [(a, b)] -> Bool
-member a l = isJust . L.find ((== a) . fst) $ l
+member a = (a `elem`) . fmap fst
 
-lookupAll :: Eq a => [(a, b)] -> a -> [b]
-lookupAll [] _                         = []
-lookupAll ((a, b) : xs) a' | a == a'   = b : lookupAll xs a'
-                           | otherwise = lookupAll xs a'
+lookupAll :: Eq a => a -> [(a, b)] -> [b]
+lookupAll a = fmap snd . filter ((== a) . fst)

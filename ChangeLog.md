@@ -7,6 +7,7 @@
 - New version of module Bio.Sequence hat introduces `IsSequence` type class and `Sequence` datatype.
 - Type `GenBankSequence` describing structure of .gb file.
 - Parser for `GenBankSequence`.
+- Writer for `GenBankSequence`.
 ### Changed
 - ABI cleaner and decoder now work with type `ABIRaw`.
 

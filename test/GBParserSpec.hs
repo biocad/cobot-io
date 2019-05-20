@@ -9,8 +9,8 @@ import           Bio.Sequence (Range, fromSequence, unsafeMarkedSequence)
 import           Data.Text    (Text)
 import           Test.Hspec
 
-gBParserSpec :: Spec
-gBParserSpec = describe "GenBank format parser." $ do
+gbParserSpec :: Spec
+gbParserSpec = describe "GenBank format parser." $ do
     pAAVGFPSpecP "test/GB/pAAV-GFP-CellBioLab.gb"
     pAAVCMVSpecP "test/GB/pAAV_CMV_RPE65_PolyA_linkers.gb"
     dottedMetaSpecP "test/GB/pAAV-GFP-CellBioLab-dots.gb"
