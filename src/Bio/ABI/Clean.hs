@@ -3,10 +3,10 @@ module Bio.ABI.Clean
   , Thresholds (..)
   ) where
 
-import           Bio.ABI.Type  (ABIBasecalled)
-import           Bio.Sequence  (mean, meanInRange)
-import qualified Bio.Sequence  as S (drop, length, reverse, tail)
-import           Control.Monad (join)
+import           Bio.Sequence            (mean, meanInRange)
+import qualified Bio.Sequence            as S (drop, length, reverse, tail)
+import           Bio.Sequence.Basecalled (BasecalledSequence)
+import           Control.Monad           (join)
 
 -- | Ability to clean initial data.
 -- Returns cleaned variant or 'Nothing' if it can not be cleaned.
@@ -49,7 +49,7 @@ data Thresholds
 defaultThresholds :: Thresholds
 defaultThresholds = Thresholds 10 20 30
 
-instance Cleanable ABIBasecalled where
+instance Cleanable BasecalledSequence where
   cleanWith thr input = if fmap (checkInner thr) fromBoth == Just True
                           then fromBoth
                           else Nothing
@@ -65,10 +65,10 @@ instance Cleanable ABIBasecalled where
 -- INTERNAL
 -------------------------------------------------------------------------------
 
-checkInner :: Thresholds -> ABIBasecalled -> Bool
+checkInner :: Thresholds -> BasecalledSequence -> Bool
 checkInner Thresholds{..} = (> innerThreshold) . mean
 
-cutEdge :: Thresholds -> ABIBasecalled -> Maybe ABIBasecalled
+cutEdge :: Thresholds -> BasecalledSequence -> Maybe BasecalledSequence
 cutEdge t@Thresholds{..} sequ | S.length sequ < frameSize                    = Just sequ
                               | meanInR < edgeThreshold && S.length sequ > 1 = cutEdge t $ S.tail sequ
                               | S.length sequ > frameSize                    = Just $ S.drop frameSize sequ

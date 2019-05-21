@@ -18,7 +18,8 @@ module Bio.Sequence.Class
   -- classes for weights and markings of sequence
   , IsMarking
   , IsWeight (..)
-  -- classes, that are abstractions over 'Sequence'
+
+  -- classes that are abstractions over 'Sequence'
   , IsSequence (..)
   , IsWeightedSequence
   , IsMarkedSequence
