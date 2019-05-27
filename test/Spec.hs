@@ -1,8 +1,11 @@
 import           ABISpec
+import           GBParserSpec
+import           GBWriterSpec
 import           MMTFSpec
-import           UniprotSpec
+import           SequenceSpec
 import           System.IO
 import           Test.Hspec
+import           UniprotSpec
 
 main :: IO ()
 main = do
@@ -11,9 +14,17 @@ main = do
          -- MMTF
          mmtfCodecSpec
          mmtfParserSpec
+         -- Sequence
+         weightedSequenceSpec
+         markedSequenceSpec
+         markedAndWeightedSequenceSpec
+         functionsSpec
          -- ABI
          abiExtractSpec
          abiCleanSpec
          -- Uniprot
          uniprotSectionSpec
          uniprotFullSpec
+         -- GB
+         gbParserSpec
+         gbWriterSpec

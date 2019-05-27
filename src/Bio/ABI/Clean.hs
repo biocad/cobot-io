@@ -3,9 +3,10 @@ module Bio.ABI.Clean
   , Thresholds (..)
   ) where
 
-import           Bio.Sequence  (Weighted (..))
-import           Data.Foldable (Foldable (..))
-import           Data.Array                 (Array, listArray)
+import           Bio.Sequence            (mean, meanInRange)
+import qualified Bio.Sequence            as S (drop, length, reverse, tail)
+import           Bio.Sequence.Basecalled (BasecalledSequence)
+import           Control.Monad           (join)
 
 -- | Ability to clean initial data.
 -- Returns cleaned variant or 'Nothing' if it can not be cleaned.
@@ -48,39 +49,29 @@ data Thresholds
 defaultThresholds :: Thresholds
 defaultThresholds = Thresholds 10 20 30
 
-instance Cleanable [Weighted Char] where
-  cleanWith thr input = if checkInner thr fromBoth
-                          then Just fromBoth
+instance Cleanable BasecalledSequence where
+  cleanWith thr input = if fmap (checkInner thr) fromBoth == Just True
+                          then fromBoth
                           else Nothing
     where
       fromLeft = cutEdge defaultThresholds input
-      fromBoth = reverse
-               . cutEdge defaultThresholds
-               . reverse
-               $ fromLeft
-
-instance Cleanable (Array Int (Weighted Char)) where
-  cleanWith thr input = 
-      case cleanWith thr . toList $ input of
-          Just x  -> Just $ listArray (0, length x - 1) x
-          Nothing -> Nothing
+      fromBoth =  fmap S.reverse
+               .  join
+               $  cutEdge defaultThresholds
+               .  S.reverse
+              <$> fromLeft
 
 -------------------------------------------------------------------------------
 -- INTERNAL
 -------------------------------------------------------------------------------
 
-checkInner :: Thresholds -> [Weighted Char] -> Bool
-checkInner Thresholds{..} = (> innerThreshold) . meanWeight
+checkInner :: Thresholds -> BasecalledSequence -> Bool
+checkInner Thresholds{..} = (> innerThreshold) . mean
 
-cutEdge :: Thresholds -> [Weighted a] -> [Weighted a]
-cutEdge t@Thresholds{..} list | length list < frameSize = list
-                              | meanWeight frameObjects < edgeThreshold = cutEdge t (tail list)
-                              | otherwise = drop frameSize list
+cutEdge :: Thresholds -> BasecalledSequence -> Maybe BasecalledSequence
+cutEdge t@Thresholds{..} sequ | S.length sequ < frameSize                    = Just sequ
+                              | meanInR < edgeThreshold && S.length sequ > 1 = cutEdge t $ S.tail sequ
+                              | S.length sequ > frameSize                    = Just $ S.drop frameSize sequ
+                              | otherwise                                    = Nothing
   where
-    frameObjects = take frameSize list
-
-meanWeight :: [Weighted a] -> Double
-meanWeight = mean . fmap _weight
-
-mean :: [Double] -> Double
-mean l = sum l / fromIntegral (length l)
+    meanInR = meanInRange sequ (0, frameSize - 1)
