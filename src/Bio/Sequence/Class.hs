@@ -85,6 +85,8 @@ instance Monoid (Sequence mk () a) where
 instance Foldable (Sequence mk w) where
   foldMap f = foldMap f . _sequ
 
+  length = V.length . _sequ
+
 -- | Exported constructor for 'Sequence'. Should be used ONLY in module Bio.Sequence.
 --
 _sequenceInner :: Vector a -> [(mk, Range)] -> Vector w -> Sequence mk w a

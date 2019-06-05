@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.1.1] - 2019-06-05
+### Changed
+- `length` on `Sequence` now works in O(1).
+
 ## [0.1.1.0] - 2019-05-13
 ### Added
 - New version of module Bio.Sequence hat introduces `IsSequence` type class and `Sequence` datatype.
