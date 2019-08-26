@@ -1,19 +1,24 @@
-{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE TupleSections #-}
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
+{-# OPTIONS_GHC -fno-warn-unused-matches #-}
+{-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
+
 module Bio.Uniprot.Parser where
 
 import           Prelude              hiding (null)
-import qualified Prelude              as P (concat, id, init, last, null, tail)
+import qualified Prelude              as P (concat, init, last, null, tail)
 
 import           Bio.Uniprot.Type
 import           Control.Applicative  (liftA2, (<|>))
-import           Control.Monad        (unless, when)
+import           Control.Monad        (unless)
 import           Data.Attoparsec.Text
 import           Data.Bifunctor       (second)
 import           Data.Char            (isSpace)
 import           Data.Functor         (($>))
 import           Data.Monoid          ((<>))
-import           Data.Text            (Text, append, concat, init, null, pack,
-                                       splitOn, unpack, unwords, isPrefixOf)
+import           Data.Text            (Text, append, isPrefixOf, null, pack,
+                                       splitOn, unpack)
 
 -- | Describes possible name type of DE section.
 data NameType = RecName | AltName | SubName | Flags | None
@@ -378,7 +383,7 @@ parseSQ :: Parser SQ
 parseSQ = do
     string "SQ   SEQUENCE"
     many1 space
-    length <- decimal
+    len <- decimal
     space >> string "AA;"
     many1 space
     molWeight <- decimal
@@ -387,8 +392,8 @@ parseSQ = do
     crc64 <- pack <$> many1 (satisfy $ inClass "A-F0-9")
     space >> string "CRC64;"
     endOfLine
-    sequence <- pack . P.concat <$>
-                  many1 (skipSpace *> many1 (satisfy $ inClass "A-Z"))
+    sequ <- pack . P.concat <$>
+            many1 (skipSpace *> many1 (satisfy $ inClass "A-Z"))
     pure SQ{..}
 
 -- | Parses end of one UniProt record.
@@ -505,6 +510,7 @@ parseTillChar c = do
           count 2 anyChar
           count 2 (char ' ')
           (part <>) <$> parseTillChar c
+      Just _                 -> fail "You cannot be here!"
 
 -- | Delete needless space after hyphen on concat.
 hyphenConcat :: [String] -> String
