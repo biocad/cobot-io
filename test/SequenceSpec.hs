@@ -1,17 +1,16 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
 module SequenceSpec where
 
-import           Bio.Sequence       (BareSequence, IsMarking, IsSequence (..),
-                                     IsWeight (..), MarkedSequence, Sequence,
-                                     WeightedSequence, addMarkings,
-                                     bareSequence, createSequence, drop,
-                                     getMarking, getRange, getWeight,
+import           Bio.Sequence       (BareSequence, IsMarking, IsWeight (..),
+                                     MarkedSequence, Sequence, WeightedSequence,
+                                     addMarkings, bareSequence, createSequence,
+                                     drop, getMarking, getRange, getWeight,
                                      markedSequence, mean, meanInRange, reverse,
                                      tail, take, toMarked, toWeighted,
                                      unsafeCreateSequence, unsafeMarkedSequence,
                                      unsafeWeightedSequence, weightedSequence)
-import           Data.Coerce        (coerce)
 import qualified Data.List.NonEmpty as NE (fromList)
 import           Data.Text          (Text)
 import           Prelude            hiding (drop, reverse, tail, take)

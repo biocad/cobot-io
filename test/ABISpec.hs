@@ -5,7 +5,6 @@ import           Bio.Sequence            (SequenceDecodable (..))
 import qualified Bio.Sequence            as S (getWeights, length, toList)
 import           Bio.Sequence.Basecalled (BasecalledSequence)
 import           Data.ByteString.Lazy    as BSL (readFile)
-import           Data.Foldable           (Foldable (..))
 import           Data.Text               (Text)
 import           Test.Hspec
 

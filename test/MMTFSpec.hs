@@ -3,7 +3,6 @@ module MMTFSpec where
 import           Bio.MMTF
 import           Bio.MMTF.Decode.Codec
 import           Data.Array            ((!))
-import qualified Data.ByteString.Lazy  as B
 import           Data.Int              (Int8)
 import           Test.Hspec
 
