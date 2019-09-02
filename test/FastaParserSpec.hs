@@ -2,11 +2,11 @@
 
 module FastaParserSpec where
 
-import           Test.Hspec
 import           Bio.FASTA.Parser       (fastaP)
-import           Data.Attoparsec.Text   (parseOnly)
-import           Bio.Sequence           (bareSequence)
 import           Bio.FASTA.Type         (FastaItem(..))
+import           Bio.Sequence           (bareSequence)
+import           Data.Attoparsec.Text   (parseOnly)
+import           Test.Hspec
 
 fastaParserSpec :: Spec
 fastaParserSpec = describe "Fasta format parser." $ do

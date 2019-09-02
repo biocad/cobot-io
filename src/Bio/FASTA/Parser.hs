@@ -6,8 +6,8 @@ import           Bio.FASTA.Type         (Fasta, FastaItem(..))
 import           Bio.Sequence           (BareSequence, bareSequence)
 import           Data.Attoparsec.Text   (Parser, many', many1', char, endOfLine, letter,
                                             takeWhile, choice, endOfInput)
-import           Prelude         hiding (takeWhile)
 import           Data.Text              (Text)
+import           Prelude         hiding (takeWhile)
 
 -- | Parser of .fasta file.
 --

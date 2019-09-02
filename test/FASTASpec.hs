@@ -2,11 +2,11 @@
 
 module FASTASpec where
 
-import           Test.Hspec
 import           Bio.FASTA          (fromFile, toFile)
-import           Bio.Sequence       (bareSequence)
 import           Bio.FASTA.Type     (FastaItem(..), Fasta)
+import           Bio.Sequence       (bareSequence)
 import           Prelude     hiding (writeFile, readFile)
+import           Test.Hspec
 
 correctFasta :: Fasta Char
 correctFasta = [FastaItem "3HMX:A|PDBID|CHAIN|SEQUENCE" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEDGITWTLDQSSEVLGSGKTLTIQVKEFGDAGQYTCHKGGEVLSHSLL"), FastaItem "7HMX:A|PDBID|CHAIN|SEQUENCE" (bareSequence "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEVLGSGKTLTIQVKEFGDAGQYTCHKGGEVLSHSLL")]

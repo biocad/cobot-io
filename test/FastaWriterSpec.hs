@@ -1,9 +1,9 @@
 module FastaWriterSpec where
 
-import           Test.Hspec
 import           Bio.FASTA.Writer       (fastaToText)
-import           Bio.Sequence           (bareSequence)
 import           Bio.FASTA.Type         (FastaItem(..))
+import           Bio.Sequence           (bareSequence)
+import           Test.Hspec
 
 fastaWriterSpec :: Spec
 fastaWriterSpec = describe "Fasta format parser." $ do

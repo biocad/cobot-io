@@ -6,8 +6,8 @@ import           Bio.FASTA.Type     (Fasta, FastaItem(..))
 import           Bio.Sequence       (BareSequence, sequ)
 import           Control.Lens       ((^.))
 import           Data.Text          (Text, pack, append)
+import           Data.List.Split    (chunksOf)
 import           Data.Vector        (Vector, toList)
-import Data.List.Split (chunksOf)
 import           Prelude     hiding (drop)
 
 fastaToText :: Fasta Char -> Text
