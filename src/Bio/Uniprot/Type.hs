@@ -227,10 +227,10 @@ data FT = FT
 
 -- | SeQuence header - sequence data and a quick summary of its content.
 data SQ = SQ
-  { length    :: Int  -- ^ Length of the sequence in amino acids.
+  { len       :: Int  -- ^ Length of the sequence in amino acids.
   , molWeight :: Int  -- ^ Molecular weight rounded to the nearest mass unit (Dalton).
   , crc64     :: Text -- ^ Sequence 64-bit CRC (Cyclic Redundancy Check) value.
-  , sequence  :: Text -- ^ Sequence of the protein
+  , sequ      :: Text -- ^ Sequence of the protein
   } deriving (Generic, Show, Eq, Ord)
 
 -- | Full UniProt record in UniProt-KB format.

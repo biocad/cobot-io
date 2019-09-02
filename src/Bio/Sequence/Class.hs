@@ -65,7 +65,7 @@ data Sequence mk w a = Sequence { _sequ     :: Vector a      -- ^ sequence itsel
                                 , _markings :: [(mk, Range)] -- ^ list of pairs containing marking and 'Range', that corresponds to it
                                 , _weights  :: Vector w      -- ^ weights for all elements in sequence
                                 }
-  deriving (Eq, Show, Generic)
+  deriving (Eq, Show, Generic, Functor)
 
 instance Semigroup (Sequence mk w a) where
   sequA <> sequB = res

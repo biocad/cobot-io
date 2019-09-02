@@ -5,8 +5,7 @@ module GBParserSpec where
 import           Bio.GB       (Feature (..), Form (..), GenBankSequence (..),
                                Locus (..), Meta (..), Reference (..),
                                Source (..), Version (..), fromFile)
-import           Bio.Sequence (Range, fromSequence, unsafeMarkedSequence)
-import           Data.Text    (Text)
+import           Bio.Sequence (Range, unsafeMarkedSequence)
 import           Test.Hspec
 
 gbParserSpec :: Spec

@@ -3,11 +3,10 @@ module UniprotSpec where
 
 import           Prelude       hiding (lines, unlines)
 
-import           Data.Text            (Text, lines, unlines)
-import           Data.Attoparsec.Text (parseOnly, endOfLine, parseTest, many')
+import           Data.Text            (Text)
+import           Data.Attoparsec.Text (parseOnly, endOfLine, many')
 import           NeatInterpolation    (text)
 import           Test.Hspec
-import           Test.QuickCheck
 
 import          Bio.Uniprot.Type
 import          Bio.Uniprot.Parser
