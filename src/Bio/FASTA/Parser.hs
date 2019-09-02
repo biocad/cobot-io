@@ -18,13 +18,13 @@ item :: Parser (FastaItem Char)
 item = FastaItem <$> seqName <*> fastaSeq
 
 seqName :: Parser (Text)
-seqName = tabs *> char '>' *> takeWhile (`notElem` ['\n', '\r', '\t']) <* eol
+seqName = char '>' *> takeWhile (`notElem` ['\n', '\r', '\t']) <* eol
 
 fastaSeq :: Parser (BareSequence Char)
 fastaSeq = bareSequence . mconcat <$> many1' line
 
 line :: Parser (String)
-line = tabs *> many1' letter <* eol
+line = many1' letter <* eol
 
 eol :: Parser ()
 eol = tabs *> choice [slashN, endOfInput]

@@ -6,12 +6,12 @@ module Bio.FASTA
   ) where
 
 import           Bio.FASTA.Parser
-import           Bio.FASTA.Type            as T
-import           Bio.FASTA.Writer          (fastaToText)
-import           Control.Monad.IO.Class (MonadIO, liftIO)
-import           Data.Attoparsec.Text   (parseOnly)
-import           Data.Text.IO           (readFile, writeFile)
-import           Prelude         hiding (writeFile, readFile)
+import           Bio.FASTA.Type             as T
+import           Bio.FASTA.Writer           (fastaToText)
+import           Control.Monad.IO.Class     (MonadIO, liftIO)
+import           Data.Attoparsec.Text       (parseOnly)
+import           Data.Text.IO               (readFile, writeFile)
+import           Prelude            hiding  (writeFile, readFile)
 
 -- | Reads 'FastaSequence' from given file.
 --

@@ -72,11 +72,11 @@ sequenceWithSeveralEndOfLineInSequence = describe "sequenceWithSeveralEndOfLineI
 sequenceWithTabsInName :: Spec
 sequenceWithTabsInName = describe "sequenceWithTabsInName" $ do
     it "correctly parses sequence with tabs in name" $ do
-        let res = parseOnly fastaP "\t>this is my sequence\t\t\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE"
+        let res = parseOnly fastaP ">this is my sequence\t\t\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE"
         res `shouldBe` Right [FastaItem "this is my sequence" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE")]
 
 sequenceWithTabsInSequence :: Spec
 sequenceWithTabsInSequence = describe "sequenceWithTabsInSequence" $ do
     it "correctly parses sequence with tabs between sequence parts" $ do
-        let res = parseOnly fastaP ">this is my sequence\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE\t\t\n\t\tYYYYYYYYYYYYYYYYYYYYYYYY\t\n"
+        let res = parseOnly fastaP ">this is my sequence\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE\t\t\nYYYYYYYYYYYYYYYYYYYYYYYY\t\n"
         res `shouldBe` Right [FastaItem "this is my sequence" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSEYYYYYYYYYYYYYYYYYYYYYYYY")]
