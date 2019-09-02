@@ -5,7 +5,7 @@ module FASTASpec where
 import           Test.Hspec
 import           Bio.FASTA    (fromFile, toFile)
 import           Bio.Sequence       (bareSequence)
-import           Bio.FASTA.Type       (FastaItem(..), Fasta(..))
+import           Bio.FASTA.Type       (FastaItem(..), Fasta)
 import           Prelude         hiding (writeFile, readFile)
 
 correctFasta :: Fasta Char
