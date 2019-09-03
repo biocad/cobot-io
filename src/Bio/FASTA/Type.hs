@@ -7,7 +7,7 @@ import           Bio.Sequence (BareSequence)
 import           Data.Text    (Text)
 
 -- | Type alias for FASTA file.
---
+--  satisfies the following format : >(\s|\t)*[^\n\r]+(\s|\t)*(\n|\r)*(\w(\n|\r)*)*
 type Fasta a = [FastaItem a]
 
 -- | One record in FASTA file.

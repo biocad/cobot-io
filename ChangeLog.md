@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.1.2.0] - 2019-09-03
+### Added
+- Parser for `FASTA`.
+- Writer for `FASTA`.
+
 ## [0.1.1.1] - 2019-06-05
 ### Changed
 - `length` on `Sequence` now works in O(1).

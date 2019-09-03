@@ -11,6 +11,7 @@ import           Test.Hspec
 fastaParserSpec :: Spec
 fastaParserSpec = describe "Fasta format parser." $ do
     emptyFasta
+    onlyName
     oneSequence
     twoSequences
     sequenceWithDigit
@@ -26,6 +27,12 @@ emptyFasta = describe "emptyFasta" $ do
     it "correctly parses empty fasta" $ do
         let res = parseOnly fastaP ""
         res `shouldBe` Right []
+
+onlyName :: Spec
+onlyName = describe "onlyName" $ do
+    it "correctly parses fasta without sequence" $ do
+        let res = parseOnly fastaP ">3HMX:A|PDBID|CHAIN|SEQUENCE"
+        res `shouldBe` Right [FastaItem "3HMX:A|PDBID|CHAIN|SEQUENCE" (bareSequence "")]
 
 oneSequence :: Spec
 oneSequence = describe "oneSequence" $ do
@@ -43,7 +50,7 @@ sequenceWithDigit :: Spec
 sequenceWithDigit = describe "sequenceWithDigit" $ do
     it "correctly parses incorrect sequence with digit" $ do
         let res = parseOnly fastaP ">123\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEE4GITWTLDQSSE"
-        res `shouldBe` Right []
+        res `shouldBe` Right [FastaItem "123" (bareSequence "")]
 
 sequenceWithWrongName :: Spec
 sequenceWithWrongName = describe "sequenceWithWrongName" $ do
@@ -55,7 +62,7 @@ sequenceWithSpacesInName :: Spec
 sequenceWithSpacesInName = describe "sequenceWithSpacesInName" $ do
     it "correctly parses sequence with spaces in name" $ do
         let res = parseOnly fastaP ">  this is my sequence   \nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE"
-        res `shouldBe` Right [FastaItem "  this is my sequence   " (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE")]
+        res `shouldBe` Right [FastaItem "this is my sequence" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE")]
 
 sequenceWithSeveralEndOfLine :: Spec
 sequenceWithSeveralEndOfLine = describe "sequenceWithSeveralEndOfLine" $ do
@@ -72,8 +79,8 @@ sequenceWithSeveralEndOfLineInSequence = describe "sequenceWithSeveralEndOfLineI
 sequenceWithTabsInName :: Spec
 sequenceWithTabsInName = describe "sequenceWithTabsInName" $ do
     it "correctly parses sequence with tabs in name" $ do
-        let res = parseOnly fastaP ">this is my sequence\t\t\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE"
-        res `shouldBe` Right [FastaItem "this is my sequence" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE")]
+        let res = parseOnly fastaP ">\tthis\tis\tmy\tsequence\t\t\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE"
+        res `shouldBe` Right [FastaItem "this\tis\tmy\tsequence" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE")]
 
 sequenceWithTabsInSequence :: Spec
 sequenceWithTabsInSequence = describe "sequenceWithTabsInSequence" $ do
