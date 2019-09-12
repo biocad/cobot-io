@@ -13,17 +13,13 @@ import Data.Text as T
 import Data.Vector as V
 import Data.List as L
 import Control.Lens
-import Data.Map.Strict as M
 import Data.Maybe
 import Control.Monad
 
-type Name = Text
-
-
 changeInsertion :: IO ()
 changeInsertion = do
-    gb <- readAndParse "/tmp/pSXn-IgG4HCpos-NR_BCD216-00_ABVH_000_01.gb"
-    changes' <- changes "/tmp/BCD216-02_contigs.fasta"
+    gb <- readAndParse "/Users/agromova/tmp/BCD216.gb"
+    changes' <- changes "/Users/agromova/tmp/fasta.fasta"
     Control.Monad.forM_ changes' $ \(newName, newSeq) -> do
         let res = updateGB "BCD216-00_ABVH_000_01" newName newSeq gb
         let newFile = genName newName
@@ -31,7 +27,7 @@ changeInsertion = do
         TIO.writeFile newFile newGB
   where
     genName :: Text -> FilePath
-    genName t = "/tmp/plasmid_maps/pSXn-IgG4HCpos-NR_" <> T.unpack t <> ".gb"
+    genName t = "/Users/agromova/tmp/plasmid_maps/pSXn-IgG4HCpos-NR_" <> T.unpack t <> ".gb"
 
 
 

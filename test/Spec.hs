@@ -9,6 +9,7 @@ import           UniprotSpec
 import           FastaParserSpec
 import           FastaWriterSpec
 import           FASTASpec
+import           PlasmidDesignerSpec
 
 main :: IO ()
 main = do
@@ -35,3 +36,5 @@ main = do
          fastaParserSpec
          fastaSpec
          fastaWriterSpec
+         --PlasmidDesigner
+         plasmidDesignerSpec

@@ -7,10 +7,14 @@ module Bio.GB.Type
   , Source (..)
   , Reference (..)
   , Feature (..)
+  , Name
+  , PlasmidFormat (..)
   ) where
 
 import           Bio.Sequence (IsMarking, MarkedSequence)
 import           Data.Text    (Text)
+
+type Name = Text
 
 -- | Type that represents contents of .gb file that is used to store information about
 -- genetic constructions.
@@ -100,3 +104,8 @@ data Feature = Feature { fName     :: Text           -- ^ main information about
   deriving (Eq, Show, Ord)
 
 instance IsMarking Feature
+
+data PlasmidFormat = PlasmidFormat {
+      plasmid :: GenBankSequence
+    , stuffer :: Name
+}

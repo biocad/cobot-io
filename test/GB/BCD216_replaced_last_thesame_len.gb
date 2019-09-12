@@ -1,0 +1,50 @@
+LOCUS       pSXn_IgG4HCpos_N       10593 bp ds-DNA     circular     12-AUG-2019
+DEFINITION  synthetic circular DNA
+ACCESSION   .
+VERSION     .
+KEYWORDS    .
+SOURCE      synthetic DNA construct
+  ORGANISM  synthetic DNA construct
+REFERENCE   1  (bases 1 to 10593)
+  AUTHORS   .
+  TITLE     Direct Submission
+  JOURNAL   Exported Feb 21, 2019 from SnapGene 4.2.6 http://www.snapgene.com
+COMMENT     
+COMMENT     ApEinfo:methylated:1
+FEATURES             Location/Qualifiers
+     misc_feature    41..62
+                     /locus_tag="BCD216-REPLACEMENT"
+                     /label="BCD216-REPLACEMENT"
+                     /ApEinfo_label="BCD216-REPLACEMENT"
+                     /ApEinfo_fwdcolor="#7eff74"
+                     /ApEinfo_revcolor="#7eff74"
+                     /ApEinfo_graphicformat="arrow_data {{0 1 2 0 0 -1} {} 0}
+                     width 5 offset 0"
+     misc_feature    1..20
+                     /locus_tag="SV40_promoter"
+                     /label="SV40_promoter"
+                     /ApEinfo_label="SV40_promoter"
+                     /ApEinfo_fwdcolor="#7eff74"
+                     /ApEinfo_revcolor="#7eff74"
+                     /ApEinfo_graphicformat="arrow_data {{0 1 2 0 0 -1} {} 0}
+                     width 5 offset 0"
+     misc_feature    21..30
+                     /locus_tag="BCD216-00_ABVH_000_01"
+                     /label="BCD216-00_ABVH_000_01"
+                     /ApEinfo_label="BCD216-00_ABVH_000_01"
+                     /ApEinfo_fwdcolor="#7eff74"
+                     /ApEinfo_revcolor="#7eff74"
+                     /ApEinfo_graphicformat="arrow_data {{0 1 2 0 0 -1} {} 0}
+                     width 5 offset 0"
+     misc_feature    31..40
+                     /locus_tag="SV40_promoter"
+                     /label="SV40_promoter"
+                     /ApEinfo_label="SV40_promoter"
+                     /ApEinfo_fwdcolor="#7eff74"
+                     /ApEinfo_revcolor="#7eff74"
+                     /ApEinfo_graphicformat="arrow_data {{0 1 2 0 0 -1} {} 0}
+                     width 5 offset 0"
+ORIGIN
+        1 tgcatctcaa ttagtcagca accatagtcc cgcccctaac GAAGTCCAAT CGAACGTCCT
+       61 GG
+//
