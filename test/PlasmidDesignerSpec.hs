@@ -4,8 +4,8 @@ module PlasmidDesignerSpec where
 
 import           Bio.FASTA.Type         (FastaItem (..))
 import           Bio.GB                 (GenBankSequence (..),
-                                         PlasmidFormat (..),fromFile)
-import           Bio.GB.PlasmidDesigner (updateGB, DesignerError(..))
+                                         PlasmidFormat (..), fromFile)
+import           Bio.GB.PlasmidDesigner (DesignerError (..), updateGB)
 import           Bio.Sequence           (bareSequence, unsafeMarkedSequence)
 import           Test.Hspec
 
@@ -46,7 +46,7 @@ emptyPlasmidSequence = describe "emptyPlasmidSequence" $ do
         let fastaItem = FastaItem "BCD216-REPLACEMENT" (bareSequence "GAAGTCCAAT")
 
         let res = updateGB format fastaItem
-        res `shouldBe` Left (WrongArgumentsFormat "Empty plasmid sequence")
+        res `shouldBe` Left (WrongArgumentsFormat "Could not find any features in plasmid map")
 
 
 unknownStufferElement :: SpecWith GenBankSequence
