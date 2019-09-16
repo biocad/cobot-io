@@ -1,13 +1,16 @@
+{-# LANGUAGE RecordWildCards #-}
 module Bio.GB.PlasmidDesigner (updateGB) where
 
-import Bio.Sequence (MarkedSequence, Range, Element, unsafeMarkedSequence, markings, sequ)
-import Bio.FASTA.Type hiding (sequ)
-import Bio.GB.Type (Feature(..), GenBankSequence(..), PlasmidFormat(..))
-import Data.Vector as V (Vector, toList, length, drop, take)
-import Data.List (tail, find, span)
-import Control.Lens ((^.))
-import Prelude hiding (sequence)
-import Data.Text (Text, unpack)
+import           Bio.FASTA.Type hiding (sequ)
+import           Bio.GB.Type    (Feature (..), GenBankSequence (..),
+                                 PlasmidFormat (..))
+import           Bio.Sequence   (Element, MarkedSequence, Range, markings, sequ,
+                                 unsafeMarkedSequence)
+import           Control.Lens   ((^.))
+import           Data.List      (find, span, tail)
+import           Data.Text      (Text, unpack)
+import           Data.Vector    as V (Vector, drop, length, take, toList)
+import           Prelude        hiding (sequence)
 
 data ReplacementError = NoSuchElement String
 
@@ -32,7 +35,7 @@ getStufferFeature features elementName =
 hasName :: Feature -> Text -> Bool
 hasName feature elementName = case lookup "label" (fProps feature) of
                                    Nothing -> False
-                                   Just v -> v == elementName
+                                   Just v  -> v == elementName
 
 updateSequence :: Vector Char -> (Feature, Range) -> FastaItem Char -> [Element (MarkedSequence Feature Char)]
 updateSequence initialSeq (_, (start, end)) (FastaItem _ sequence) =  V.toList (before <> fastaSequ <> after)

@@ -2,14 +2,16 @@
 
 module PlasmidDesignerSpec where
 
+import           Bio.FASTA.Type         (FastaItem (..))
+import           Bio.GB                 (Feature (..), Form (..),
+                                         GenBankSequence (..), Locus (..),
+                                         Meta (..), PlasmidFormat (..),
+                                         Reference (..), Source (..),
+                                         Version (..), fromFile)
 import           Bio.GB.PlasmidDesigner (updateGB)
-import           Bio.GB       (Feature (..), Form (..), GenBankSequence (..),
-                               Locus (..), Meta (..), Reference (..),
-                               Source (..), Version (..), fromFile, PlasmidFormat(..))
-import           Bio.FASTA.Type (FastaItem(..))
 import           Bio.Sequence           (bareSequence, unsafeMarkedSequence)
+import           Bio.Sequence           (Range)
 import           Data.Attoparsec.Text   (parseOnly)
-import           Bio.Sequence (Range)
 import           Test.Hspec
 
 plasmidDesignerSpec :: Spec
