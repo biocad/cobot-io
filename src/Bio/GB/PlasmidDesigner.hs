@@ -1,10 +1,10 @@
 module Bio.GB.PlasmidDesigner (updateGB) where
 
 import Bio.Sequence (MarkedSequence, Range, Element, unsafeMarkedSequence, markings, sequ)
-import qualified Bio.FASTA.Type as FASTA (FastaItem(..))
+import Bio.FASTA.Type hiding (sequ)
 import Bio.GB.Type (Feature(..), GenBankSequence(..), PlasmidFormat(..))
 import Data.Vector as V (Vector, toList, length, drop, take)
-import Data.List as L (tail, find, span)
+import Data.List (tail, find, span)
 import Control.Lens ((^.))
 import Prelude hiding (sequence)
 import Data.Text (Text, unpack)
@@ -14,7 +14,7 @@ data ReplacementError = NoSuchElement String
 instance Show ReplacementError where
   show (NoSuchElement str) = str
 
-updateGB :: PlasmidFormat -> FASTA.FastaItem Char -> GenBankSequence
+updateGB :: PlasmidFormat -> FastaItem Char -> GenBankSequence
 updateGB (PlasmidFormat (GenBankSequence meta plasmidSeq) stuffer) fasta = GenBankSequence meta gbSeq
     where
         stufferFeature = getStufferFeature (plasmidSeq ^. markings) stuffer
@@ -25,7 +25,7 @@ updateGB (PlasmidFormat (GenBankSequence meta plasmidSeq) stuffer) fasta = GenBa
 
 getStufferFeature :: [(Feature, Range)] -> Text -> (Feature, Range)
 getStufferFeature features elementName =
-    case L.find (\(feature, _) -> hasName feature elementName) features of
+    case find (\(feature, _) -> hasName feature elementName) features of
             Nothing -> error ("There is no element with name " <> (unpack elementName) <> " in plasmid")
             Just v -> v
 
@@ -34,22 +34,22 @@ hasName feature elementName = case lookup "label" (fProps feature) of
                                    Nothing -> False
                                    Just v -> v == elementName
 
-updateSequence :: Vector Char -> (Feature, Range) -> FASTA.FastaItem Char -> [Element (MarkedSequence Feature Char)]
-updateSequence initialSeq (_, (start, end)) (FASTA.FastaItem _ sequence) =  V.toList (before <> fastaSequ <> after)
+updateSequence :: Vector Char -> (Feature, Range) -> FastaItem Char -> [Element (MarkedSequence Feature Char)]
+updateSequence initialSeq (_, (start, end)) (FastaItem _ sequence) =  V.toList (before <> fastaSequ <> after)
     where
         fastaSequ = sequence ^. sequ
         before = V.take start initialSeq
         after  = V.drop end   initialSeq
 
-updateFeatures :: [(Feature, Range)] -> (Feature, Range) -> FASTA.FastaItem Char -> [(Feature, Range)]
-updateFeatures features stuffer@(_, (stufferStart, stufferEnd)) (FASTA.FastaItem name sequence) =  [new] ++ old ++ changed
+updateFeatures :: [(Feature, Range)] -> (Feature, Range) -> FastaItem Char -> [(Feature, Range)]
+updateFeatures features stuffer@(_, (stufferStart, stufferEnd)) (FastaItem name sequence) =  [new] ++ old ++ changed
     where
-        sortedFeatures = L.span (\(_, (start, _)) -> start < stufferStart) features
+        sortedFeatures = span (\(_, (start, _)) -> start < stufferStart) features
         delta = (V.length $ sequence ^. sequ) - (stufferEnd - stufferStart)
 
         old = fst sortedFeatures
         new = changeFeature stuffer delta name
-        changed = shiftRanges delta (L.tail $ snd sortedFeatures)
+        changed = shiftRanges delta (tail $ snd sortedFeatures)
 
 changeFeature :: (Feature, Range) -> Int -> Text -> (Feature, Range)
 changeFeature (Feature {..}, (start, end)) delta name = (Feature fName fStrand53 newProps, (start, end + delta))
