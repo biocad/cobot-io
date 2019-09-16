@@ -3,15 +3,10 @@
 module PlasmidDesignerSpec where
 
 import           Bio.FASTA.Type         (FastaItem (..))
-import           Bio.GB                 (Feature (..), Form (..),
-                                         GenBankSequence (..), Locus (..),
-                                         Meta (..), PlasmidFormat (..),
-                                         Reference (..), Source (..),
-                                         Version (..), fromFile)
+import           Bio.GB                 (GenBankSequence (..),
+                                         PlasmidFormat (..),fromFile)
 import           Bio.GB.PlasmidDesigner (updateGB)
-import           Bio.Sequence           (bareSequence, unsafeMarkedSequence)
-import           Bio.Sequence           (Range)
-import           Data.Attoparsec.Text   (parseOnly)
+import           Bio.Sequence           (bareSequence)
 import           Test.Hspec
 
 plasmidDesignerSpec :: Spec
@@ -26,14 +21,14 @@ plasmidDesignerSpec = describe "Plasmid designer" $
 
 readFormat :: IO GenBankSequence
 readFormat = do
-    plasmid <- fromFile "test/GB/BCD216.gb"
-    return (plasmid)
+    plasmidSeq <- fromFile "test/GB/BCD216.gb"
+    return (plasmidSeq)
 
 sequTheSameLengthWithStuffer :: SpecWith GenBankSequence
 sequTheSameLengthWithStuffer = describe "sequTheSameLengthWithStuffer" $ do
-    it "when new sequence has the same length as stuffer" $ \plasmid -> do
+    it "when new sequence has the same length as stuffer" $ \plasmidSeq -> do
 
-        let format = PlasmidFormat plasmid "BCD216-00_ABVH_000_01"
+        let format = PlasmidFormat plasmidSeq "BCD216-00_ABVH_000_01"
         let fastaItem = FastaItem "BCD216-REPLACEMENT" (bareSequence "GAAGTCCAAT")
 
         let res = updateGB format fastaItem
@@ -42,9 +37,9 @@ sequTheSameLengthWithStuffer = describe "sequTheSameLengthWithStuffer" $ do
 
 sequWithBiggestLengthThanStuffer :: SpecWith GenBankSequence
 sequWithBiggestLengthThanStuffer = describe "sequWithBiggestLengthThanStuffer" $ do
-    it "when new sequence has biggest length as stuffer" $ \plasmid -> do
+    it "when new sequence has biggest length as stuffer" $ \plasmidSeq -> do
 
-        let format = PlasmidFormat plasmid "BCD216-00_ABVH_000_01"
+        let format = PlasmidFormat plasmidSeq "BCD216-00_ABVH_000_01"
         let fastaItem = FastaItem "BCD216-REPLACEMENT" (bareSequence "GAAGTCCAATCCGGAATTCG")
 
         let res = updateGB format fastaItem
@@ -53,9 +48,9 @@ sequWithBiggestLengthThanStuffer = describe "sequWithBiggestLengthThanStuffer" $
 
 sequWithLessLengthThanStuffer :: SpecWith GenBankSequence
 sequWithLessLengthThanStuffer = describe "sequWithLessLengthThanStuffer" $ do
-    it "when new sequence has less  length than stuffer" $ \plasmid -> do
+    it "when new sequence has less  length than stuffer" $ \plasmidSeq -> do
 
-        let format = PlasmidFormat plasmid "BCD216-00_ABVH_000_01"
+        let format = PlasmidFormat plasmidSeq "BCD216-00_ABVH_000_01"
         let fastaItem = FastaItem "BCD216-REPLACEMENT" (bareSequence "GAAG")
 
         let res = updateGB format fastaItem
@@ -64,9 +59,9 @@ sequWithLessLengthThanStuffer = describe "sequWithLessLengthThanStuffer" $ do
 
 sequInTheEndOfPlasmidTheSameLengthWithStuffer :: SpecWith GenBankSequence
 sequInTheEndOfPlasmidTheSameLengthWithStuffer = describe "sequInTheEndOfPlasmidTheSameLengthWithStuffer" $ do
-    it "when new sequence the same length as stuffer and element located in the end of plasmid" $ \plasmid -> do
+    it "when new sequence the same length as stuffer and element located in the end of plasmid" $ \plasmidSeq -> do
 
-        let format = PlasmidFormat plasmid "LAST_ELEMENT"
+        let format = PlasmidFormat plasmidSeq "LAST_ELEMENT"
         let fastaItem = FastaItem "BCD216-REPLACEMENT" (bareSequence "GAAGTCCAATCGAACGTCCTGG")
 
         let res = updateGB format fastaItem
@@ -76,9 +71,9 @@ sequInTheEndOfPlasmidTheSameLengthWithStuffer = describe "sequInTheEndOfPlasmidT
 
 sequInTheEndOfPlasmidBiggestLengthThanStuffer :: SpecWith GenBankSequence
 sequInTheEndOfPlasmidBiggestLengthThanStuffer = describe "sequInTheEndOfPlasmidBiggestLengthThanStuffer" $ do
-    it "when new sequence has biggest length than stuffer and element located in the end of plasmid" $ \plasmid -> do
+    it "when new sequence has biggest length than stuffer and element located in the end of plasmid" $ \plasmidSeq -> do
 
-        let format = PlasmidFormat plasmid "LAST_ELEMENT"
+        let format = PlasmidFormat plasmidSeq "LAST_ELEMENT"
         let fastaItem = FastaItem "BCD216-REPLACEMENT" (bareSequence "GAAGTCCAATCGAACGTCCTGGAA")
 
         let res = updateGB format fastaItem
@@ -87,9 +82,9 @@ sequInTheEndOfPlasmidBiggestLengthThanStuffer = describe "sequInTheEndOfPlasmidB
 
 sequInTheEndOfPlasmidLessLengthThanStuffer :: SpecWith GenBankSequence
 sequInTheEndOfPlasmidLessLengthThanStuffer = describe "sequInTheEndOfPlasmidLessLengthThanStuffer" $ do
-    it "when new sequence has less length than stuffer and element located in the end of plasmid" $ \plasmid -> do
+    it "when new sequence has less length than stuffer and element located in the end of plasmid" $ \plasmidSeq -> do
 
-        let format = PlasmidFormat plasmid "LAST_ELEMENT"
+        let format = PlasmidFormat plasmidSeq "LAST_ELEMENT"
         let fastaItem = FastaItem "BCD216-REPLACEMENT" (bareSequence "GAAGTCCAATCGAACG")
 
         let res = updateGB format fastaItem
