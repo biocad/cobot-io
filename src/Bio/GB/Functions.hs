@@ -18,8 +18,8 @@ import Control.Monad
 
 changeInsertion :: IO ()
 changeInsertion = do
-    gb <- readAndParse "/Users/agromova/tmp/BCD216.gb"
-    changes' <- changes "/Users/agromova/tmp/fasta.fasta"
+    gb <- readAndParse "/tmp/pSXn-IgG4HCpos-NR_BCD216-00_ABVH_000_01.gb"
+    changes' <- changes "/tmp/BCD216-02_contigs.fasta"
     Control.Monad.forM_ changes' $ \(newName, newSeq) -> do
         let res = updateGB "BCD216-00_ABVH_000_01" newName newSeq gb
         let newFile = genName newName
@@ -27,7 +27,7 @@ changeInsertion = do
         TIO.writeFile newFile newGB
   where
     genName :: Text -> FilePath
-    genName t = "/Users/agromova/tmp/plasmid_maps/pSXn-IgG4HCpos-NR_" <> T.unpack t <> ".gb"
+    genName t = "/tmp/plasmid_maps/pSXn-IgG4HCpos-NR_" <> T.unpack t <> ".gb"
 
 
 
