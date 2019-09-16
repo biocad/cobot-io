@@ -14,11 +14,7 @@ import           Test.Hspec
 
 plasmidDesignerSpec :: Spec
 plasmidDesignerSpec = describe "Plasmid designer" $
-    beforeWith readFormat $ do
---        emptyFormat
---        emptyFasta
---        emptyFormatStuffer
---        emptyFastaSequ
+    beforeAll readFormat $ do
         sequTheSameLengthWithStuffer
         sequWithBiggestLengthThanStuffer
         sequWithLessLengthThanStuffer
@@ -26,30 +22,10 @@ plasmidDesignerSpec = describe "Plasmid designer" $
         sequInTheEndOfPlasmidBiggestLengthThanStuffer
         sequInTheEndOfPlasmidLessLengthThanStuffer
 
-readFormat :: () -> IO GenBankSequence
-readFormat _ = do
+readFormat :: IO GenBankSequence
+readFormat = do
     plasmid <- fromFile "test/GB/BCD216.gb"
     return (plasmid)
-
---emptyFormatStuffer :: SpecWith GenBankSequence
---emptyFormatStuffer = describe "emptyFormatStuffer" $ do
---    it "when format stuffer is empty should be error" $ \plasmid -> do
---
---        let format = PlasmidFormat plasmid "UNKNOWN_STUFFER"
---        let fastaItem = FastaItem "BCD216-REPLACEMENT" (bareSequence "ACG")
---
---        let res = updateGB format fastaItem
---        res `shouldBe` sample
-
---emptyFastaSequ :: SpecWith GenBankSequence
---emptyFastaSequ = describe "emptyFastaSequ" $ do
---    it "when new sequence is empty should be error" $ \plasmid -> do
---
---        let format = PlasmidFormat plasmid "BCD216-00_ABVH_000_01"
---        let fastaItem = FastaItem "BCD216-REPLACEMENT" (bareSequence "")
---
---        let res = updateGB format fastaItem
---        res `shouldBe` sample
 
 sequTheSameLengthWithStuffer :: SpecWith GenBankSequence
 sequTheSameLengthWithStuffer = describe "sequTheSameLengthWithStuffer" $ do

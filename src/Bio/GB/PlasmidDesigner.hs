@@ -1,70 +1,60 @@
 module Bio.GB.PlasmidDesigner (updateGB) where
 
-import Debug.Trace (trace)
-import Bio.Sequence (Range, unsafeMarkedSequence, markings, sequ)
+import Bio.Sequence (MarkedSequence, Range, Element, unsafeMarkedSequence, markings, sequ)
 import qualified Bio.FASTA.Type as FASTA (FastaItem(..))
-import Bio.GB.Type (Feature(..), Name, GenBankSequence(..), PlasmidFormat(..))
+import Bio.GB.Type (Feature(..), GenBankSequence(..), PlasmidFormat(..))
 import Data.Vector as V (Vector, toList, length, drop, take)
-import Data.List as L (find, partition)
+import Data.List as L (tail, find, span)
 import Control.Lens ((^.))
-import Data.Maybe (isJust)
 import Prelude hiding (sequence)
+import Data.Text (Text, unpack)
 
+data ReplacementError = NoSuchElement String
+
+instance Show ReplacementError where
+  show (NoSuchElement str) = str
 
 updateGB :: PlasmidFormat -> FASTA.FastaItem Char -> GenBankSequence
-updateGB (PlasmidFormat plasmid stuffer) (FASTA.FastaItem name sequence) = GenBankSequence (meta plasmid) newGbSeq
-  where
-    newSeqVector = sequence ^. sequ
-    newGbSeq = trace (show newFullSeq) $ trace (show updatedFeature) unsafeMarkedSequence (V.toList newFullSeq) (updatedFeature:movedFeatures)
+updateGB (PlasmidFormat (GenBankSequence meta plasmidSeq) stuffer) fasta = GenBankSequence meta gbSeq
+    where
+        stufferFeature = getStufferFeature (plasmidSeq ^. markings) stuffer
+        sequence = updateSequence (plasmidSeq ^. sequ) stufferFeature fasta
+        features = updateFeatures (plasmidSeq ^. markings) stufferFeature fasta
 
-    oldMarkings = (gbSeq plasmid) ^. markings
-    (featuresToUpdate, featuresToMove) = L.partition (needFeatureUpdate stuffer) oldMarkings
+        gbSeq = unsafeMarkedSequence sequence features
 
-    (oldFeature, location) = case featuresToUpdate of
-                                 [(f, l)] -> (f, l)
-                                 _ -> error "Too many features to update"
+getStufferFeature :: [(Feature, Range)] -> Text -> (Feature, Range)
+getStufferFeature features elementName =
+    case L.find (\(feature, _) -> hasName feature elementName) features of
+            Nothing -> error ("There is no element with name " <> (unpack elementName) <> " in plasmid")
+            Just v -> v
 
-    (newFullSeq, offset, delta) = updateSequence ((gbSeq plasmid) ^. sequ) location newSeqVector
+hasName :: Feature -> Text -> Bool
+hasName feature elementName = case lookup "label" (fProps feature) of
+                                   Nothing -> False
+                                   Just v -> v == elementName
 
-    updatedFeature = updateFeature (oldFeature, location)
-                                   stuffer
-                                   name
-                                   newSeqVector
-    movedFeatures = moveMarking (offset, delta) <$> featuresToMove
+updateSequence :: Vector Char -> (Feature, Range) -> FASTA.FastaItem Char -> [Element (MarkedSequence Feature Char)]
+updateSequence initialSeq (_, (start, end)) (FASTA.FastaItem _ sequence) =  V.toList (before <> fastaSequ <> after)
+    where
+        fastaSequ = sequence ^. sequ
+        before = V.take start initialSeq
+        after  = V.drop end   initialSeq
 
+updateFeatures :: [(Feature, Range)] -> (Feature, Range) -> FASTA.FastaItem Char -> [(Feature, Range)]
+updateFeatures features stuffer@(_, (stufferStart, stufferEnd)) (FASTA.FastaItem name sequence) =  [new] ++ old ++ changed
+    where
+        sortedFeatures = L.span (\(_, (start, _)) -> start < stufferStart) features
+        delta = (V.length $ sequence ^. sequ) - (stufferEnd - stufferStart)
 
--- | If feature has the same name as feature that we need to update
---
-needFeatureUpdate :: Name -> (Feature, Range) -> Bool
-needFeatureUpdate nameToUpdate (Feature {..}, _)
-    = isJust . L.find ((== nameToUpdate) . snd) $ fProps
+        old = fst sortedFeatures
+        new = changeFeature stuffer delta name
+        changed = shiftRanges delta (L.tail $ snd sortedFeatures)
 
-updateFeature :: (Feature, Range) -- feature with range
-              -> Name             -- name of the feature to update
-              -> Name             -- name of the new feature
-              -> Vector Char      -- sequence of the new feature
-              -> (Feature, Range)
-updateFeature (Feature {..}, (start, _)) oldName newName newSeq
-    = (Feature fName fStrand53 newProps, (start, start + V.length newSeq))
-  where
-    newProps = [ if v == oldName then (k, newName) else (k, v)
-               | (k, v) <- fProps
-               ]
+changeFeature :: (Feature, Range) -> Int -> Text -> (Feature, Range)
+changeFeature (Feature {..}, (start, end)) delta name = (Feature fName fStrand53 newProps, (start, end + delta))
+    where
+        newProps = [ if elem k ["locus_tag", "label", "ApEinfo_label"] then (k, name) else (k, v) | (k, v) <- fProps]
 
-type Offset = Int
-type Delta  = Int
-
-updateSequence :: Vector a -> (Int, Int) -> Vector a -> (Vector a, Offset, Delta)
-updateSequence initial (start, end) partToChange = (updatedVector, start, delta)
-  where
-    before = V.take start initial
-    after  = V.drop end   initial
-    updatedVector = before <> partToChange <> after
-
-    delta = V.length partToChange - (end - start)
-
-moveMarking :: (Offset, Delta) -> (marking, Range) -> (marking, Range)
-moveMarking (offset, delta) (mk, (start, end))
-    | start < offset && end <= offset = (mk, (start, end))
-    | offset <= start && offset < end = (mk, (start + delta, end + delta))
-    | otherwise = error "updateMarking: offset is in the marking"
+shiftRanges :: Int -> [(Feature, Range)] -> [(Feature, Range)]
+shiftRanges delta = map (\(feature, (start, end)) -> (feature, (start + delta, end + delta)))
