@@ -9,8 +9,6 @@ import           Bio.GB.PlasmidDesigner (updateGB, DesignerError(..))
 import           Bio.Sequence           (bareSequence, unsafeMarkedSequence)
 import           Test.Hspec
 
-import          Control.Monad.Except (MonadError)
-
 plasmidDesignerSpec :: Spec
 plasmidDesignerSpec = describe "Plasmid designer" $
     beforeAll readFormat $ do
@@ -42,9 +40,9 @@ emptyFastaSequence = describe "emptyFastaSequence" $ do
 
 emptyPlasmidSequence :: SpecWith GenBankSequence
 emptyPlasmidSequence = describe "emptyPlasmidSequence" $ do
-    it "should throw exception when plasmid sequence is empty" $ \(GenBankSequence meta plasmidSeq) -> do
+    it "should throw exception when plasmid sequence is empty" $ \(GenBankSequence m _) -> do
 
-        let format = PlasmidFormat (GenBankSequence meta (unsafeMarkedSequence [] [])) "BCD216-00_ABVH_000_01"
+        let format = PlasmidFormat (GenBankSequence m (unsafeMarkedSequence [] [])) "BCD216-00_ABVH_000_01"
         let fastaItem = FastaItem "BCD216-REPLACEMENT" (bareSequence "GAAGTCCAAT")
 
         let res = updateGB format fastaItem
