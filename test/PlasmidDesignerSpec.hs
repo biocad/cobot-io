@@ -2,11 +2,14 @@
 
 module PlasmidDesignerSpec where
 
-import           Bio.FASTA.Type         (FastaItem (..))
+import           Bio.FASTA.Type         hiding (sequ)
 import           Bio.GB                 (GenBankSequence (..),
                                          PlasmidFormat (..), fromFile)
 import           Bio.GB.PlasmidDesigner (DesignerError (..), updateGB)
-import           Bio.Sequence           (bareSequence, unsafeMarkedSequence)
+import           Bio.Sequence           (bareSequence, markings, sequ,
+                                         unsafeMarkedSequence)
+import           Control.Lens           ((^.))
+import           Data.Vector            as V (Vector, toList)
 import           Test.Hspec
 
 plasmidDesignerSpec :: Spec
@@ -15,6 +18,7 @@ plasmidDesignerSpec = describe "Plasmid designer" $
         emptyFastaSequence
         emptyPlasmidSequence
         unknownStufferElement
+        twoStufferElements
         sequTheSameLengthWithStuffer
         sequWithBiggestLengthThanStuffer
         sequWithLessLengthThanStuffer
@@ -58,6 +62,20 @@ unknownStufferElement = describe "unknownStufferElement" $ do
 
         let res = updateGB format fastaItem
         res `shouldBe` Left (NoSuchElement "There is no element with name UNKNOWN in plasmid")
+
+twoStufferElements :: SpecWith GenBankSequence
+twoStufferElements = describe "twoStufferElements" $ do
+    it "should throw exception when there are two stuffer elements in plasmid" $ \(GenBankSequence meta gbSeq) -> do
+
+        let sequence' = V.toList ((gbSeq ^. sequ) <> (gbSeq ^. sequ))
+        let features = (gbSeq ^. markings) <> (gbSeq ^. markings)
+        let newGbSeq = unsafeMarkedSequence sequence' features
+        let plasmid = GenBankSequence meta newGbSeq
+        let format = PlasmidFormat plasmid "BCD216-00_ABVH_000_01"
+        let fastaItem = FastaItem "BCD216-REPLACEMENT" (bareSequence "GAAGTCCAAT")
+
+        let res = updateGB format fastaItem
+        res `shouldBe` Left (NoSuchElement "There are several elements with name BCD216-00_ABVH_000_01 in plasmid")
 
 sequTheSameLengthWithStuffer :: SpecWith GenBankSequence
 sequTheSameLengthWithStuffer = describe "sequTheSameLengthWithStuffer" $ do

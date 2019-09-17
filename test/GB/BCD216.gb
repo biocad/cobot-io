@@ -20,18 +20,18 @@ FEATURES             Location/Qualifiers
                      /ApEinfo_revcolor="#7eff74"
                      /ApEinfo_graphicformat="arrow_data {{0 1 2 0 0 -1} {} 0}
                      width 5 offset 0"
-     misc_feature    21..30
-                     /locus_tag="BCD216-00_ABVH_000_01"
-                     /label="BCD216-00_ABVH_000_01"
-                     /ApEinfo_label="BCD216-00_ABVH_000_01"
-                     /ApEinfo_fwdcolor="#7eff74"
-                     /ApEinfo_revcolor="#7eff74"
-                     /ApEinfo_graphicformat="arrow_data {{0 1 2 0 0 -1} {} 0}
-                     width 5 offset 0"
      misc_feature    31..40
                      /locus_tag="SV40_promoter"
                      /label="SV40_promoter"
                      /ApEinfo_label="SV40_promoter"
+                     /ApEinfo_fwdcolor="#7eff74"
+                     /ApEinfo_revcolor="#7eff74"
+                     /ApEinfo_graphicformat="arrow_data {{0 1 2 0 0 -1} {} 0}
+                     width 5 offset 0"
+     misc_feature    21..30
+                     /locus_tag="BCD216-00_ABVH_000_01"
+                     /label="BCD216-00_ABVH_000_01"
+                     /ApEinfo_label="BCD216-00_ABVH_000_01"
                      /ApEinfo_fwdcolor="#7eff74"
                      /ApEinfo_revcolor="#7eff74"
                      /ApEinfo_graphicformat="arrow_data {{0 1 2 0 0 -1} {} 0}
