@@ -1,17 +1,17 @@
 module Bio.PDB.Type where
 
 import           Control.DeepSeq (NFData (..))
-import           Data.Array      (Array)
 import           Data.Map.Strict (Map)
 import           Data.Text       (Text)
+import           Data.Vector     (Vector)
 import           GHC.Generics    (Generic)
 
 -- * Read PDB specification [here](http://www.wwpdb.org/documentation/file-format-content/format33/v3.3.html).
 
 data PDB = PDB { title       :: Text
-               , models      :: Array Int Model
-               , remarks     :: Array Int Remark
-               , otherFields :: Array Int Field
+               , models      :: Vector Model
+               , remarks     :: Vector Remark
+               , otherFields :: Vector Field
                }
   deriving (Show, Eq, Generic, NFData)
 
@@ -19,7 +19,7 @@ type RemarkCode = Int
 type Remark = Map RemarkCode Text
 
 type Field     = Map FieldType FieldData
-type FieldData = Array Int Text
+type FieldData = Vector Text
 data FieldType
    =
    -- Title Section (except TITLE and REMARKS)
@@ -67,9 +67,9 @@ data FieldType
    | MASTER
   deriving (Show, Eq, Read, Generic, NFData)
 
-type Model = Array Int Chain
+type Model = Vector Chain
 
-type Chain = Array Int Atom
+type Chain = Vector Atom
 
 data Atom = Atom { atomSerial     :: Int     -- ^ Atom serial number.
                  , atomName       :: Text    -- ^ Atom name.
