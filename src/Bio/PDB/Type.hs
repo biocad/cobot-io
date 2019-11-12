@@ -1,5 +1,3 @@
-{-# LANGUAGE DuplicateRecordFields #-}
-
 module Bio.PDB.Type where
 
 import           Control.DeepSeq (NFData (..))
@@ -73,19 +71,19 @@ type Model = Array Int Chain
 
 type Chain = Array Int Atom
 
-data Atom = Atom { atomSerial     :: Int     -- Atom  serial number.
-                 , atomName       :: Text    -- Atom name.
-                 , atomAltLoc     :: Char    -- Alternate location indicator.
-                 , atomResName    :: Text    -- Residue name.
-                 , atomChainID    :: Char    -- Chain identifier.
-                 , atomResSeq     :: Int     -- Residue sequence number.
-                 , atomICode      :: Char    -- Code for insertion of residues.
-                 , atomX          :: Float   -- Orthogonal coordinates for X in Angstroms.
-                 , atomY          :: Float   -- Orthogonal coordinates for Y in Angstroms.
-                 , atomZ          :: Float   -- Orthogonal coordinates for Z in Angstroms.
-                 , atomOccupancy  :: Float   -- Occupancy.
-                 , atomTempFactor :: Float   -- Temperature  factor.
-                 , atomElement    :: Text    -- Element symbol, right-justified.
-                 , atomCharge     :: Text    -- Charge  on the atom.
+data Atom = Atom { atomSerial     :: Int     -- ^ Atom serial number.
+                 , atomName       :: Text    -- ^ Atom name.
+                 , atomAltLoc     :: Char    -- ^ Alternate location indicator.
+                 , atomResName    :: Text    -- ^ Residue name.
+                 , atomChainID    :: Char    -- ^ Chain identifier.
+                 , atomResSeq     :: Int     -- ^ Residue sequence number.
+                 , atomICode      :: Char    -- ^ Code for insertion of residues.
+                 , atomX          :: Float   -- ^ Orthogonal coordinates for X in Angstroms.
+                 , atomY          :: Float   -- ^ Orthogonal coordinates for Y in Angstroms.
+                 , atomZ          :: Float   -- ^ Orthogonal coordinates for Z in Angstroms.
+                 , atomOccupancy  :: Float   -- ^ Occupancy.
+                 , atomTempFactor :: Float   -- ^ Temperature factor.
+                 , atomElement    :: Text    -- ^ Element symbol, right-justified.
+                 , atomCharge     :: Text    -- ^ Charge on the atom.
                  }
   deriving (Show, Eq, Generic, NFData)
