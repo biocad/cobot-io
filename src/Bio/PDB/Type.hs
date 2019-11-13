@@ -10,15 +10,14 @@ import           GHC.Generics    (Generic)
 
 data PDB = PDB { title       :: Text
                , models      :: Vector Model
-               , remarks     :: Vector Remark
-               , otherFields :: Vector Field
+               , remarks     :: Map RemarkCode RemarkData
+               , otherFields :: Map FieldType FieldData
                }
   deriving (Show, Eq, Generic, NFData)
 
 type RemarkCode = Int
-type Remark = Map RemarkCode Text
+type RemarkData = Vector Text
 
-type Field     = Map FieldType FieldData
 type FieldData = Vector Text
 data FieldType
    =
