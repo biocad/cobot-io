@@ -1,5 +1,5 @@
-{-# LANGUAGE DeriveGeneric  #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
 module Bio.Structure
   ( SecondaryStructure (..)
   , Atom (..), Bond (..)
@@ -7,11 +7,11 @@ module Bio.Structure
   , StructureModels (..), StructureSerializable (..)
   ) where
 
-import           Data.Array      ( Array )
-import           Data.Text       ( Text )
-import           GHC.Generics    ( Generic )
-import           Control.DeepSeq ( NFData (..) )
-import           Linear.V3       ( V3 )
+import           Control.DeepSeq (NFData (..))
+import           Data.Text       (Text)
+import           Data.Vector     (Vector)
+import           GHC.Generics    (Generic)
+import           Linear.V3       (V3)
 
 -- | Protein secondary structure
 --
@@ -30,7 +30,7 @@ instance NFData SecondaryStructure
 
 -- | Generic atom representation
 --
-data Atom = Atom { atomName     :: Text     -- ^ IUPAC atom name 
+data Atom = Atom { atomName     :: Text     -- ^ IUPAC atom name
                  , atomElement  :: Text     -- ^ atom chemical element
                  , atomCoords   :: V3 Float -- ^ 3D coordinates of atom
                  , formalCharge :: Int      -- ^ Formal charge of atom
@@ -54,8 +54,8 @@ instance NFData Bond
 -- | A set of atoms, organized to a residues
 --
 data Residue = Residue { resName         :: Text               -- ^ residue name
-                       , resAtoms        :: Array Int Atom     -- ^ a set of residue atoms
-                       , resBonds        :: Array Int Bond     -- ^ a set of residue bonds
+                       , resAtoms        :: Vector Atom        -- ^ a set of residue atoms
+                       , resBonds        :: Vector Bond        -- ^ a set of residue bonds
                        , resSecondary    :: SecondaryStructure -- ^ residue secondary structure
                        , resChemCompType :: Text               -- ^ chemical component type
                        }
@@ -64,21 +64,21 @@ data Residue = Residue { resName         :: Text               -- ^ residue name
 -- | Chain organizes linear structure of residues
 --
 data Chain = Chain { chainName     :: Text              -- ^ name of a chain
-                   , chainResidues :: Array Int Residue -- ^ residues of a chain
+                   , chainResidues :: Vector Residue    -- ^ residues of a chain
                    }
   deriving (Show, Eq, Generic, NFData)
 
 -- | Model represents a single experiment of structure determination
 --
-newtype Model = Model { modelChains :: Array Int Chain }
+newtype Model = Model { modelChains :: Vector Chain }
   deriving (Show, Eq, Generic, NFData)
 
 -- | Convert any format-specific data to an intermediate representation of structure
 class StructureModels a where
     -- | Get an array of models
-    modelsOf :: a -> Array Int Model
+    modelsOf :: a -> Vector Model
 
 -- | Serialize an intermediate representation of sequence to some specific format
 class StructureSerializable a where
     -- | Serialize an array of models to some format
-    serializeModels :: Array Int Model -> a
+    serializeModels :: Vector Model -> a

@@ -1,125 +1,88 @@
-{-# LANGUAGE DuplicateRecordFields #-}
 module Bio.PDB.Type where
 
-import           Data.Text                      ( Text )
-import           Data.Array                     ( Array )
+import           Control.DeepSeq (NFData (..))
+import           Data.Map.Strict (Map)
+import           Data.Text       (Text)
+import           Data.Vector     (Vector)
+import           GHC.Generics    (Generic)
 
-data Header = Header { classification :: Text
-                     , depDate        :: Text
-                     , idCode         :: Text
-                     }
+-- * Read PDB specification [here](http://www.wwpdb.org/documentation/file-format-content/format33/v3.3.html).
 
-data Obsoleted = Obsoleted { repDate      :: Text
-                           , idCode       :: Text
-                           , rIdCode      :: Array Int Text
-                           }
-
-data Caveat = Caveat { idCode       :: Text
-                     , comment      :: Text
-                     }
-
-data Compound = Compound { molId            :: Text
-                         , molecule         :: Text
-                         , chain            :: Array Int Text
-                         , fragment         :: Text
-                         , synonym          :: Array Int Text
-                         , enzymeCommission :: Array Int Int
-                         , engineered       :: Bool
-                         , mutation         :: Bool
-                         , otherDetails     :: Array Int Text
-                         }
-
-data Organism = Organism { scientific :: Text
-                         , common     :: Text
-                         , taxId      :: Text
-                         }
-
-data ExpressionSystem = ExpressionSystem { name             :: Text
-                                         , common           :: Text
-                                         , taxId            :: Text
-                                         , strain           :: Text
-                                         , variant          :: Text
-                                         , cellLine         :: Text
-                                         , atcc             :: Text
-                                         , organ            :: Text
-                                         , tissue           :: Text
-                                         , cell             :: Text
-                                         , organelle        :: Text
-                                         , cellularLocation :: Text
-                                         , vectorType       :: Text
-                                         , vector           :: Text
-                                         , plasmid          :: Text
-                                         , gene             :: Text
-                                         , otherDetails     :: Text
-                                         }
-
-data Source = Source { molId            :: Text
-                     , synthetic        :: Text
-                     , fragment         :: Text
-                     , organism         :: Organism
-                     , strain           :: Text
-                     , variant          :: Text
-                     , cellLine         :: Text
-                     , atcc             :: Text
-                     , tissue           :: Text
-                     , cell             :: Text
-                     , organelle        :: Text
-                     , secretion        :: Text
-                     , cellularLocation :: Text
-                     , plasmid          :: Text
-                     , gene             :: Text
-                     , expressionSystem :: ExpressionSystem
-                     , otherDetails     :: Text
-                     }
-
---
-data Title = Title { header    :: Header
-                   , obsoleted :: Obsoleted
-                   , title     :: Text
-                   , split     :: Array Int Text
-                   , caveat    :: Caveat
-                   , compound  :: Array Int Compound
-                   -- TODO
-                   }
-
-data PrimaryStructure = PrimaryStructure -- TODO
-
-data Heterogen = Heterogen -- TODO
-
-data Helix = Helix {
-
-                   }
-
-data Sheet = Sheet {
-
-                   }
-
-data Secondary = Secondary { helixes :: Array Int Helix
-                           , sheets  :: Array Int Sheet
-                           }
-
-data ConnectivityAnnotation = ConnectivityAnnotation -- TODO
-
-data Miscellaneous = Miscellaneous -- TODO
-
-data Transformation = Transformation -- TODO
-
-data Coordinate = Coordinate {
-
-                             }
-
-data Connectivity = Connectivity -- TODO
-
-data Bookkeeping = Bookkeeping -- TODO
-
-data PDB = PDB { title                  :: Title
-               , primaryStructure       :: PrimaryStructure
-               , heterogen              :: Heterogen
-               , secondary              :: Secondary
-               , connectivityAnnotation :: ConnectivityAnnotation
-               , miscellaneous          :: Miscellaneous
-               , transformation         :: Transformation
-               , coordinate             :: Coordinate
-               , connectivity           :: Connectivity
-               , bookkeeping            :: Bookkeeping
+data PDB = PDB { title       :: Text
+               , models      :: Vector Model
+               , remarks     :: Map RemarkCode RemarkData
+               , otherFields :: Map FieldType FieldData
                }
+  deriving (Show, Eq, Generic, NFData)
+
+type RemarkCode = Int
+type RemarkData = Vector Text
+
+type FieldData = Vector Text
+data FieldType
+   =
+   -- Title Section (except TITLE and REMARKS)
+     HEADER
+   | OBSLTE
+   | SPLT
+   | CAVEAT
+   | COMPND
+   | SOURCE
+   | KEYWDS
+   | EXPDTA
+   | NUMMDL
+   | MDLTYP
+   | AUTHOR
+   | REVDAT
+   | SPRSDE
+   | JRNL
+   -- Primary Structure Section
+   | DBREF
+   | DBREF1
+   | DBREF2
+   | SEQADV
+   | SEQRES
+   | MODRES
+   -- Heterogen Section
+   | HET
+   | FORMUL
+   | HETNAM
+   | HETSYN
+   -- Secondary Structure Section
+   | HELIX
+   | SHEET
+   -- Connectivity Annotation Section
+   | SSBOND
+   | LINK
+   | CISPEP
+   -- Miscellaneous Features Section
+   | SITE
+   -- Crystallographic and Coordinate Transformation Section
+   | CRYST1
+   | MTRIXn
+   | ORIGXn
+   | SCALEn
+   -- Bookkeeping Section
+   | MASTER
+  deriving (Show, Eq, Read, Generic, NFData)
+
+type Model = Vector Chain
+
+type Chain = Vector Atom
+
+data Atom = Atom { atomSerial     :: Int     -- ^ Atom serial number.
+                 , atomName       :: Text    -- ^ Atom name.
+                 , atomAltLoc     :: Char    -- ^ Alternate location indicator.
+                 , atomResName    :: Text    -- ^ Residue name.
+                 , atomChainID    :: Char    -- ^ Chain identifier.
+                 , atomResSeq     :: Int     -- ^ Residue sequence number.
+                 , atomICode      :: Char    -- ^ Code for insertion of residues.
+                 , atomX          :: Float   -- ^ Orthogonal coordinates for X in Angstroms.
+                 , atomY          :: Float   -- ^ Orthogonal coordinates for Y in Angstroms.
+                 , atomZ          :: Float   -- ^ Orthogonal coordinates for Z in Angstroms.
+                 , atomOccupancy  :: Float   -- ^ Occupancy.
+                 , atomTempFactor :: Float   -- ^ Temperature factor.
+                 , atomElement    :: Text    -- ^ Element symbol, right-justified.
+                 , atomCharge     :: Text    -- ^ Charge on the atom.
+                 }
+  deriving (Show, Eq, Generic, NFData)

@@ -2,8 +2,8 @@ module MMTFSpec where
 
 import           Bio.MMTF
 import           Bio.MMTF.Decode.Codec
-import           Data.Array            ((!))
 import           Data.Int              (Int8)
+import           Data.Vector           ((!))
 import           Test.Hspec
 
 mmtfCodecSpec :: Spec

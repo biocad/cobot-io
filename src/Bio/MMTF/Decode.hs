@@ -6,11 +6,11 @@ import           Bio.MMTF.Type
 
 import           Control.Monad               ((>=>))
 import           Data.ByteString.Lazy        (empty)
+import           Data.Char                   (ord)
 import           Data.Map.Strict             (Map)
 import           Data.MessagePack            (Object)
 import           Data.Text                   (Text, pack)
-import           Data.Char                   (ord)
-import           Data.Array                  (listArray)
+import           Data.Vector                 (Vector, fromList)
 
 -- | Parses format data from ObjectMap
 --
@@ -22,7 +22,7 @@ formatData mp = do v <- atP mp "mmtfVersion"  asStr
 -- | Parses model data from ObjectMap
 --
 modelData :: Monad m => Map Text Object -> m ModelData
-modelData mp = ModelData . l2a <$> atP mp "chainsPerModel" asIntList
+modelData mp = ModelData . l2v <$> atP mp "chainsPerModel" asIntList
 
 -- | Parses chain data from ObjectMap
 --
@@ -30,7 +30,7 @@ chainData :: Monad m => Map Text Object -> m ChainData
 chainData mp = do gpc <- atP mp "groupsPerChain" asIntList
                   cil <- codec5 . parseBinary <$> atP   mp "chainIdList"   asBinary
                   cnl <- codec5 . parseBinary <$> atPMD mp "chainNameList" asBinary empty
-                  pure $ ChainData (l2a gpc) (l2a cil) (l2a cnl)
+                  pure $ ChainData (l2v gpc) (l2v cil) (l2v cnl)
 
 -- | Parses atom data from ObjectMap
 --
@@ -42,7 +42,7 @@ atomData mp = do ail' <-       codec8 . parseBinary <$> atPMD mp "atomIdList"   
                  ycl' <-      codec10 . parseBinary <$> atP   mp "yCoordList"    asBinary
                  zcl' <-      codec10 . parseBinary <$> atP   mp "zCoordList"    asBinary
                  ol' <-        codec9 . parseBinary <$> atPMD mp "occupancyList" asBinary empty
-                 pure $ AtomData (l2a ail') (l2a all') (l2a bfl') (l2a xcl') (l2a ycl') (l2a zcl') (l2a ol')
+                 pure $ AtomData (l2v ail') (l2v all') (l2v bfl') (l2v xcl') (l2v ycl') (l2v zcl') (l2v ol')
 
 -- | Parses group data from ObjectMap
 --
@@ -53,7 +53,7 @@ groupData mp = do gl' <-                                        atP   mp "groupL
                   ssl' <- fmap ssDec . codec2 . parseBinary <$> atPMD mp "secStructList"     asBinary empty
                   icl' <-        c2s . codec6 . parseBinary <$> atPMD mp "insCodeList"       asBinary empty
                   sil' <-              codec8 . parseBinary <$> atPMD mp "sequenceIndexList" asBinary empty
-                  pure $ GroupData (l2a gl') (l2a gtl') (l2a gil') (l2a ssl') (l2a icl') (l2a sil')
+                  pure $ GroupData (l2v gl') (l2v gtl') (l2v gil') (l2v ssl') (l2v icl') (l2v sil')
 
 -- | Parses group type from ObjectMap
 --
@@ -66,7 +66,7 @@ groupType mp = do fcl' <-          atP mp "formalChargeList" asIntList
                   gn'  <-          atP mp "groupName"        asStr
                   slc' <-          atP mp "singleLetterCode" asChar
                   cct' <-          atP mp "chemCompType"     asStr
-                  pure $ GroupType (l2a fcl') (l2a anl') (l2a el') (l2a bal') (l2a bol') gn' slc' cct'
+                  pure $ GroupType (l2v fcl') (l2v anl') (l2v el') (l2v bal') (l2v bol') gn' slc' cct'
 
 -- | Parses structure data from ObjectMap
 --
@@ -92,23 +92,23 @@ structureData mp = do ttl' <-                                  atPMD mp "title" 
                       btl' <-  l2pl . codec4 . parseBinary <$> atPMD mp "bondAtomList"        asBinary empty
                       bol' <-         codec2 . parseBinary <$> atPMD mp "bondOrderList"       asBinary empty
                       pure $ StructureData ttl' sid' dd' rd' nb' na'
-                                          ng' nc' nm' sg' uc' (l2a nol')
-                                           (l2a bal') (l2a el') res' rf'
-                                           rw' (l2a em') (l2a btl') (l2a bol')
+                                          ng' nc' nm' sg' uc' (l2v nol')
+                                           (l2v bal') (l2v el') res' rf'
+                                           rw' (l2v em') (l2v btl') (l2v bol')
 
 -- | Parses bio assembly data from ObjectMap
 --
 bioAssembly :: Monad m => Map Text Object -> m Assembly
 bioAssembly mp = do nme' <- atP mp "name"          asStr
                     tlt' <- atP mp "transformList" asObjectList >>= traverse (transformObjectMap >=> transform)
-                    pure $ Assembly (l2a tlt') nme'
+                    pure $ Assembly (l2v tlt') nme'
 
 -- | Parses transform data from ObjectMap
 --
 transform :: Monad m => Map Text Object -> m Transform
 transform mp = do cil' <- atP mp "chainIndexList" asIntList
                   mtx' <- atP mp "matrix"         asFloatList >>= m44Dec
-                  pure $ Transform (l2a cil') mtx'
+                  pure $ Transform (l2v cil') mtx'
 
 -- | Parses entity data from ObjectMap
 --
@@ -117,7 +117,7 @@ entity mp = do cil' <- atP mp "chainIndexList" asIntList
                dsc' <- atP mp "description"    asStr
                tpe' <- atP mp "type"           asStr
                sqc' <- atP mp "sequence"       asStr
-               pure $ Entity (l2a cil') dsc' tpe' sqc'
+               pure $ Entity (l2v cil') dsc' tpe' sqc'
 
 -- Helper functions
 
@@ -130,8 +130,8 @@ c2s (x:xs) | ord x == 0 = "":c2s xs
 
 -- | Converst list to an array
 --
-l2a :: [a] -> IArray a
-l2a lst = listArray (0, length lst - 1) lst
+l2v :: [a] -> Vector a
+l2v = fromList
 
 -- | List to list of pairs
 --
