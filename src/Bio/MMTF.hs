@@ -19,7 +19,7 @@ import           Data.MessagePack       (unpack)
 import           Data.Monoid            ((<>))
 import           Data.String            (IsString (..))
 import           Data.Text              (Text)
-import           Data.Vector            (Vector, toList, (!))
+import           Data.Vector            as V (Vector, toList, (!), null, splitAt, unfoldr)
 import           Linear.V3              (V3 (..))
 import           Network.HTTP.Simple    (getResponseBody, httpLBS)
 
@@ -37,11 +37,11 @@ fetch pdbid = do let url = fromString $ "https://mmtf.rcsb.org/v1.0/full/" <> pd
 instance StructureModels MMTF where
     modelsOf m = l2v (Model . l2v <$> zipWith (zipWith Chain) chainNames chainResis)
       where
-        chainsCnts = fromIntegral <$> toList (chainsPerModel (model m))
-        groupsCnts = fromIntegral <$> toList (groupsPerChain (chain m))
+        chainsCnts = toList $ fromIntegral <$> (chainsPerModel (model m))
+        groupsCnts = fromIntegral <$> (groupsPerChain (chain m))
         groupsRaws = snd $ mapAccumL getGroups (0, 0) groupsCnts
-        groups     = cutter chainsCnts groupsRaws
-        chainNames = cutter chainsCnts (toList $ chainNameList $ chain m)
+        groups     = splitPlaces chainsCnts groupsRaws
+        chainNames = splitPlaces chainsCnts (chainNameList $ chain m)
         chainResis = fmap (fmap (l2v . fmap mkResidue)) groups
 
         getGroups :: (Int, Int) -> Int -> ((Int, Int), [(GroupType, SecondaryStructure, [Atom])])
@@ -82,7 +82,9 @@ instance StructureModels MMTF where
                                      b = bFactorList (atom m)
                                  in  Atom n e (V3 (x ! idx) (y ! idx) (z ! idx)) fc (b ! idx) (o ! idx)
 
-        cutter :: [Int] -> [a] -> [[a]]
-        cutter []     []    = []
-        cutter (x:xs) ys    = take x ys : cutter xs (drop x ys)
-        cutter []     (_:_) = error "Cutter: you cannot be here"
+        -- this code copied from [here](http://hackage.haskell.org/package/vector-split-1.0.0.2/docs/src/Data-Vector-Split.html#splitPlaces)
+        splitPlaces :: [Int] -> Vector a -> [Vector a]
+        splitPlaces is v = toList $ V.unfoldr go (is,v)
+          where go ([],_)   = Nothing
+                go (x:xs,y) | V.null y = Nothing
+                            | otherwise = let (l,r) = V.splitAt x y in Just (l,(xs,r))
