@@ -54,8 +54,8 @@ instance NFData Bond
 -- | A set of atoms, organized to a residues
 --
 data Residue = Residue { resName         :: Text               -- ^ residue name
-                       , resAtoms        :: Vector Atom     -- ^ a set of residue atoms
-                       , resBonds        :: Vector Bond     -- ^ a set of residue bonds
+                       , resAtoms        :: Vector Atom        -- ^ a set of residue atoms
+                       , resBonds        :: Vector Bond        -- ^ a set of residue bonds
                        , resSecondary    :: SecondaryStructure -- ^ residue secondary structure
                        , resChemCompType :: Text               -- ^ chemical component type
                        }
@@ -64,7 +64,7 @@ data Residue = Residue { resName         :: Text               -- ^ residue name
 -- | Chain organizes linear structure of residues
 --
 data Chain = Chain { chainName     :: Text              -- ^ name of a chain
-                   , chainResidues :: Vector Residue -- ^ residues of a chain
+                   , chainResidues :: Vector Residue    -- ^ residues of a chain
                    }
   deriving (Show, Eq, Generic, NFData)
 
