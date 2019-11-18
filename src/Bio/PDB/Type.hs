@@ -24,7 +24,7 @@ data FieldType
    -- Title Section (except TITLE and REMARKS)
      HEADER
    | OBSLTE
-   | SPLT
+   | SPLIT
    | CAVEAT
    | COMPND
    | SOURCE
@@ -64,7 +64,7 @@ data FieldType
    | SCALEn
    -- Bookkeeping Section
    | MASTER
-  deriving (Show, Eq, Read, Generic, NFData)
+  deriving (Show, Eq, Read, Generic, NFData, Ord)
 
 type Model = Vector Chain
 
