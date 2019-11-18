@@ -16,32 +16,26 @@ where
 
 import           Bio.PDB.Type
 import           Control.Applicative  (many, some, (<|>))
-import           Control.DeepSeq      (NFData (..))
-import           Data.Array           (Array, array, elems, listArray)
+import           Control.DeepSeq      ()
+import           Data.Array           ()
 import           Data.Attoparsec.Text (Parser, anyChar, count, decimal,
-                                       endOfLine, isEndOfLine, many', rational,
-                                       satisfy, skipSpace, skipWhile, space,
-                                       string, take, takeTill, takeWhile,
-                                       takeWhile1)
+                                       endOfLine, isEndOfLine, many', satisfy,
+                                       skipWhile, space, string, take,
+                                       takeWhile, takeWhile1)
 import           Data.Char            (isSpace)
 import           Data.List            (groupBy)
-import           Data.Map             (fromAscListWith, fromListWith,
-                                       fromListWithKey)
-import           Data.Map.Strict      (Map, union)
-import           Data.Text            (Text, append, concat, pack, unpack)
+import           Data.Map             (fromListWithKey)
+import           Data.Map.Strict      (Map)
+import           Data.Text            (Text, concat, pack)
 import           Data.Vector          (Vector, fromList, singleton, (++))
-import           GHC.Generics         (Generic)
-import           Debug.Trace
-import Data.Typeable
-
+import           GHC.Generics         ()
 
 
 manySpaces :: Parser ()
 manySpaces = () <$ (many' $ satisfy isSpace)
 
-textWithSpacesP :: Parser Text
-textWithSpacesP = Data.Attoparsec.Text.takeWhile (`notElem` ['\n', '\r'])
-
+-- textWithSpacesP :: Parser Text
+-- textWithSpacesP = Data.Attoparsec.Text.takeWhile (`notElem` ['\n', '\r'])
 
 atomP :: Parser CoordLike
 atomP = let atom = Atom <$>
@@ -66,28 +60,35 @@ atomP = let atom = Atom <$>
 
 hetatmP :: Parser CoordLike
 hetatmP = do
-        string "HETATM"
-        skipWhile $ not . isEndOfLine
-        endOfLine
-        return HetatomLine
+  _ <- string "HETATM"
+  skipWhile $ not . isEndOfLine
+  endOfLine
+  return HetatomLine
 
 terP :: Parser CoordLike
 terP = do
-     string "TER "
-     skipWhile $ not . isEndOfLine
-     endOfLine
-     return TerLine
+  _ <- string "TER "
+  skipWhile $ not . isEndOfLine
+  endOfLine
+  return TerLine
 
-data CoordLike = AtomLine Atom | HetatomLine | TerLine
+anisouP :: Parser CoordLike
+anisouP = do
+  _ <- string "ANISOU"
+  skipWhile $ not . isEndOfLine
+  endOfLine
+  return AnisouLine
+
+data CoordLike = AtomLine Atom | HetatomLine | TerLine | AnisouLine
   deriving (Show)
 
 coordLikeP :: Parser [CoordLike]
-coordLikeP = some (hetatmP <|> atomP <|> terP)
+coordLikeP = some (hetatmP <|> atomP <|> terP <|> anisouP)
 
 chainsP :: Parser (Vector Chain)
 chainsP = do
-      lines <- coordLikeP
-      let atoms = map (\(AtomLine x) -> x) $ filter isAtom lines
+      coordLikeLines <- coordLikeP
+      let atoms = map (\(AtomLine x) -> x) $ filter isAtom coordLikeLines
       let chains = fromList (map fromList $ groupByChains atoms)
       pure chains
 
@@ -102,19 +103,20 @@ chainsP = do
 
 modelP :: Parser Model
 modelP = do
-    string "MODEL"
-    skipWhile $ not . isEndOfLine
-    endOfLine
-    chains <- chainsP
-    string "ENDMDL" >> skipWhile (not . isEndOfLine) >> endOfLine
-    pure chains
+  _ <- string "MODEL"
+  skipWhile $ not . isEndOfLine
+  endOfLine
+  chains <- chainsP
+  string "ENDMDL" >> skipWhile (not . isEndOfLine)
+  endOfLine
+  pure chains
 
 manyModelsP :: Parser [Model]
 manyModelsP =  (:[]) <$> chainsP <|> many modelP
 
 titleStringP :: Parser Text
 titleStringP = do
-  string "TITLE "
+  _ <- string "TITLE "
   titlePart <- Data.Attoparsec.Text.takeWhile $ not . isEndOfLine
   endOfLine
   pure titlePart
@@ -124,10 +126,10 @@ titleP = Data.Text.concat <$> some titleStringP
 
 remarkStringP :: Parser (RemarkCode, Text)
 remarkStringP = do
-  string "REMARK"
+  _ <- string "REMARK"
   manySpaces
   remarkCode <- decimal
-  space
+  _ <- space
   remarkPart <- Data.Attoparsec.Text.takeWhile $ not . isEndOfLine
   endOfLine
   pure (remarkCode, remarkPart)
@@ -142,24 +144,40 @@ remarkP = do
 
 otherFieldsStringP :: FieldType -> Parser (FieldType, Text)
 otherFieldsStringP fieldType = do
-  string (pack $ show fieldType)
+  _ <- string (pack $ show fieldType)
   fieldTypeText <- Data.Attoparsec.Text.takeWhile $ not . isEndOfLine
   endOfLine
   return (fieldType, fieldTypeText)
 
 coordTransformStringP :: FieldType -> Parser (FieldType, Text)
 coordTransformStringP fieldType = do
-  string (pack $ init (show fieldType))
-  anyChar
+  _ <- string (pack $ init (show fieldType))
+  _ <- anyChar
   fieldTypeText <- Data.Attoparsec.Text.takeWhile $ not . isEndOfLine
   endOfLine
   return (fieldType, fieldTypeText)
 
 skipConectP :: Parser ()
-skipConectP = do 
-  string "CONECT" 
+skipConectP = do
+  _ <- string "CONECT"
   skipWhile (not . isEndOfLine) >> endOfLine
   return ()
+
+dbrefnStringP :: FieldType -> Parser (FieldType, Text)
+dbrefnStringP fieldType= do
+  _ <- string (pack $ show fieldType)
+  _ <- space
+  fieldTypeText <- Data.Attoparsec.Text.takeWhile $ not . isEndOfLine
+  endOfLine
+  return (fieldType, fieldTypeText)
+
+hetStringP :: FieldType -> Parser (FieldType, Text)
+hetStringP fieldType= do
+  _ <- string (pack $ show fieldType)
+  _ <- space
+  fieldTypeText <- Data.Attoparsec.Text.takeWhile $ not . isEndOfLine
+  endOfLine
+  return (fieldType, fieldTypeText)
 
 pdbP :: Parser PDB
 pdbP = do
@@ -179,15 +197,15 @@ pdbP = do
     sprsde  <-  many (otherFieldsStringP SPRSDE)
     jrnl    <-  many (otherFieldsStringP JRNL)
     remarksMap <- remarkP
-    dbref   <- many (otherFieldsStringP DBREF)
-    dbref1  <-  many (otherFieldsStringP DBREF1)
-    dbref2  <-  many (otherFieldsStringP DBREF2)
+    dbref   <- many (dbrefnStringP DBREF)
+    dbref1  <-  many (dbrefnStringP DBREF1)
+    dbref2  <-  many (dbrefnStringP DBREF2)
     seqadv  <-  many (otherFieldsStringP SEQADV)
     seqres  <-  some (otherFieldsStringP SEQRES)
     modres  <-  many (otherFieldsStringP MODRES)
-    het     <- many (otherFieldsStringP HET)
-    hetnam  <-  many (otherFieldsStringP HETNAM)
-    hetsyn  <-  many (otherFieldsStringP HETSYN)
+    het     <- many (hetStringP HET)
+    hetnam  <-  many (hetStringP HETNAM)
+    hetsyn  <-  many (hetStringP HETSYN)
     formul  <-  many (otherFieldsStringP FORMUL)
     helix   <- many (otherFieldsStringP HELIX)
     sheet   <- many (otherFieldsStringP SHEET)
@@ -199,24 +217,23 @@ pdbP = do
     origxn  <-  some (coordTransformStringP ORIGXn)
     scalen  <-  some (coordTransformStringP SCALEn)
     mtrixn  <-  many (coordTransformStringP MTRIXn)
-    modelsVector <- fromList <$> manyModelsP -- fromList  исправить на many, так как  может не быть ни одной модели 
-    many skipConectP
+    modelsVector <- fromList <$> manyModelsP -- fromList  исправить на many, так как  может не быть ни одной модели
+    _ <- many skipConectP
     master  <- (:[]) <$> otherFieldsStringP MASTER
 
-    traceShowM $ header
-    let otherFieldsList = header Prelude.++ obslte Prelude.++ caveat Prelude.++ compnd
-              Prelude.++ source Prelude.++ keywds Prelude.++ expdta Prelude.++ nummdl 
+    let otherFieldsList = header Prelude.++ obslte Prelude.++ split Prelude.++ caveat Prelude.++ compnd
+              Prelude.++ source Prelude.++ keywds Prelude.++ expdta Prelude.++ nummdl
               Prelude.++ mdltyp Prelude.++ author Prelude.++ revdat Prelude.++ sprsde
-              Prelude.++ jrnl Prelude.++ dbref Prelude.++ dbref1 Prelude.++ dbref2 
+              Prelude.++ jrnl Prelude.++ dbref Prelude.++ dbref1 Prelude.++ dbref2
               Prelude.++ seqadv Prelude.++ seqres Prelude.++ modres Prelude.++ het
               Prelude.++ hetnam Prelude.++ hetsyn Prelude.++ formul Prelude.++ helix
               Prelude.++ sheet Prelude.++ ssbond Prelude.++ link Prelude.++ cispep
               Prelude.++ site Prelude.++ cryst1 Prelude.++ origxn Prelude.++ scalen
               Prelude.++ mtrixn Prelude.++ master
-        
+
     let otherFieldsMap = fromRevListWith (Data.Vector.++) ( map (\(x, y) -> (x, singleton y)) otherFieldsList)
     pure (PDB title modelsVector remarksMap otherFieldsMap)
-  
+
 
 
 

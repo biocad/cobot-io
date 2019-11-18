@@ -15,20 +15,20 @@ main :: IO ()
 main = do
     hSetBuffering stdout NoBuffering
     hspec $ do
-        --  -- MMTF
-        --  mmtfCodecSpec
-        --  mmtfParserSpec
-        --  -- Sequence
-        --  weightedSequenceSpec
-        --  markedSequenceSpec
-        --  markedAndWeightedSequenceSpec
-        --  functionsSpec
-        --  -- ABI
-        --  abiExtractSpec
-        --  abiCleanSpec
-        --  -- Uniprot
-        --  uniprotSectionSpec
-        --  uniprotFullSpec
+         -- MMTF
+         mmtfCodecSpec
+         mmtfParserSpec
+         -- Sequence
+         weightedSequenceSpec
+         markedSequenceSpec
+         markedAndWeightedSequenceSpec
+         functionsSpec
+         -- ABI
+         abiExtractSpec
+         abiCleanSpec
+         -- Uniprot
+         uniprotSectionSpec
+         uniprotFullSpec
          -- GB
          gbParserSpec
          gbWriterSpec
@@ -37,19 +37,14 @@ main = do
          fastaSpec
          fastaWriterSpec
          -- PDB
-        --  pdbParserSpec
-    print "AAAAAA"
-    -- dottedAtomSpecP "ABS"
-    testModelsSpecP "ABS"
-    -- testAtomFromFile "test/PDB/testatom"
-    titleSpecP "ABS"
-    remarkSpecP "ABS"
-    -- headerSpecP "ABS"
-    print "one"
-    pdbSpecP "ABS"
-    print "many"
-    pdbManyModelP "ABS"
-    print "AAAAAA"
-    print "C"
-    pdbFileP "test/PDB/1igt.pdb" "test/PDB/1igt_out.pdb"
-    -- pdbFileP "test/PDB/2dgc.pdb"
+         oneModelSpecP
+         manyModelsSpecP
+         noModelsSpecP
+         allFieldsModelSpecP
+         wrongPDBSpecP 
+    -- fileSpecP "test/PDB/1igt.pdb" -- works
+    -- fileSpecP "test/PDB/gromacs1.pdb" -- with added strings works
+    -- fileSpecP "test/PDB/gromacs2.pdb" -- does not work
+    -- fileSpecP "test/PDB/1bvl.pdb" -- works
+    -- fileSpecP "test/PDB/1g0y.pdb" -- works
+
