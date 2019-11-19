@@ -15,7 +15,7 @@ data PDB = PDB { title       :: Text
                }
   deriving (Show, Eq, Generic, NFData)
 
-type RemarkCode = Int
+type RemarkCode = Maybe Int
 type RemarkData = Vector Text
 
 type FieldData = Vector Text

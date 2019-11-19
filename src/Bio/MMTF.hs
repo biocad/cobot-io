@@ -19,7 +19,7 @@ import           Data.MessagePack       (unpack)
 import           Data.Monoid            ((<>))
 import           Data.String            (IsString (..))
 import           Data.Text              (Text)
-import           Data.Vector            (Vector, toList, (!))
+import           Data.Vector            (Vector, empty, toList, (!))
 import           Linear.V3              (V3 (..))
 import           Network.HTTP.Simple    (getResponseBody, httpLBS)
 
@@ -35,7 +35,7 @@ fetch pdbid = do let url = fromString $ "https://mmtf.rcsb.org/v1.0/full/" <> pd
                  decode (getResponseBody resp)
 
 instance StructureModels MMTF where
-    modelsOf m = l2v (Model . l2v <$> zipWith (zipWith Chain) chainNames chainResis)
+    modelsOf m = l2v (flip Model empty . l2v <$> zipWith (zipWith Chain) chainNames chainResis)
       where
         chainsCnts = fromIntegral <$> toList (chainsPerModel (model m))
         groupsCnts = fromIntegral <$> toList (groupsPerChain (chain m))
@@ -68,19 +68,20 @@ instance StructureModels MMTF where
                                             (mkBonds (gtBondAtomList gt) (gtBondOrderList gt))
                                              ss (gtChemCompType gt)
 
-        mkBonds :: Vector (Int32, Int32) -> Vector Int32 -> Vector Bond
+        mkBonds :: Vector (Int32, Int32) -> Vector Int32 -> Vector (Bond LocalID)
         mkBonds bal bol = let ball = bimap fromIntegral fromIntegral <$> toList bal
                               boll = fromIntegral <$> toList bol
                               res  = zipWith (\(f, t) o -> Bond f t o) ball boll
                           in  l2v res
 
         mkAtom :: (Int, Text, Text, Int) -> Atom
-        mkAtom (fc, n, e, idx) = let x = xCoordList (atom m)
+        mkAtom (fc, n, e, idx) = let i = atomIdList (atom m)
+                                     x = xCoordList (atom m)
                                      y = yCoordList (atom m)
                                      z = zCoordList (atom m)
                                      o = occupancyList (atom m)
                                      b = bFactorList (atom m)
-                                 in  Atom n e (V3 (x ! idx) (y ! idx) (z ! idx)) fc (b ! idx) (o ! idx)
+                                 in  Atom (fromIntegral (i ! idx)) n e (V3 (x ! idx) (y ! idx) (z ! idx)) fc (b ! idx) (o ! idx)
 
         cutter :: [Int] -> [a] -> [[a]]
         cutter []     []    = []

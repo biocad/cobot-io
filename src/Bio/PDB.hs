@@ -16,7 +16,7 @@ instance StructureModels PDB.PDB where
     modelsOf PDB.PDB {..} = fmap mkModel models
       where
         mkModel :: PDB.Model -> Model
-        mkModel = Model . fmap mkChain
+        mkModel = flip Model V.empty . fmap mkChain
 
         mkChain :: PDB.Chain -> Chain
         mkChain = uncurry Chain . (mkChainName &&& mkChainResidues)
@@ -51,7 +51,8 @@ instance StructureModels PDB.PDB where
 
 
         mkAtom :: PDB.Atom -> Atom
-        mkAtom PDB.Atom{..} = Atom atomName
+        mkAtom PDB.Atom{..} = Atom atomSerial
+                                   atomName
                                    atomElement
                                    (V3 atomX atomY atomZ)
                                    (read $ T.unpack atomCharge)
