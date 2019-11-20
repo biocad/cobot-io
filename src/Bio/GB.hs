@@ -13,8 +13,7 @@ import           Bio.GB.Writer          (genBankToText)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Attoparsec.Text   (parseOnly)
 import           Data.Bifunctor         (first)
-import           Data.Text              (Text)
-import           Data.Text              (pack)
+import           Data.Text              (Text, pack)
 import qualified Data.Text.IO           as TIO (readFile, writeFile)
 
 -- | Reads 'GenBankSequence' from givem file.
