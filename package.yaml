@@ -71,6 +71,7 @@ tests:
       - TypeFamilies
     dependencies:
     - cobot-io
+    - directory
     - QuickCheck >= 2.9.2 && < 2.13
     - hspec >= 2.4.1 && < 2.7
     - neat-interpolation >= 0.3

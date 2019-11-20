@@ -36,6 +36,3 @@ cabal.project.local~
 
 # Stack lock file
 stack.yaml.lock
-
-# tests
-test/FASTA/test.fasta
