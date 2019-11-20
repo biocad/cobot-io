@@ -8,8 +8,9 @@ module Bio.PDB.Parser
   , coordLikeP
   , manyModelsP
   , titleP
-  , remarkP
   , pdbP
+  , otherFieldP
+  , PdbData
   )
 where
 
@@ -21,15 +22,17 @@ import           Data.Array           ()
 import           Data.Attoparsec.Text (Parser, anyChar, count, decimal,
                                        endOfLine, isEndOfLine, many', satisfy,
                                        skipWhile, space, string, take,
-                                       takeWhile, takeWhile1)
+                                       takeWhile, takeWhile1, choice)
 import           Data.Char            (isSpace)
 import           Data.List            (groupBy)
 import           Data.Map             (fromListWithKey)
-import           Data.Map.Strict      (Map)
-import           Data.Text            (Text, concat, pack)
-import           Data.Vector          (Vector, fromList, singleton, (++))
+import           Data.Map.Strict      (Map, unionWith, empty)
+import           Text.Read            (readMaybe)
+import           Data.Text            (Text, concat, empty, isPrefixOf, lines,
+                                       null, pack, strip, unpack, append)
+import           Data.Vector          (Vector, fromList, singleton, (++), empty)
 import           GHC.Generics         ()
-
+import Debug.Trace
 
 manySpaces :: Parser ()
 manySpaces = () <$ (many' $ satisfy isSpace)
@@ -39,19 +42,19 @@ manySpaces = () <$ (many' $ satisfy isSpace)
 
 atomP :: Parser CoordLike
 atomP = let atom = Atom <$>
-                    (string "ATOM" *> manySpaces *> decimal <* manySpaces)
+                    (string "ATOM  " *> (read <$> count 5 anyChar) <* space)
                     <*> Data.Attoparsec.Text.take 4
                     <*> anyChar
-                    <*> textP <* manySpaces
-                    <*> anyChar <* manySpaces
-                    <*> decimal
+                    <*> Data.Attoparsec.Text.take 3 <* space
+                    <*> anyChar
+                    <*> (read <$> count 4 anyChar)
                     <*> anyChar <* count 3 space
                     <*> (read <$> count 8 anyChar)
                     <*> (read <$> count 8 anyChar)
                     <*> (read <$> count 8 anyChar)
                     <*> (read <$> count 6 anyChar)
-                    <*> (read <$> count 6 anyChar) <* manySpaces
-                    <*> textP
+                    <*> (read <$> count 6 anyChar) <* count 10 space
+                    <*> Data.Attoparsec.Text.take 2
                     <*> Data.Attoparsec.Text.take 2 <* endOfLine
         in AtomLine <$> atom
 
@@ -111,8 +114,10 @@ modelP = do
   endOfLine
   pure chains
 
-manyModelsP :: Parser [Model]
-manyModelsP =  (:[]) <$> chainsP <|> many modelP
+manyModelsP :: Parser PdbData
+manyModelsP = do
+  models <- (:[]) <$> chainsP <|> some modelP
+  return $ ModelData (fromList models)
 
 titleStringP :: Parser Text
 titleStringP = do
@@ -121,41 +126,23 @@ titleStringP = do
   endOfLine
   pure titlePart
 
-titleP :: Parser Text
-titleP = Data.Text.concat <$> some titleStringP
+titleP :: Parser PdbData
+titleP =  do
+  titleText <- Data.Text.concat <$> some titleStringP
+  return $ TitleData titleText
 
-remarkStringP :: Parser (RemarkCode, Text)
+remarkStringP :: Parser PdbData
 remarkStringP = do
-  _ <- string "REMARK"
-  manySpaces
-  remarkCode <- decimal
-  _ <- space
-  remarkPart <- Data.Attoparsec.Text.takeWhile $ not . isEndOfLine
-  endOfLine
-  pure (remarkCode, remarkPart)
+ _ <- string "REMARK"
+ _ <- space
+ (remarkCode :: RemarkCode) <- (readMaybe <$> count 3 anyChar)
+ _ <- anyChar
+ remarkText <- Data.Attoparsec.Text.takeWhile $ not . isEndOfLine
+ endOfLine
+ pure $ RemarkData (remarkCode, remarkText)
 
 fromRevListWith :: Ord k => (a -> a -> a) -> [(k,a)] -> Map k a
 fromRevListWith f xs = fromListWithKey (\_ x y -> f y x) xs
-
-remarkP :: Parser (Map RemarkCode RemarkData)
-remarkP = do
-  codeRemarkList <- some remarkStringP
-  pure $ fromRevListWith (Data.Vector.++) ( map (\(x, y) -> (x, singleton y)) codeRemarkList)
-
-otherFieldsStringP :: FieldType -> Parser (FieldType, Text)
-otherFieldsStringP fieldType = do
-  _ <- string (pack $ show fieldType)
-  fieldTypeText <- Data.Attoparsec.Text.takeWhile $ not . isEndOfLine
-  endOfLine
-  return (fieldType, fieldTypeText)
-
-coordTransformStringP :: FieldType -> Parser (FieldType, Text)
-coordTransformStringP fieldType = do
-  _ <- string (pack $ init (show fieldType))
-  _ <- anyChar
-  fieldTypeText <- Data.Attoparsec.Text.takeWhile $ not . isEndOfLine
-  endOfLine
-  return (fieldType, fieldTypeText)
 
 skipConectP :: Parser ()
 skipConectP = do
@@ -163,79 +150,60 @@ skipConectP = do
   skipWhile (not . isEndOfLine) >> endOfLine
   return ()
 
-dbrefnStringP :: FieldType -> Parser (FieldType, Text)
-dbrefnStringP fieldType= do
-  _ <- string (pack $ show fieldType)
-  _ <- space
-  fieldTypeText <- Data.Attoparsec.Text.takeWhile $ not . isEndOfLine
-  endOfLine
-  return (fieldType, fieldTypeText)
+isModelString :: Text -> Bool
+isModelString s = isPrefixOf "MODEL" s || isPrefixOf "ENDMDL" s || isPrefixOf "ATOM" s || isPrefixOf "TER" s || isPrefixOf "HETATM" s || isPrefixOf "ANISOU" s
 
-hetStringP :: FieldType -> Parser (FieldType, Text)
-hetStringP fieldType= do
-  _ <- string (pack $ show fieldType)
-  _ <- space
-  fieldTypeText <- Data.Attoparsec.Text.takeWhile $ not . isEndOfLine
-  endOfLine
-  return (fieldType, fieldTypeText)
+isOtherFieldString :: Text -> Bool
+isOtherFieldString s = not (Data.Text.null s || isModelString s)
+
+otherFieldP :: Parser PdbData
+otherFieldP = do
+    (fieldType :: Maybe FieldType) <- (readMaybe <$> count 6 anyChar) 
+    fieldTypeText <- Data.Attoparsec.Text.takeWhile $ not . isEndOfLine
+    endOfLine 
+    return $ OtherFieldData (fieldType, fieldTypeText)
+
+data PdbData =  ModelData (Vector Model) | OtherFieldData (Maybe FieldType, Text) | RemarkData (RemarkCode, Text) | TitleData Text
+  deriving (Show)
 
 pdbP :: Parser PDB
 pdbP = do
-    header <- some (otherFieldsStringP HEADER)
-    obslte <- many (otherFieldsStringP OBSLTE)
-    title   <- Data.Text.concat <$> some titleStringP
-    split <- many (otherFieldsStringP SPLIT)
-    caveat  <-  many (otherFieldsStringP CAVEAT)
-    compnd  <-  some (otherFieldsStringP COMPND)
-    source  <-  some (otherFieldsStringP SOURCE)
-    keywds  <-  some (otherFieldsStringP KEYWDS)
-    expdta  <-  some (otherFieldsStringP EXPDTA)
-    nummdl  <-  many (otherFieldsStringP NUMMDL)
-    mdltyp  <-  many (otherFieldsStringP MDLTYP)
-    author  <-  some (otherFieldsStringP AUTHOR)
-    revdat  <-  some (otherFieldsStringP REVDAT)
-    sprsde  <-  many (otherFieldsStringP SPRSDE)
-    jrnl    <-  many (otherFieldsStringP JRNL)
-    remarksMap <- remarkP
-    dbref   <- many (dbrefnStringP DBREF)
-    dbref1  <-  many (dbrefnStringP DBREF1)
-    dbref2  <-  many (dbrefnStringP DBREF2)
-    seqadv  <-  many (otherFieldsStringP SEQADV)
-    seqres  <-  some (otherFieldsStringP SEQRES)
-    modres  <-  many (otherFieldsStringP MODRES)
-    het     <- many (hetStringP HET)
-    hetnam  <-  many (hetStringP HETNAM)
-    hetsyn  <-  many (hetStringP HETSYN)
-    formul  <-  many (otherFieldsStringP FORMUL)
-    helix   <- many (otherFieldsStringP HELIX)
-    sheet   <- many (otherFieldsStringP SHEET)
-    ssbond <-  many (otherFieldsStringP SSBOND)
-    link    <- many (otherFieldsStringP LINK)
-    cispep  <-  many (otherFieldsStringP CISPEP)
-    site    <- many (otherFieldsStringP SITE)
-    cryst1  <-  some (coordTransformStringP CRYST1)
-    origxn  <-  some (coordTransformStringP ORIGXn)
-    scalen  <-  some (coordTransformStringP SCALEn)
-    mtrixn  <-  many (coordTransformStringP MTRIXn)
-    modelsVector <- fromList <$> manyModelsP -- fromList  исправить на many, так как  может не быть ни одной модели
-    _ <- many skipConectP
-    master  <- (:[]) <$> otherFieldsStringP MASTER
+  pdbData <- many (choice [titleP, remarkStringP, manyModelsP, otherFieldP]) -- порядок важен
+  let models = foldr (Data.Vector.++) Data.Vector.empty (map (\(ModelData x) -> x) $ filter isModel pdbData) -- vector models
+      otherFieldsList = map (\(OtherFieldData (Just x, y)) -> (x, singleton y)) $ filter isOtherField pdbData -- [(fieldtype, text)]
+      title = foldr (Data.Text.append) "" (map (\(TitleData x) -> x) $ filter isTitle pdbData)
+      remarks = fromRevListWith (Data.Vector.++) (map (\(RemarkData (x, y)) -> (x, singleton y)) $ filter isRemark pdbData)
 
-    let otherFieldsList = header Prelude.++ obslte Prelude.++ split Prelude.++ caveat Prelude.++ compnd
-              Prelude.++ source Prelude.++ keywds Prelude.++ expdta Prelude.++ nummdl
-              Prelude.++ mdltyp Prelude.++ author Prelude.++ revdat Prelude.++ sprsde
-              Prelude.++ jrnl Prelude.++ dbref Prelude.++ dbref1 Prelude.++ dbref2
-              Prelude.++ seqadv Prelude.++ seqres Prelude.++ modres Prelude.++ het
-              Prelude.++ hetnam Prelude.++ hetsyn Prelude.++ formul Prelude.++ helix
-              Prelude.++ sheet Prelude.++ ssbond Prelude.++ link Prelude.++ cispep
-              Prelude.++ site Prelude.++ cryst1 Prelude.++ origxn Prelude.++ scalen
-              Prelude.++ mtrixn Prelude.++ master
+      otherFieldsMap = fromRevListWith (Data.Vector.++) otherFieldsList
 
-    let otherFieldsMap = fromRevListWith (Data.Vector.++) ( map (\(x, y) -> (x, singleton y)) otherFieldsList)
-    pure (PDB title modelsVector remarksMap otherFieldsMap)
+  return $ PDB title models remarks otherFieldsMap
+  where
+    isModel :: PdbData -> Bool
+    isModel elem = case elem of
+      ModelData _ -> True
+      _       -> False
+      
+    isOtherField :: PdbData -> Bool
+    isOtherField elem = case elem of
+      OtherFieldData (Just v, _) -> True
+      _   -> False
+    
+    isTitle :: PdbData -> Bool
+    isTitle elem = case elem of
+      TitleData _ -> True
+      _ -> False
+    
+    isRemark :: PdbData -> Bool
+    isRemark elem = case elem of
+      RemarkData _ -> True
+      _ -> False
 
 
 
-
+-- fieldP :: Parser FieldType
+-- fieldP = do
+--     fieldStr <- count 6 anyChar
+--     let field = strip fieldStr -- delete trailing spaces
+--     read field
 
 

@@ -12,7 +12,7 @@ import qualified Data.Vector            as V (Vector, empty, fromList, length,
                                               (!))
 import           Linear.V3              (V3 (..))
 
-import           Bio.PDB.Parser         (manyModelsP, pdbP, remarkP, titleP)
+import           Bio.PDB.Parser         (manyModelsP, pdbP, titleP, otherFieldP, PdbData)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Attoparsec.Text   (parseOnly)
 import           Data.Bifunctor         (first)
@@ -67,16 +67,11 @@ instance StructureModels PDB.PDB where
                                    atomOccupancy
 
 
-fromTextChain :: Text -> Either Text [PDB.Model]
+fromTextChain :: Text -> Either Text PdbData
 fromTextChain = first pack . parseOnly manyModelsP
 
-fromTextTitle :: Text -> Either Text Text
+fromTextTitle :: Text -> Either Text PdbData
 fromTextTitle = first pack . parseOnly titleP
-
-
-fromTextRemark :: Text -> Either Text (Map PDB.RemarkCode PDB.RemarkData)
-fromTextRemark = first pack . parseOnly remarkP
-
 
 fromTextPDB :: Text -> Either Text PDB.PDB
 fromTextPDB = first pack . parseOnly pdbP
@@ -85,7 +80,7 @@ fromTextPDB = first pack . parseOnly pdbP
 fromFilePDB :: MonadIO m => FilePath -> m PDB.PDB
 fromFilePDB f = liftIO (TIO.readFile f) >>= either fail pure . parseOnly pdbP
 
-fromFileTitle ::  MonadIO m => FilePath -> m Text
+fromFileTitle ::  MonadIO m => FilePath -> m PdbData
 fromFileTitle f = liftIO (TIO.readFile f) >>= either fail pure . parseOnly titleP
 
 interNewLine :: [Text] -> Text
@@ -117,3 +112,5 @@ toFile :: MonadIO m => PDB.PDB -> FilePath -> m ()
 toFile s f = liftIO $ TIO.writeFile f $ pdbToText s
 
 
+testOtherFieldP :: Text -> Either Text PDB.PDB
+testOtherFieldP = first pack . parseOnly pdbP

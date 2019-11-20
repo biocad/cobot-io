@@ -15,7 +15,7 @@ data PDB = PDB { title       :: Text
                }
   deriving (Show, Eq, Generic, NFData)
 
-type RemarkCode = Int
+type RemarkCode = Maybe Int
 type RemarkData = Vector Text
 
 type FieldData = Vector Text
@@ -59,9 +59,15 @@ data FieldType
    | SITE
    -- Crystallographic and Coordinate Transformation Section
    | CRYST1
-   | MTRIXn
-   | ORIGXn
-   | SCALEn
+   | MTRIX1
+   | MTRIX2
+   | MTRIX3
+   | ORIGX1
+   | ORIGX2
+   | ORIGX3
+   | SCALE1
+   | SCALE2
+   | SCALE3
    -- Bookkeeping Section
    | MASTER
   deriving (Show, Eq, Read, Generic, NFData, Ord)
