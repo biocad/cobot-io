@@ -2,8 +2,8 @@ module Bio.MAE.Type
   ( Mae (..)
   , Block (..)
   , Table (..)
-  , Value (..)
-  , FromValue (..)
+  , MaeValue (..)
+  , FromMaeValue (..)
   ) where
 
 import           Data.Map.Strict (Map)
@@ -16,45 +16,45 @@ data Mae = Mae { version :: Text
   deriving (Eq, Show)
 
 data Block = Block { blockName :: Text
-                   , fields    :: Map Text Value
+                   , fields    :: Map Text MaeValue
                    , tables    :: [Table]
                    }
   deriving (Eq, Show)
 
 data Table = Table { tableName :: Text
-                   , contents  :: Map Text [Value]
+                   , contents  :: Map Text [MaeValue]
                    }
   deriving (Eq, Show)                   
 
-data Value = IntValue Int
-           | RealValue Float
-           | StringValue Text
-           | BoolValue Bool
-           | Absent
+data MaeValue = IntMaeValue Int
+              | RealMaeValue Float
+              | StringMaeValue Text
+              | BoolMaeValue Bool
+              | Absent
   deriving (Eq, Show)
 
-class FromValue a where
-    fromValue :: Value -> Maybe a
+class FromMaeValue a where
+    fromMaeValue :: MaeValue -> Maybe a
 
-    unsafeFromValue :: Value -> a
-    unsafeFromValue = fromJust . fromValue
+    unsafeFromMaeValue :: MaeValue -> a
+    unsafeFromMaeValue = fromJust . fromMaeValue
 
-instance FromValue Int where
-    fromValue :: Value -> Maybe Int
-    fromValue (IntValue i) = Just i
-    fromValue _            = Nothing
+instance FromMaeValue Int where
+    fromMaeValue :: MaeValue -> Maybe Int
+    fromMaeValue (IntMaeValue i) = Just i
+    fromMaeValue _               = Nothing
 
-instance FromValue Float where
-    fromValue :: Value -> Maybe Float
-    fromValue (RealValue f) = Just f
-    fromValue _             = Nothing
+instance FromMaeValue Float where
+    fromMaeValue :: MaeValue -> Maybe Float
+    fromMaeValue (RealMaeValue f) = Just f
+    fromMaeValue _                = Nothing
 
-instance FromValue Bool where
-    fromValue :: Value -> Maybe Bool
-    fromValue (BoolValue b) = Just b
-    fromValue _             = Nothing
+instance FromMaeValue Bool where
+    fromMaeValue :: MaeValue -> Maybe Bool
+    fromMaeValue (BoolMaeValue b) = Just b
+    fromMaeValue _                = Nothing
 
-instance FromValue Text where
-    fromValue :: Value -> Maybe Text
-    fromValue (StringValue t) = Just t
-    fromValue _               = Nothing
+instance FromMaeValue Text where
+    fromMaeValue :: MaeValue -> Maybe Text
+    fromMaeValue (StringMaeValue t) = Just t
+    fromMaeValue _                  = Nothing

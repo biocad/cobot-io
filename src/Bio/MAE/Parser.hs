@@ -1,9 +1,14 @@
 {-# LANGUAGE TupleSections #-}
 
-module Bio.MAE.Parser where
+module Bio.MAE.Parser
+  ( maeP
+  , versionP
+  , blockP
+  , tableP
+  ) where
 
-import           Bio.MAE.Type         (Block (..), Mae (..), Table (..),
-                                       Value (..))
+import           Bio.MAE.Type         (Block (..), Mae (..), MaeValue (..),
+                                       Table (..))
 import           Control.Applicative  ((<|>))
 import           Control.Monad        (replicateM, when, zipWithM)
 import           Data.Attoparsec.Text (Parser, char, decimal, endOfInput,
@@ -32,44 +37,44 @@ blockP :: Parser Block
 blockP = uncurry <$> (Block <$> anyStringP <* many' oneSpaceP)
                  <*> inBrackets ((,) <$> fieldsP <*> many' tableP)
   where
-    fieldsP :: Parser (Map Text Value)
+    fieldsP :: Parser (Map Text MaeValue)
     fieldsP = do
         fieldNames  <- upToDelimiterP lineP
-        fieldValues <- replicateM (length fieldNames) lineP
+        fieldMaeValues <- replicateM (length fieldNames) lineP
 
-        M.fromList <$> zipWithM (\k v -> (k,) <$> textToValue k v) fieldNames fieldValues
+        M.fromList <$> zipWithM (\k v -> (k,) <$> textToMaeValue k v) fieldNames fieldMaeValues
 
-textToValue :: Text -> Text -> Parser Value
-textToValue k v = if v == absentValue then pure Absent else
+textToMaeValue :: Text -> Text -> Parser MaeValue
+textToMaeValue k v = if v == absentMaeValue then pure Absent else
     case T.uncons k of
-        Just (c, _) -> getValueReader c v
+        Just (c, _) -> getMaeValueReader c v
         _           -> fail "Absent field name."
   where
-    absentValue :: Text
-    absentValue = "<>"
+    absentMaeValue :: Text
+    absentMaeValue = "<>"
 
-    getValueReader :: Char -> Text -> Parser Value
-    getValueReader 'i' = textToIntValueReader
-    getValueReader 'r' = textToRealValueReader
-    getValueReader 'b' = textToBoolValueReader
-    getValueReader 's' = textToStringValueReader
-    getValueReader _   = const $ fail "Unknown value type."
+    getMaeValueReader :: Char -> Text -> Parser MaeValue
+    getMaeValueReader 'i' = textToIntMaeValueReader
+    getMaeValueReader 'r' = textToRealMaeValueReader
+    getMaeValueReader 'b' = textToBoolMaeValueReader
+    getMaeValueReader 's' = textToStringMaeValueReader
+    getMaeValueReader _   = const $ fail "Unknown value type."
 
-    textToIntValueReader :: Text -> Parser Value
-    textToIntValueReader = either fail (pure . IntValue . fst) . TR.signed TR.decimal
+    textToIntMaeValueReader :: Text -> Parser MaeValue
+    textToIntMaeValueReader = either fail (pure . IntMaeValue . fst) . TR.signed TR.decimal
 
-    textToRealValueReader :: Text -> Parser Value
-    textToRealValueReader = either fail (pure . RealValue . fst) . TR.signed TR.rational
+    textToRealMaeValueReader :: Text -> Parser MaeValue
+    textToRealMaeValueReader = either fail (pure . RealMaeValue . fst) . TR.signed TR.rational
 
-    textToBoolValueReader :: Text -> Parser Value
-    textToBoolValueReader t =
+    textToBoolMaeValueReader :: Text -> Parser MaeValue
+    textToBoolMaeValueReader t =
         case t of
-            "0" -> pure $ BoolValue False
-            "1" -> pure $ BoolValue True
+            "0" -> pure $ BoolMaeValue False
+            "1" -> pure $ BoolMaeValue True
             _   -> fail "Can't parse bool value."
 
-    textToStringValueReader :: Text -> Parser Value
-    textToStringValueReader = pure . StringValue
+    textToStringMaeValueReader :: Text -> Parser MaeValue
+    textToStringMaeValueReader = pure . StringMaeValue
 
 tableP :: Parser Table
 tableP = do
@@ -80,7 +85,7 @@ tableP = do
 
     contents <- inBrackets $ do
         fieldNames  <- upToDelimiterP lineP
-        let readers = fmap textToValue fieldNames
+        let readers = fmap textToMaeValue fieldNames
         entries     <- replicateM numberOfEntries $ entryP readers
 
         delimiterP
@@ -95,7 +100,7 @@ tableP = do
     rightSquareBracket :: Char
     rightSquareBracket = ']'
 
-    entryP :: [Text -> Parser Value] -> Parser [Value]
+    entryP :: [Text -> Parser MaeValue] -> Parser [MaeValue]
     entryP readers = do
         valuesT <- many1' (many' oneSpaceP *> valueTP <* many' oneSpaceP) <* tillEndOfLine
         when (length readers /= length valuesT - 1) $ fail "Wrong number of values in an entry."
