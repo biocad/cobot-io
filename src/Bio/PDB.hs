@@ -1,24 +1,16 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE RecordWildCards #-}
-module Bio.PDB where
+module Bio.PDB
+  (
+  ) where
 
-import qualified Bio.PDB.Type           as PDB
+import qualified Bio.PDB.Type  as PDB
 import           Bio.Structure
 
-import           Control.Arrow          ((&&&))
-import           Data.Foldable          (Foldable (..))
-import           Data.Text              as T (Text, singleton, unpack)
-import qualified Data.Vector            as V (Vector, empty, fromList, length,
-                                              (!))
-import           Linear.V3              (V3 (..))
-
-import           Bio.PDB.Parser         (manyModelsP, pdbP, titleP, otherFieldP, PdbData)
-import           Control.Monad.IO.Class (MonadIO, liftIO)
-import           Data.Attoparsec.Text   (parseOnly)
-import           Data.Bifunctor         (first)
-import           Data.Map.Strict        (Map, assocs)
-import           Data.Text              (append, intercalate, null, pack)
-import qualified Data.Text.IO           as TIO (readFile, writeFile)
+import           Control.Arrow ((&&&))
+import qualified Data.Vector as V
+import           Data.Foldable (Foldable (..))
+import           Data.Text     as T (Text, singleton, unpack)
+import           Linear.V3     (V3 (..))
 
 instance StructureModels PDB.PDB where
     modelsOf PDB.PDB {..} = fmap mkModel models
@@ -65,52 +57,3 @@ instance StructureModels PDB.PDB where
                                    (read $ T.unpack atomCharge)
                                    atomTempFactor
                                    atomOccupancy
-
-
-fromTextChain :: Text -> Either Text PdbData
-fromTextChain = first pack . parseOnly manyModelsP
-
-fromTextTitle :: Text -> Either Text PdbData
-fromTextTitle = first pack . parseOnly titleP
-
-fromTextPDB :: Text -> Either Text PDB.PDB
-fromTextPDB = first pack . parseOnly pdbP
-
-
-fromFilePDB :: MonadIO m => FilePath -> m PDB.PDB
-fromFilePDB f = liftIO (TIO.readFile f) >>= either fail pure . parseOnly pdbP
-
-fromFileTitle ::  MonadIO m => FilePath -> m PdbData
-fromFileTitle f = liftIO (TIO.readFile f) >>= either fail pure . parseOnly titleP
-
-interNewLine :: [Text] -> Text
-interNewLine = intercalate "\n" . filter (not . Data.Text.null)
-
-mergeData :: [Text] -> Text
-mergeData d = foldr (append) "" d
-
-showOtherField :: (PDB.FieldType, PDB.FieldData) -> String
-showOtherField (fieldType, fieldData) = show fieldType ++ unpack (mergeData (map (append "\n") (toList fieldData))) ++ "\n\n"
-
-showRemark :: (PDB.RemarkCode, PDB.RemarkData) -> String
-showRemark (remarkCode, remarkData) = "REMARK " ++ show remarkCode ++ unpack (mergeData (map (append "\n") (toList remarkData))) ++ "\n\n"
-
-pdbToText :: PDB.PDB -> Text
-pdbToText PDB.PDB{..} = interNewLine parts <> "\n"
-    where
-      parts = [ "TITLE"
-              , title
-              , "MODELS"
-              , pack $ show  models
-              , "REMARKS"
-              , pack $ foldr (++) "" (map showRemark (assocs remarks))
-              , "\nOTHERFIELDS"
-              , pack $ foldr (++) "" (map showOtherField (assocs  otherFields))
-              ]
-
-toFile :: MonadIO m => PDB.PDB -> FilePath -> m ()
-toFile s f = liftIO $ TIO.writeFile f $ pdbToText s
-
-
-testOtherFieldP :: Text -> Either Text PDB.PDB
-testOtherFieldP = first pack . parseOnly pdbP
