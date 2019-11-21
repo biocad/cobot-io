@@ -1,37 +1,40 @@
 import           ABISpec
+import           FastaParserSpec
+import           FASTASpec
+import           FastaWriterSpec
 import           GBParserSpec
 import           GBWriterSpec
+import           MAEParserSpec
 import           MMTFSpec
 import           SequenceSpec
 import           System.IO
 import           Test.Hspec
 import           UniprotSpec
-import           FastaParserSpec
-import           FastaWriterSpec
-import           FASTASpec
 
 main :: IO ()
 main = do
     hSetBuffering stdout NoBuffering
     hspec $ do
-         -- MMTF
-         mmtfCodecSpec
-         mmtfParserSpec
-         -- Sequence
-         weightedSequenceSpec
-         markedSequenceSpec
-         markedAndWeightedSequenceSpec
-         functionsSpec
-         -- ABI
-         abiExtractSpec
-         abiCleanSpec
-         -- Uniprot
-         uniprotSectionSpec
-         uniprotFullSpec
-         -- GB
-         gbParserSpec
-         gbWriterSpec
-         -- Fasta
-         fastaParserSpec
-         fastaSpec
-         fastaWriterSpec
+        --  -- MMTF
+        --  mmtfCodecSpec
+        --  mmtfParserSpec
+        --  -- Sequence
+        --  weightedSequenceSpec
+        --  markedSequenceSpec
+        --  markedAndWeightedSequenceSpec
+        --  functionsSpec
+        --  -- ABI
+        --  abiExtractSpec
+        --  abiCleanSpec
+        --  -- Uniprot
+        --  uniprotSectionSpec
+        --  uniprotFullSpec
+        --  -- GB
+        --  gbParserSpec
+        --  gbWriterSpec
+        --  -- Fasta
+        --  fastaParserSpec
+        --  fastaSpec
+        --  fastaWriterSpec
+         -- Mae
+         maeParserSpec

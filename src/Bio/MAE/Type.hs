@@ -29,6 +29,7 @@ data Table = Table { tableName :: Text
 data Value = IntValue Int
            | RealValue Float
            | StringValue Text
+           | BoolValue Bool
            | Absent
   deriving (Eq, Show)
 
@@ -46,6 +47,11 @@ instance FromValue Int where
 instance FromValue Float where
     fromValue :: Value -> Maybe Float
     fromValue (RealValue f) = Just f
+    fromValue _             = Nothing
+
+instance FromValue Bool where
+    fromValue :: Value -> Maybe Bool
+    fromValue (BoolValue b) = Just b
     fromValue _             = Nothing
 
 instance FromValue Text where

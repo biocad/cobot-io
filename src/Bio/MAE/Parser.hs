@@ -1,8 +1,6 @@
 {-# LANGUAGE TupleSections #-}
 
-module Bio.MAE.Parser
-  ( maeP
-  ) where
+module Bio.MAE.Parser where
 
 import           Bio.MAE.Type         (Block (..), Mae (..), Table (..),
                                        Value (..))
@@ -57,6 +55,7 @@ textToValue k v = if v == absentValue then pure Absent else
     getValueReader :: Char -> Text -> Parser Value
     getValueReader 'i' = textToIntValueReader
     getValueReader 'r' = textToRealValueReader
+    getValueReader 'b' = textToBoolValueReader
     getValueReader 's' = textToStringValueReader
     getValueReader _   = const $ fail "Unknown value type."
 
@@ -64,7 +63,14 @@ textToValue k v = if v == absentValue then pure Absent else
     textToIntValueReader = either fail (pure . IntValue . fst) . TR.signed TR.decimal
 
     textToRealValueReader :: Text -> Parser Value
-    textToRealValueReader = either fail (pure . RealValue . fst) . TR.rational
+    textToRealValueReader = either fail (pure . RealValue . fst) . TR.signed TR.rational
+
+    textToBoolValueReader :: Text -> Parser Value
+    textToBoolValueReader t =
+        case t of
+            "0" -> pure $ BoolValue False
+            "1" -> pure $ BoolValue True
+            _   -> fail "Can't parse bool value."
 
     textToStringValueReader :: Text -> Parser Value
     textToStringValueReader = pure . StringValue
@@ -99,16 +105,6 @@ tableP = do
         when (length readers /= length valuesT - 1) $ fail "Wrong number of values in an entry."
         zipWithM ($) readers $ drop 1 valuesT
 
-    quote :: Char
-    quote = '\"'
-
-    quoteT :: Text
-    quoteT = T.pack $ pure quote
-
-    valueTP :: Parser Text
-    valueTP  =  ((<>) <$> string quoteT <*> ((<>) <$> takeWhile (/= quote) <*> string quoteT))
-            <|> anyStringP
-
 --------------------------------------------------------------------------------
 -- Utility functions.
 --------------------------------------------------------------------------------
@@ -139,11 +135,21 @@ oneSpaceP = char ' '
 anyStringP :: Parser Text
 anyStringP = takeWhile1 (not . isSpace)
 
+valueTP :: Parser Text
+valueTP  =  ((<>) <$> string quoteT <*> ((<>) <$> takeWhile (/= quote) <*> string quoteT))
+        <|> anyStringP
+  where
+    quote :: Char
+    quote = '\"'
+
+    quoteT :: Text
+    quoteT = T.pack $ pure quote
+
 commentaryP :: Parser ()
 commentaryP = () <$ many' (many' oneSpaceP *> char '#' *> takeWhile (`notElem` ['\n', '\r']) *> endOfLine)
 
 lineP :: Parser Text
-lineP = commentaryP *> many' oneSpaceP *> anyStringP <* tillEndOfLine <* commentaryP
+lineP = commentaryP *> many' oneSpaceP *> valueTP <* tillEndOfLine <* commentaryP
 
 tillEndOfLine :: Parser ()
 tillEndOfLine = () <$ many' oneSpaceP <* endOfLine

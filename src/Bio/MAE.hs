@@ -6,8 +6,7 @@ module Bio.MAE
   ) where
 
 import           Bio.MAE.Parser
-import           Bio.MAE.Type           (Mae)
-import qualified Bio.MAE.Type           as T
+import           Bio.MAE.Type           as T
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Attoparsec.Text   (parseOnly)
 import           Data.Bifunctor         (first)
