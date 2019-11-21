@@ -5,8 +5,8 @@ module Bio.Structure
   , Atom (..), Bond (..)
   , Residue (..), Chain (..), Model (..)
   , StructureModels (..), StructureSerializable (..)
-  , LocalID
-  , GlobalID
+  , LocalID (..)
+  , GlobalID (..)
   ) where
 
 import           Control.DeepSeq (NFData (..))
@@ -30,8 +30,11 @@ data SecondaryStructure = PiHelix       -- ^ pi helix
 
 instance NFData SecondaryStructure
 
-type GlobalID = Int
-type LocalID  = Int
+newtype GlobalID = GlobalID { getGlobalID :: Int }
+  deriving (Eq, Show, Generic, NFData)
+
+newtype LocalID  = LocalID { getLocalID :: Int }
+  deriving (Eq, Show, Generic, NFData)
 
 -- | Generic atom representation
 --
@@ -61,7 +64,7 @@ instance NFData a => NFData (Bond a)
 --
 data Residue = Residue { resName         :: Text                  -- ^ residue name
                        , resAtoms        :: Vector Atom           -- ^ a set of residue atoms
-                       , resBonds        :: Vector (Bond LocalID) -- ^ a set of residue bonds with local identifiers
+                       , resBonds        :: Vector (Bond LocalID) -- ^ a set of residue bonds with local identifiers (position in 'resAtoms')
                        , resSecondary    :: SecondaryStructure    -- ^ residue secondary structure
                        , resChemCompType :: Text                  -- ^ chemical component type
                        }
@@ -76,8 +79,9 @@ data Chain = Chain { chainName     :: Text              -- ^ name of a chain
 
 -- | Model represents a single experiment of structure determination
 --
-data Model = Model { modelChains :: Vector Chain
-                   , modelBonds  :: Vector (Bond GlobalID) }
+data Model = Model { modelChains :: Vector Chain           -- ^ chains in the model
+                   , modelBonds  :: Vector (Bond GlobalID) -- ^ bonds with global identifiers (field `atomId` in 'Atom')
+                   }
   deriving (Show, Eq, Generic, NFData)
 
 -- | Convert any format-specific data to an intermediate representation of structure

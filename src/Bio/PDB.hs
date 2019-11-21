@@ -7,9 +7,10 @@ import qualified Bio.PDB.Type  as PDB
 import           Bio.Structure
 
 import           Control.Arrow ((&&&))
-import qualified Data.Vector as V
+import           Data.Coerce   (coerce)
 import           Data.Foldable (Foldable (..))
 import           Data.Text     as T (Text, singleton, unpack)
+import qualified Data.Vector   as V
 import           Linear.V3     (V3 (..))
 
 instance StructureModels PDB.PDB where
@@ -51,7 +52,7 @@ instance StructureModels PDB.PDB where
 
 
         mkAtom :: PDB.Atom -> Atom
-        mkAtom PDB.Atom{..} = Atom atomSerial
+        mkAtom PDB.Atom{..} = Atom (coerce atomSerial)
                                    atomName
                                    atomElement
                                    (V3 atomX atomY atomZ)

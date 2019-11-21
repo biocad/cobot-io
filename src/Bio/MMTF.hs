@@ -69,7 +69,7 @@ instance StructureModels MMTF where
                                              ss (gtChemCompType gt)
 
         mkBonds :: Vector (Int32, Int32) -> Vector Int32 -> Vector (Bond LocalID)
-        mkBonds bal bol = let ball = bimap fromIntegral fromIntegral <$> toList bal
+        mkBonds bal bol = let ball = bimap (LocalID . fromIntegral) (LocalID . fromIntegral) <$> toList bal
                               boll = fromIntegral <$> toList bol
                               res  = zipWith (\(f, t) o -> Bond f t o) ball boll
                           in  l2v res
@@ -81,7 +81,13 @@ instance StructureModels MMTF where
                                      z = zCoordList (atom m)
                                      o = occupancyList (atom m)
                                      b = bFactorList (atom m)
-                                 in  Atom (fromIntegral (i ! idx)) n e (V3 (x ! idx) (y ! idx) (z ! idx)) fc (b ! idx) (o ! idx)
+                                 in  Atom (GlobalID $ fromIntegral (i ! idx))
+                                           n
+                                           e
+                                           (V3 (x ! idx) (y ! idx) (z ! idx))
+                                           fc
+                                           (b ! idx)
+                                           (o ! idx)
 
         cutter :: [Int] -> [a] -> [[a]]
         cutter []     []    = []
