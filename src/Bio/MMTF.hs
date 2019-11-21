@@ -68,7 +68,7 @@ instance StructureModels MMTF where
                                             (mkBonds (gtBondAtomList gt) (gtBondOrderList gt))
                                              ss (gtChemCompType gt)
 
-        mkBonds :: Vector (Int32, Int32) -> Vector Int32 -> Vector Bond
+        mkBonds :: Vector (Int32, Int32) -> Vector Int32 -> Vector (Bond LocalID)
         mkBonds bal bol = let ball = bimap fromIntegral fromIntegral <$> toList bal
                               boll = fromIntegral <$> toList bol
                               res  = zipWith (\(f, t) o -> Bond f t o) ball boll

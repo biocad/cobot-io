@@ -5,6 +5,8 @@ module Bio.Structure
   , Atom (..), Bond (..)
   , Residue (..), Chain (..), Model (..)
   , StructureModels (..), StructureSerializable (..)
+  , LocalID
+  , GlobalID
   ) where
 
 import           Control.DeepSeq (NFData (..))
@@ -28,9 +30,12 @@ data SecondaryStructure = PiHelix       -- ^ pi helix
 
 instance NFData SecondaryStructure
 
+type GlobalID = Int
+type LocalID  = Int
+
 -- | Generic atom representation
 --
-data Atom = Atom { atomId       :: Int      -- ^ global identifier
+data Atom = Atom { atomId       :: GlobalID -- ^ global identifier
                  , atomName     :: Text     -- ^ IUPAC atom name
                  , atomElement  :: Text     -- ^ atom chemical element
                  , atomCoords   :: V3 Float -- ^ 3D coordinates of atom
@@ -44,21 +49,21 @@ instance NFData Atom
 
 -- | Generic chemical bond
 --
-data Bond = Bond { bondStart :: Int -- ^ index of first incident atom
-                 , bondEnd   :: Int -- ^ index of second incident atom
-                 , bondOrder :: Int -- ^ the order of chemical bond
-                 }
+data Bond m = Bond { bondStart :: m    -- ^ index of first incident atom
+                   , bondEnd   :: m    -- ^ index of second incident atom
+                   , bondOrder :: Int  -- ^ the order of chemical bond
+                   }
   deriving (Show, Eq, Generic)
 
-instance NFData Bond
+instance NFData a => NFData (Bond a)
 
 -- | A set of atoms, organized to a residues
 --
-data Residue = Residue { resName         :: Text               -- ^ residue name
-                       , resAtoms        :: Vector Atom        -- ^ a set of residue atoms
-                       , resBonds        :: Vector Bond        -- ^ a set of residue bonds with local identifiers (position in vector `resAtoms`)
-                       , resSecondary    :: SecondaryStructure -- ^ residue secondary structure
-                       , resChemCompType :: Text               -- ^ chemical component type
+data Residue = Residue { resName         :: Text                  -- ^ residue name
+                       , resAtoms        :: Vector Atom           -- ^ a set of residue atoms
+                       , resBonds        :: Vector (Bond LocalID) -- ^ a set of residue bonds with local identifiers
+                       , resSecondary    :: SecondaryStructure    -- ^ residue secondary structure
+                       , resChemCompType :: Text                  -- ^ chemical component type
                        }
   deriving (Show, Eq, Generic, NFData)
 
@@ -71,9 +76,8 @@ data Chain = Chain { chainName     :: Text              -- ^ name of a chain
 
 -- | Model represents a single experiment of structure determination
 --
-data Model = Model { modelChains :: Vector Chain -- ^ chains in the model
-                   , modelBonds  :: Vector Bond  -- ^ bonds with global identifiers (field `atomId` in 'Atom')
-                   }
+data Model = Model { modelChains :: Vector Chain
+                   , modelBonds  :: Vector (Bond GlobalID) }
   deriving (Show, Eq, Generic, NFData)
 
 -- | Convert any format-specific data to an intermediate representation of structure
