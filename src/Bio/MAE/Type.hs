@@ -3,8 +3,7 @@ module Bio.MAE.Type
   , Block (..)
   , Table (..)
   , Value (..)
-  , fromValue
-  , toValue
+  , FromValue (..)
   ) where
 
 import           Data.Map.Strict (Map)
@@ -30,33 +29,26 @@ data Table = Table { tableName :: Text
 data Value = IntValue Int
            | RealValue Float
            | StringValue Text
+           | Absent
   deriving (Eq, Show)
 
-class IsValue a where
-    toValue :: a -> Value
-
+class FromValue a where
     fromValue :: Value -> Maybe a
 
     unsafeFromValue :: Value -> a
     unsafeFromValue = fromJust . fromValue
 
-instance IsValue Int where
-    toValue = IntValue
-
+instance FromValue Int where
     fromValue :: Value -> Maybe Int
     fromValue (IntValue i) = Just i
     fromValue _            = Nothing
 
-instance IsValue Float where
-    toValue = RealValue
-
+instance FromValue Float where
     fromValue :: Value -> Maybe Float
     fromValue (RealValue f) = Just f
     fromValue _             = Nothing
 
-instance IsValue Text where
-    toValue = StringValue
-
+instance FromValue Text where
     fromValue :: Value -> Maybe Text
     fromValue (StringValue t) = Just t
     fromValue _               = Nothing
