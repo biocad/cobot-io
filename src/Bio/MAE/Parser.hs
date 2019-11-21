@@ -7,11 +7,9 @@ import           Bio.MAE.Type         (Block (..), Mae (..), Table (..),
 import           Control.Applicative  ((<|>))
 import           Control.Monad        (replicateM, when, zipWithM)
 import           Data.Attoparsec.Text (Parser, char, decimal, endOfInput,
-                                       endOfLine, many', many1', satisfy,
-                                       string, takeWhile, takeWhile1)
-import           Data.Bifunctor       (bimap)
+                                       endOfLine, many', many1', string,
+                                       takeWhile, takeWhile1)
 import           Data.Char            (isSpace)
-import           Data.Functor         (($>))
 import           Data.List            (transpose)
 import           Data.Map.Strict      (Map)
 import qualified Data.Map.Strict      as M (fromList)
@@ -19,8 +17,6 @@ import           Data.Text            (Text)
 import qualified Data.Text            as T (pack, uncons)
 import qualified Data.Text.Read       as TR (decimal, rational, signed)
 import           Prelude              hiding (takeWhile)
-
-import           Debug.Trace          (traceShow)
 
 maeP :: Parser Mae
 maeP = Mae <$> versionP
@@ -80,7 +76,7 @@ tableP = do
     name            <- many' oneSpaceP *> takeWhile1 (/= leftSquareBracket)
     numberOfEntries <- char leftSquareBracket *> decimal <* char rightSquareBracket
 
-    many' oneSpaceP
+    _ <- many' oneSpaceP
 
     contents <- inBrackets $ do
         fieldNames  <- upToDelimiterP lineP
