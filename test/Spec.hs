@@ -1,14 +1,15 @@
 import           ABISpec
+import           FastaParserSpec
+import           FASTASpec
+import           FastaWriterSpec
 import           GBParserSpec
 import           GBWriterSpec
+import           MAEParserSpec
 import           MMTFSpec
 import           SequenceSpec
 import           System.IO
 import           Test.Hspec
 import           UniprotSpec
-import           FastaParserSpec
-import           FastaWriterSpec
-import           FASTASpec
 
 main :: IO ()
 main = do
@@ -35,3 +36,5 @@ main = do
          fastaParserSpec
          fastaSpec
          fastaWriterSpec
+         -- Mae
+         maeParserSpec
