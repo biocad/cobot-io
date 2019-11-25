@@ -33,3 +33,6 @@ cabal.project.local~
 # vim
 *.swp
 *.swo
+
+# Stack lock file
+stack.yaml.lock

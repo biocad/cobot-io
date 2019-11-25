@@ -1,17 +1,19 @@
-{-# LANGUAGE DeriveGeneric  #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
 module Bio.Structure
   ( SecondaryStructure (..)
   , Atom (..), Bond (..)
   , Residue (..), Chain (..), Model (..)
   , StructureModels (..), StructureSerializable (..)
+  , LocalID (..)
+  , GlobalID (..)
   ) where
 
-import           Data.Array      ( Array )
-import           Data.Text       ( Text )
-import           GHC.Generics    ( Generic )
-import           Control.DeepSeq ( NFData (..) )
-import           Linear.V3       ( V3 )
+import           Control.DeepSeq (NFData (..))
+import           Data.Text       (Text)
+import           Data.Vector     (Vector)
+import           GHC.Generics    (Generic)
+import           Linear.V3       (V3)
 
 -- | Protein secondary structure
 --
@@ -28,9 +30,16 @@ data SecondaryStructure = PiHelix       -- ^ pi helix
 
 instance NFData SecondaryStructure
 
+newtype GlobalID = GlobalID { getGlobalID :: Int }
+  deriving (Eq, Show, Generic, NFData)
+
+newtype LocalID  = LocalID { getLocalID :: Int }
+  deriving (Eq, Show, Generic, NFData)
+
 -- | Generic atom representation
 --
-data Atom = Atom { atomName     :: Text     -- ^ IUPAC atom name 
+data Atom = Atom { atomId       :: GlobalID -- ^ global identifier
+                 , atomName     :: Text     -- ^ IUPAC atom name
                  , atomElement  :: Text     -- ^ atom chemical element
                  , atomCoords   :: V3 Float -- ^ 3D coordinates of atom
                  , formalCharge :: Int      -- ^ Formal charge of atom
@@ -43,42 +52,44 @@ instance NFData Atom
 
 -- | Generic chemical bond
 --
-data Bond = Bond { bondStart :: Int  -- ^ index of first incident atom
-                 , bondEnd   :: Int  -- ^ index of second incident atom
-                 , bondOrder :: Int  -- ^ the order of chemical bond
-                 }
+data Bond m = Bond { bondStart :: m    -- ^ index of first incident atom
+                   , bondEnd   :: m    -- ^ index of second incident atom
+                   , bondOrder :: Int  -- ^ the order of chemical bond
+                   }
   deriving (Show, Eq, Generic)
 
-instance NFData Bond
+instance NFData a => NFData (Bond a)
 
 -- | A set of atoms, organized to a residues
 --
-data Residue = Residue { resName         :: Text               -- ^ residue name
-                       , resAtoms        :: Array Int Atom     -- ^ a set of residue atoms
-                       , resBonds        :: Array Int Bond     -- ^ a set of residue bonds
-                       , resSecondary    :: SecondaryStructure -- ^ residue secondary structure
-                       , resChemCompType :: Text               -- ^ chemical component type
+data Residue = Residue { resName         :: Text                  -- ^ residue name
+                       , resAtoms        :: Vector Atom           -- ^ a set of residue atoms
+                       , resBonds        :: Vector (Bond LocalID) -- ^ a set of residue bonds with local identifiers (position in 'resAtoms')
+                       , resSecondary    :: SecondaryStructure    -- ^ residue secondary structure
+                       , resChemCompType :: Text                  -- ^ chemical component type
                        }
   deriving (Show, Eq, Generic, NFData)
 
 -- | Chain organizes linear structure of residues
 --
 data Chain = Chain { chainName     :: Text              -- ^ name of a chain
-                   , chainResidues :: Array Int Residue -- ^ residues of a chain
+                   , chainResidues :: Vector Residue    -- ^ residues of a chain
                    }
   deriving (Show, Eq, Generic, NFData)
 
 -- | Model represents a single experiment of structure determination
 --
-newtype Model = Model { modelChains :: Array Int Chain }
+data Model = Model { modelChains :: Vector Chain           -- ^ chains in the model
+                   , modelBonds  :: Vector (Bond GlobalID) -- ^ bonds with global identifiers (field `atomId` in 'Atom')
+                   }
   deriving (Show, Eq, Generic, NFData)
 
 -- | Convert any format-specific data to an intermediate representation of structure
 class StructureModels a where
     -- | Get an array of models
-    modelsOf :: a -> Array Int Model
+    modelsOf :: a -> Vector Model
 
 -- | Serialize an intermediate representation of sequence to some specific format
 class StructureSerializable a where
     -- | Serialize an array of models to some format
-    serializeModels :: Array Int Model -> a
+    serializeModels :: Vector Model -> a

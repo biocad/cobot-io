@@ -5,23 +5,23 @@ module Bio.MMTF
   , fetch
   ) where
 
+import           Bio.MMTF.Decode        (l2v)
 import           Bio.MMTF.MessagePack   ()
-import           Bio.MMTF.Type   hiding ( IArray )
-import           Bio.MMTF.Decode        ( l2a )
+import           Bio.MMTF.Type
 import           Bio.Structure
 
-import           Data.Array             ( Array, (!), elems )
-import           Data.Int               ( Int32 )
-import           Data.Bifunctor         ( Bifunctor (..) )
-import           Data.List              ( mapAccumL, zip3, zip4 )
-import           Data.Text              ( Text )
-import           Data.ByteString.Lazy   ( ByteString )
-import           Data.MessagePack       ( unpack )
-import           Data.Monoid            ( (<>) )
-import           Data.String            ( IsString (..) )
-import           Control.Monad.IO.Class ( MonadIO )
-import           Network.HTTP.Simple    ( httpLBS, getResponseBody )
-import           Linear.V3              ( V3 (..) )
+import           Control.Monad.IO.Class (MonadIO)
+import           Data.Bifunctor         (Bifunctor (..))
+import           Data.ByteString.Lazy   (ByteString)
+import           Data.Int               (Int32)
+import           Data.List              (mapAccumL, zip3, zip4)
+import           Data.MessagePack       (unpack)
+import           Data.Monoid            ((<>))
+import           Data.String            (IsString (..))
+import           Data.Text              (Text)
+import           Data.Vector            (Vector, empty, toList, (!))
+import           Linear.V3              (V3 (..))
+import           Network.HTTP.Simple    (getResponseBody, httpLBS)
 
 -- | Decodes a 'ByteString' to 'MMTF'
 --
@@ -32,17 +32,17 @@ decode = unpack
 fetch :: MonadIO m => String -> m MMTF
 fetch pdbid = do let url = fromString $ "https://mmtf.rcsb.org/v1.0/full/" <> pdbid
                  resp <- httpLBS url
-                 decode (getResponseBody resp) 
+                 decode (getResponseBody resp)
 
 instance StructureModels MMTF where
-    modelsOf m = l2a (Model . l2a <$> zipWith (zipWith Chain) chainNames chainResis)
+    modelsOf m = l2v (flip Model empty . l2v <$> zipWith (zipWith Chain) chainNames chainResis)
       where
-        chainsCnts = fromIntegral <$> elems (chainsPerModel (model m))
-        groupsCnts = fromIntegral <$> elems (groupsPerChain (chain m))
+        chainsCnts = fromIntegral <$> toList (chainsPerModel (model m))
+        groupsCnts = fromIntegral <$> toList (groupsPerChain (chain m))
         groupsRaws = snd $ mapAccumL getGroups (0, 0) groupsCnts
         groups     = cutter chainsCnts groupsRaws
-        chainNames = cutter chainsCnts (elems $ chainNameList $ chain m)
-        chainResis = fmap (fmap (l2a . fmap mkResidue)) groups
+        chainNames = cutter chainsCnts (toList $ chainNameList $ chain m)
+        chainResis = fmap (fmap (l2v . fmap mkResidue)) groups
 
         getGroups :: (Int, Int) -> Int -> ((Int, Int), [(GroupType, SecondaryStructure, [Atom])])
         getGroups (chOffset, atOffset) sz = let chEnd        = chOffset + sz
@@ -56,31 +56,38 @@ instance StructureModels MMTF where
                                             in  ((chEnd, atEnd), zip3 rgt rss ats)
 
         getAtoms :: Int -> GroupType -> (Int, [Atom])
-        getAtoms offset gt = let cl  = fmap fromIntegral . elems . gtFormalChargeList $ gt
-                                 nl  = elems . gtAtomNameList $ gt
-                                 el  = elems . gtElementList $ gt
+        getAtoms offset gt = let cl  = fmap fromIntegral . toList . gtFormalChargeList $ gt
+                                 nl  = toList . gtAtomNameList $ gt
+                                 el  = toList . gtElementList $ gt
                                  ics = [offset .. end - 1]
                                  end = offset + length cl
                              in  (end, mkAtom <$> zip4 cl nl el ics)
 
         mkResidue :: (GroupType, SecondaryStructure, [Atom]) -> Residue
-        mkResidue (gt, ss, atoms) = Residue (gtGroupName gt) (l2a atoms)
+        mkResidue (gt, ss, atoms) = Residue (gtGroupName gt) (l2v atoms)
                                             (mkBonds (gtBondAtomList gt) (gtBondOrderList gt))
                                              ss (gtChemCompType gt)
 
-        mkBonds :: Array Int (Int32, Int32) -> Array Int Int32 -> Array Int Bond
-        mkBonds bal bol = let ball = bimap fromIntegral fromIntegral <$> elems bal
-                              boll = fromIntegral <$> elems bol
+        mkBonds :: Vector (Int32, Int32) -> Vector Int32 -> Vector (Bond LocalID)
+        mkBonds bal bol = let ball = bimap (LocalID . fromIntegral) (LocalID . fromIntegral) <$> toList bal
+                              boll = fromIntegral <$> toList bol
                               res  = zipWith (\(f, t) o -> Bond f t o) ball boll
-                          in  l2a res
+                          in  l2v res
 
         mkAtom :: (Int, Text, Text, Int) -> Atom
-        mkAtom (fc, n, e, idx) = let x = xCoordList (atom m)
+        mkAtom (fc, n, e, idx) = let i = atomIdList (atom m)
+                                     x = xCoordList (atom m)
                                      y = yCoordList (atom m)
                                      z = zCoordList (atom m)
                                      o = occupancyList (atom m)
                                      b = bFactorList (atom m)
-                                 in  Atom n e (V3 (x ! idx) (y ! idx) (z ! idx)) fc (b ! idx) (o ! idx)
+                                 in  Atom (GlobalID $ fromIntegral (i ! idx))
+                                           n
+                                           e
+                                           (V3 (x ! idx) (y ! idx) (z ! idx))
+                                           fc
+                                           (b ! idx)
+                                           (o ! idx)
 
         cutter :: [Int] -> [a] -> [[a]]
         cutter []     []    = []
