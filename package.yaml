@@ -72,6 +72,6 @@ tests:
     dependencies:
     - cobot-io
     - directory
-    - QuickCheck >= 2.9.2 && < 2.13
-    - hspec >= 2.4.1 && < 2.7
+    - QuickCheck >= 2.9.2 && < 2.14
+    - hspec >= 2.4.1 && < 2.8
     - neat-interpolation >= 0.3
