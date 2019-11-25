@@ -2,10 +2,9 @@
 
 module MAEParserSpec where
 
-import           Bio.MAE              (Block (..), Mae (..), MaeValue (..),
-                                       Table (..), fromFile)
-import           Bio.MAE.Parser       (blockP, maeP, tableP, versionP)
-import           Control.Monad.Except (ExceptT, runExceptT)
+import           Bio.MAE              (Block (..), MaeValue (..), Table (..),
+                                       fromFile)
+import           Bio.MAE.Parser       (blockP, tableP, versionP)
 import           Data.Attoparsec.Text (parseOnly)
 import qualified Data.Map.Strict      as M (fromList)
 import           Data.Text            (Text)
@@ -20,10 +19,10 @@ maeParserSpec = describe "Mae format parser." $ do
 
 versionPSpec :: Spec
 versionPSpec = describe "version parser" $
-    it "one and only version" $ parseOnly versionP version `shouldBe` Right "2.0.0"
+    it "one and only version" $ parseOnly versionP version' `shouldBe` Right "2.0.0"
   where
-    version :: Text
-    version = "{\n  s_m_m2io_version\n ::: \n 2.0.0 \n } \n"
+    version' :: Text
+    version' = "{\n  s_m_m2io_version\n ::: \n 2.0.0 \n } \n"
 
 tablePSpec :: Spec
 tablePSpec = describe "table parser" $ do
@@ -46,9 +45,7 @@ maePSpec = describe "parses mae files up to the EOF" $ do
     it "docking_2.mae" $ parseFileSpec "test/MAE/docking_2.mae"
 
 parseFileSpec :: FilePath -> Expectation
-parseFileSpec path = do
-    t <- fromFile path
-    pure ()
+parseFileSpec path = fromFile path >> pure ()
 
 simpleTableMap :: [(Text, [MaeValue])]
 simpleTableMap = [ ("i_val", fmap IntMaeValue [1, 2, 3])
