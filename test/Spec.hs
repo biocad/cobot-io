@@ -5,6 +5,7 @@ import           FastaWriterSpec
 import           GBParserSpec
 import           GBWriterSpec
 import           MAEParserSpec
+import           MAESpec
 import           MMTFSpec
 import           SequenceSpec
 import           System.IO
@@ -38,3 +39,4 @@ main = do
          fastaWriterSpec
          -- Mae
          maeParserSpec
+         maeSpec

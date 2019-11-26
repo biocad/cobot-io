@@ -43,6 +43,7 @@ maePSpec = describe "parses mae files up to the EOF" $ do
     it "h2o.mae" $ parseFileSpec "test/MAE/h2o.mae"
     it "docking_1.mae" $ parseFileSpec "test/MAE/docking_1.mae"
     it "docking_2.mae" $ parseFileSpec "test/MAE/docking_2.mae"
+    it "schrod_test.mae" $ parseFileSpec "test/MAE/schrod_test.mae"
 
 parseFileSpec :: FilePath -> Expectation
 parseFileSpec path = fromFile path >> pure ()
@@ -89,7 +90,7 @@ tableWithNegativeMaeValuesT = "table_with_negative_values[3]{  \n i_neg\n r_neg 
 tableWithQuotedMaeValuesMap :: [(Text, [MaeValue])]
 tableWithQuotedMaeValuesMap = [ ("s_quote0", fmap StringMaeValue ["\"   ssss s \"", "\" more quotes \"", "\" this is long and dull comment \""])
                               , ("r_neg", fmap RealMaeValue [-1.0, -2.28, -3.22])
-                              , ("s_quote", fmap StringMaeValue ["\" \"", "aaa", "\" this is long and dull comment \""])
+                              , ("s_quote", fmap StringMaeValue ["\" \"", "aaa", "\" this is long \\\" and dull comment \""])
                               , ("r_neg", fmap RealMaeValue [-1.0, -2.28, -3.22])
                               ]
 
@@ -97,7 +98,7 @@ tableWithQuotedMaeValues :: Table
 tableWithQuotedMaeValues = Table "table_with_quoted_values" $ M.fromList tableWithQuotedMaeValuesMap
 
 tableWithQuotedMaeValuesT :: Text
-tableWithQuotedMaeValuesT = "table_with_quoted_values[3]{  \n s_quote0\n r_neg \n s_quote\n r_neg \n ::: \n 1 \"   ssss s \" -1.0 \" \" -1.0 \n 2 \" more quotes \" -2.28 aaa -2.28 \n 3 \" this is long and dull comment \" -3.22 \" this is long and dull comment \" -3.22\n ::: \n} \n"
+tableWithQuotedMaeValuesT = "table_with_quoted_values[3]{  \n s_quote0\n r_neg \n s_quote\n r_neg \n ::: \n 1 \"   ssss s \" -1.0 \" \" -1.0 \n 2 \" more quotes \" -2.28 aaa -2.28 \n 3 \" this is long and dull comment \" -3.22 \" this is long \\\" and dull comment \"-3.22\n ::: \n} \n"
 
 tableWithCommentsMap :: [(Text, [MaeValue])]
 tableWithCommentsMap = [ ("i_val", replicate 7 Absent)

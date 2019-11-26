@@ -36,6 +36,7 @@ dependencies:
 - lens >= 4.16 && < 5.0
 - linear >= 1.20 && < 1.21
 - vector
+- math-grads >= 0.1.5.1
 
 library:
   source-dirs: src
@@ -50,6 +51,7 @@ library:
     - RecordWildCards
     - ScopedTypeVariables
     - OverloadedStrings
+    - TypeApplications
     - TypeFamilies
     - DataKinds
     - ConstraintKinds
