@@ -8,8 +8,7 @@ module MAESpec where
 import           Bio.MAE       (fromFile)
 import           Bio.Structure (Atom (..), Bond (..), Chain (..), GlobalID (..),
                                 LocalID (..), Model (..), Residue (..),
-                                SecondaryStructure (..), StructureModels (..),
-                                StructureSerializable (..))
+                                StructureModels (..))
 import           Data.Set      (Set)
 import qualified Data.Set      as S (fromList)
 import           Data.Vector   (Vector)
