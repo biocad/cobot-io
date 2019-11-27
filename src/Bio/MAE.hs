@@ -2,16 +2,17 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Bio.MAE
-  ( module T
+  ( Block (..), FromMaeValue (..)
+  , Mae (..), MaeValue (..)
+  , Table (..)
   , fromFile
   , fromText
   , maeP
   ) where
 
 import           Bio.MAE.Parser
-import           Bio.MAE.Type           as T (Block (..), FromMaeValue (..),
-                                              Mae (..), MaeValue (..),
-                                              Table (..))
+import           Bio.MAE.Type           (Block (..), FromMaeValue (..),
+                                         Mae (..), MaeValue (..), Table (..))
 import           Bio.Structure          (Atom (..), Bond (..), Chain (..),
                                          GlobalID (..), LocalID (..),
                                          Model (..), Residue (..),
