@@ -36,7 +36,6 @@ dependencies:
 - lens >= 4.16 && < 5.0
 - linear >= 1.20 && < 1.21
 - vector
-- math-grads >= 0.1.5.1
 
 library:
   source-dirs: src
@@ -77,3 +76,4 @@ tests:
     - QuickCheck >= 2.9.2 && < 2.13
     - hspec >= 2.4.1 && < 2.7
     - neat-interpolation >= 0.3
+    - linear >= 1.20 && < 1.21

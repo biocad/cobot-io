@@ -9,31 +9,29 @@ module Bio.MAE
   ) where
 
 import           Bio.MAE.Parser
-import           Bio.MAE.Type            as T (Block (..), FromMaeValue (..),
-                                               Mae (..), MaeValue (..),
-                                               Table (..))
-import           Bio.Structure           (Atom (..), Bond (..), Chain (..),
-                                          GlobalID (..), LocalID (..),
-                                          Model (..), Residue (..),
-                                          SecondaryStructure (..),
-                                          StructureModels (..))
-import           Control.Monad.IO.Class  (MonadIO, liftIO)
-import           Data.Attoparsec.Text    (parseOnly)
-import           Data.Bifunctor          (bimap, first)
-import           Data.Function           (on)
-import qualified Data.List               as L (find, groupBy)
-import           Data.Map.Strict         (Map)
-import qualified Data.Map.Strict         as M (fromList, (!))
-import           Data.Maybe              (fromJust)
-import           Data.Text               (Text)
-import qualified Data.Text               as T (pack, strip)
-import qualified Data.Text.IO            as TIO (readFile)
-import           Data.Vector             (Vector)
-import qualified Data.Vector             as V (fromList)
-import           Linear.V3               (V3 (..))
-
-import           Math.Grads.GenericGraph (GenericGraph)
-import qualified Math.Grads.Graph        as G (fromList, (!.))
+import           Bio.MAE.Type           as T (Block (..), FromMaeValue (..),
+                                              Mae (..), MaeValue (..),
+                                              Table (..))
+import           Bio.Structure          (Atom (..), Bond (..), Chain (..),
+                                         GlobalID (..), LocalID (..),
+                                         Model (..), Residue (..),
+                                         SecondaryStructure (..),
+                                         StructureModels (..))
+import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Data.Attoparsec.Text   (parseOnly)
+import           Data.Bifunctor         (bimap, first)
+import           Data.Function          (on)
+import qualified Data.List              as L (find, groupBy, sortOn)
+import           Data.Map.Strict        (Map)
+import qualified Data.Map.Strict        as M (fromList, lookup, (!))
+import           Data.Maybe             (catMaybes, fromJust)
+import           Data.Text              (Text)
+import qualified Data.Text              as T (head, init, last, null, pack,
+                                              strip, tail)
+import qualified Data.Text.IO           as TIO (readFile)
+import           Data.Vector            (Vector)
+import qualified Data.Vector            as V (fromList)
+import           Linear.V3              (V3 (..))
 
 -- | Reads 'Mae' from givem file.
 --
@@ -63,14 +61,22 @@ instance StructureModels Mae where
           findTable :: Text -> Map Text [MaeValue]
           findTable name = contents $ fromJust $ L.find ((== name) . tableName) tables
 
-          bondsTableToGlobalBonds :: Map Text [MaeValue] -> (GenericGraph Int Int, Vector (Bond GlobalID))
-          bondsTableToGlobalBonds m = bimap (G.fromList . (,) ([0 .. numberOfAtoms])) V.fromList bonds'
+          stripQuotes :: Text -> Text
+          stripQuotes t | not (T.null t) && T.head t == T.last t, T.last t == '\"' = T.strip $ T.init $ T.tail t
+                        | otherwise                                                = T.strip t
+
+          bondsTableToGlobalBonds :: Map Text [MaeValue] -> (Map Int [(Int, Int)], Vector (Bond GlobalID))
+          bondsTableToGlobalBonds m = bimap toMap V.fromList bonds'
             where
               numberOfBonds = length $ m M.! "i_m_from"
-              bonds'        = unzip $ fmap indexToBond [0 .. numberOfBonds]
+              bonds'        = unzip $ fmap indexToBond [0 .. numberOfBonds - 1]
 
-              indexToBond :: Int -> ((Int, Int, Int), Bond GlobalID)
-              indexToBond i = ((x, y, o), Bond (GlobalID y) (GlobalID y) o)
+              toMap :: [(Int, (Int, Int))] -> Map Int [(Int, Int)]
+              toMap = M.fromList . fmap (\g@((k, _) : _) -> (k, fmap snd g))
+                                 . L.groupBy ((==) `on` fst) . L.sortOn fst
+
+              indexToBond :: Int -> ((Int, (Int, Int)), Bond GlobalID)
+              indexToBond i = ((x, (y, o)), Bond (GlobalID x) (GlobalID y) o)
                 where
                   x = getFromContentsI "i_m_from" - 1
                   y = getFromContentsI "i_m_to" - 1
@@ -82,7 +88,7 @@ instance StructureModels Mae where
           atomsTableToChains :: Map Text [MaeValue] -> Vector Chain
           atomsTableToChains m = V.fromList $ fmap groupToChain groupedByChains
             where
-              groupedByChains = L.groupBy (comparingOn @Text "s_m_chain_name") [0 .. numberOfAtoms]
+              groupedByChains = L.groupBy (comparingOn @Text "s_m_chain_name") [0 .. numberOfAtoms - 1]
 
               getFromContents :: FromMaeValue a => Text -> Int -> a
               getFromContents = getFromContentsMap m
@@ -94,38 +100,40 @@ instance StructureModels Mae where
               groupToChain []            = error "Group that is result of List.groupBy can't be empty."
               groupToChain group@(h : _) = Chain name residues
                 where
-                  name = getFromContents "s_m_chain_name" h
+                  name = stripQuotes $ getFromContents "s_m_chain_name" h
 
-                  groupedByResidues = L.groupBy (comparingOn @Int "i_m_residue_number") [0 .. length group]
+                  groupedByResidues = L.groupBy (comparingOn @Int "i_m_residue_number") group
                   residues          = V.fromList $ fmap groupToResidue groupedByResidues
 
               groupToResidue :: [Int] -> Residue
               groupToResidue []            = error "Group that is result of List.groupBy can't be empty."
               groupToResidue group@(h : _) = Residue name atoms (V.fromList localBonds) secondary chemCompType
                 where
-                  name  = T.strip $ getFromContents "s_m_pdb_residue_name" h
+                  name  = stripQuotes $ getFromContents "s_m_pdb_residue_name" h
                   atoms = V.fromList $ fmap indexToAtom group
 
-                  localInds     = [0 .. length group]
+                  localInds     = [0 .. length group - 1]
                   globalToLocal = M.fromList $ zip group localInds
-                  localBonds    = concat $ zipWith (\l x -> fmap (toLocalBond x) l) (fmap (bondGraph G.!.) group) localInds
+                  bondsParts    = fmap (`M.lookup` bondGraph) group
+                  localBonds    = concat $ catMaybes $ zipWith (\l x -> fmap (concatMap (toLocalBond x)) l) bondsParts localInds
 
-                  toLocalBond :: Int -> (Int, Int) -> Bond LocalID
-                  toLocalBond x (y, o) = Bond (LocalID $ globalToLocal M.! x)
-                                              (LocalID $ globalToLocal M.! y)
-                                              o
+                  toLocalBond :: Int -> (Int, Int) -> [Bond LocalID]
+                  toLocalBond x (y, o) | y `elem` group = pure $ Bond (LocalID x)
+                                                                      (LocalID $ globalToLocal M.! y)
+                                                                      o
+                                       | otherwise          = []
 
                   secondary    = Undefined
                   chemCompType = mempty
 
               indexToAtom :: Int -> Atom
               indexToAtom i = Atom (GlobalID i)
-                                  (T.strip $ getFromContentsI "s_m_pdb_atom_name")
-                                  (elIndToElement M.! getFromContentsI "i_m_atomic_number")
-                                  coords
-                                  (getFromContentsI "i_m_formal_charge")
-                                  (getFromContentsI "r_m_pdb_tfactor")
-                                  (getFromContentsI "r_m_pdb_occupancy")
+                                   (stripQuotes $ getFromContentsI "s_m_pdb_atom_name")
+                                   (elIndToElement M.! getFromContentsI "i_m_atomic_number")
+                                   coords
+                                   (getFromContentsI "i_m_formal_charge")
+                                   (getFromContentsI "r_m_pdb_tfactor")
+                                   (getFromContentsI "r_m_pdb_occupancy")
                 where
                   getFromContentsI :: FromMaeValue a => Text -> a
                   getFromContentsI = flip getFromContents i
