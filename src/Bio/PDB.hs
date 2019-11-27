@@ -57,3 +57,12 @@ instance StructureModels PDB.PDB where
                                    (read $ T.unpack atomCharge)
                                    atomTempFactor
                                    atomOccupancy
+
+type LineNumber = Int
+
+data PDBWarning = LineLength LineNumber  -- line length is not 80
+                | UnknownLine LineNumber -- line starts from unknown label
+  deriving (Eq, Show)
+
+checkPDB :: Text -> ([PDBWarning], Text)
+checkPDB = undefined
