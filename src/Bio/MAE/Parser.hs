@@ -11,15 +11,15 @@ import           Bio.MAE.Type         (Block (..), Mae (..), MaeValue (..),
                                        Table (..))
 import           Control.Applicative  ((<|>))
 import           Control.Monad        (replicateM, when, zipWithM)
-import           Data.Attoparsec.Text (Parser, char, decimal, endOfInput,
-                                       endOfLine, many', many1', string,
-                                       takeWhile, takeWhile1)
+import           Data.Attoparsec.Text (Parser, anyChar, char, decimal,
+                                       endOfInput, endOfLine, many', many1',
+                                       peekChar, string, takeWhile, takeWhile1)
 import           Data.Char            (isSpace)
 import           Data.List            (transpose)
 import           Data.Map.Strict      (Map)
 import qualified Data.Map.Strict      as M (fromList)
 import           Data.Text            (Text)
-import qualified Data.Text            as T (pack, uncons)
+import qualified Data.Text            as T (cons, pack, uncons)
 import qualified Data.Text.Read       as TR (decimal, rational, signed)
 import           Prelude              hiding (takeWhile)
 
@@ -137,7 +137,7 @@ anyStringP :: Parser Text
 anyStringP = takeWhile1 (not . isSpace)
 
 valueTP :: Parser Text
-valueTP  =  ((<>) <$> string quoteT <*> ((<>) <$> takeWhile (/= quote) <*> string quoteT))
+valueTP  =  ((<>) <$> string quoteT <*> ((<>) <$> notQuote <*> string quoteT))
         <|> anyStringP
   where
     quote :: Char
@@ -145,6 +145,20 @@ valueTP  =  ((<>) <$> string quoteT <*> ((<>) <$> takeWhile (/= quote) <*> strin
 
     quoteT :: Text
     quoteT = T.pack $ pure quote
+
+    notQuote :: Parser Text
+    notQuote = do
+        curCharPeek <- peekChar
+        case curCharPeek of
+          Just '\\' -> do
+              curChar <- anyChar
+              nextCharPeek <- peekChar
+              case nextCharPeek of
+                Just '\"' -> anyChar >>= \x -> fmap (T.cons curChar . T.cons x) notQuote
+                _          -> notQuote >>= pure . T.cons curChar
+          Just '\"' -> pure mempty
+          Just _    -> anyChar >>= \x -> fmap (T.cons x) notQuote
+          Nothing   -> pure mempty
 
 commentaryP :: Parser ()
 commentaryP = () <$ many' (many' oneSpaceP *> char '#' *> takeWhile (`notElem` ['\n', '\r']) *> endOfLine)

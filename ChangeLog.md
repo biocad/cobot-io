@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [0.1.2.2] - 2019-11-27
+### Added
+- Instance of `StructureModels` for `Mae`.
+### Fixed
+- Fix for .mae pasrser.
+
+## [0.1.2.1] - 2019-11-25
+### Added
+- Parser for `MAE`.
+
 ## [0.1.2.0] - 2019-09-03
 ### Added
 - Parser for `FASTA`.
