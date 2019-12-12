@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.1.2.3] - 2019-12-12
+### Fixed
+- Fixes for .mae pasrser.
+- Fixes for instance of `StructureModels` for `Mae`.
+
 ## [0.1.2.2] - 2019-11-27
 ### Added
 - Instance of `StructureModels` for `Mae`.

@@ -45,6 +45,7 @@ maePSpec = describe "parses mae files up to the EOF" $ do
     it "docking_2.mae" $ parseFileSpec "test/MAE/docking_2.mae"
     it "docking_1_2.mae" $ parseFileSpec "test/MAE/docking_1_2.mae"
     it "schrod_test.mae" $ parseFileSpec "test/MAE/schrod_test.mae"
+    it "GLY_3.mae" $ parseFileSpec "test/MAE/GLY_3.mae"
 
 parseFileSpec :: FilePath -> Expectation
 parseFileSpec path = fromFile path >> pure ()

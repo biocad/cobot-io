@@ -18,7 +18,7 @@ f_m_ct {
   /Users/ramso/Yandex.Disk.localized/Work/biocad/protein-protein-docking-benchmark/dataset/rigid/1AHW_A/cap/1AHW_r_b.pdb 
   1
   2
- m_atom[199] { 
+ m_atom[202] { 
   # First column is atom index #
   i_m_mmod_type
   r_m_x_coord
@@ -237,6 +237,9 @@ f_m_ct {
   3547 41 -13.802000 12.206000 20.669000 18 " " V B 2 "VAL " "HG21" 1 0 2 1 3548 21.02
   3548 41 -14.668000 10.828000 21.315000 18 " " V B 2 "VAL " "HG22" 1 0 2 1 3549 21.02
   3549 41 -15.348000 11.750000 19.978000 18 " " V B 2 "VAL " "HG23" 1 0 2 1 3550 21.02
+  5 41 -9.600000 7.518000 44.746000 3 " " X A 2 "LYS " "2H  " 1 0 0 1 5 <>
+  25 3 -6.594000 4.327000 47.986000 3 " " I A 2 "LYS " " CG2" 6 0 0 1 25 25.27
+  28 41 -5.134000 6.683000 50.072000 3 " " I A 2 "LYS " " HA " 1 0 0 1 28 17.24
   :::
  } 
  m_bond[199] { 

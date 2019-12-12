@@ -26,7 +26,7 @@ maeSpec = describe "Mae spec." $ do
         fmap resName (chainResidues $ modelChains V.! 1) `shouldBe` V.fromList ["GLU", "LEU", "VAL", "ARG", "PRO", "GLY", "ALA", "LEU", "VAL"]
 
     it "atoms count" $ do
-        sum (fmap (length . resAtoms) $ chainResidues $ modelChains V.! 0) `shouldBe` 59
+        sum (fmap (length . resAtoms) $ chainResidues $ modelChains V.! 0) `shouldBe` 62
         sum (fmap (length . resAtoms) $ chainResidues $ modelChains V.! 1) `shouldBe` 140
 
     let allBonds = [ (2, 15, 1), (31, 44, 1), (15, 60, 1), (52, 27, 1), (57, 30, 1), (56, 8, 1), (38, 9, 1), (16, 36, 1), (31, 35, 1), (42, 22, 1), (38, 10, 1), (46, 40, 1), (36, 8, 1)
@@ -57,14 +57,14 @@ maeSpec = describe "Mae spec." $ do
         let atoms1 = resAtoms residue1
         let atoms2 = resAtoms residue2
 
-        fmap atomId atoms1 `shouldBe` GlobalID <$> V.fromList [37 .. 58]
+        fmap atomId atoms1 `shouldBe` GlobalID <$> V.fromList ([37 .. 58] <> [199 .. 201])
         fmap atomId atoms2 `shouldBe` GlobalID <$> V.fromList [59 .. 73]
 
-        fmap atomName atoms1 `shouldBe` V.fromList ["N", "CA", "C", "O", "CB", "CG", "CD", "CE", "NZ", "H"
+        fmap atomName atoms1 `shouldBe` V.fromList [ "N", "CA", "C", "O", "CB", "CG", "CD", "CE", "NZ", "H"
                                                    , "HA", "HB3", "HB2", "HG3", "HG2", "HD3", "HD2", "HE3"
-                                                   , "HE2", "HZ1", "HZ2", "HZ3"
+                                                   , "HE2", "HZ1", "HZ2", "HZ3", "2H", "CG2", "HA"
                                                    ]
-        fmap atomName atoms2 `shouldBe` V.fromList ["N", "CA", "C", "O", "CB", "CG", "CD", "OE1", "OE2", "H"
+        fmap atomName atoms2 `shouldBe` V.fromList [ "N", "CA", "C", "O", "CB", "CG", "CD", "OE1", "OE2", "H"
                                                    , "HA", "HB3", "HB2", "HG3", "HG2"
                                                    ]
 
@@ -72,7 +72,7 @@ maeSpec = describe "Mae spec." $ do
                                                      , V3 (-0.665000) 10.349000 47.988000, V3 (-0.475000) 11.818000 48.390000, V3 (-1.315000) 12.784000 47.541000, V3 (-1.050000) 14.186000 47.903000, V3 (-3.565000) 8.072000 49.540000
                                                      , V3 (-2.692000) 8.558000 46.839000, V3 (-1.882000) 9.581000 49.583000, V3 (-2.810000) 10.388000 48.353000, V3 (-0.610000) 10.265000 46.901000, V3 0.184000 9.784000 48.375000
                                                      , V3 0.582000 12.073000 48.302000, V3 (-0.729000) 11.939000 49.444000, V3 (-2.380000) 12.585000 47.665000, V3 (-1.084000) 12.653000 46.483000, V3 (-1.609000) 14.795000 47.322000
-                                                     , V3 (-1.289000) 14.335000 48.873000, V3 (-0.072000) 14.393000 47.762000
+                                                     , V3 (-1.289000) 14.335000 48.873000, V3 (-0.072000) 14.393000 47.762000, V3 (-9.600000) 7.518000 44.746000, V3 (-6.594000) 4.327000 47.986000, V3 (-5.134000) 6.683000 50.072000
                                                      ]
         fmap atomCoords atoms2 `shouldBe` V.fromList [ V3 (-8.382000) 11.633000 16.946000, V3 (-9.715000) 12.157000 17.191000, V3 (-9.590000) 13.665000 17.450000, V3 (-9.030000) 14.054000 18.475000, V3 (-10.323000) 11.388000 18.396000
                                                      , V3 (-11.833000) 11.576000 18.604000, V3 (-12.658000) 10.923000 17.495000, V3 (-12.525000) 9.689000 17.338000, V3 (-13.405000) 11.669000 16.827000, V3 (-7.615000) 12.187000 17.300000

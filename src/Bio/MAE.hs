@@ -24,7 +24,7 @@ import           Data.Bifunctor         (bimap, first)
 import           Data.Function          (on)
 import qualified Data.List              as L (find, groupBy, sortOn)
 import           Data.Map.Strict        (Map)
-import qualified Data.Map.Strict        as M (fromList, lookup, (!))
+import qualified Data.Map.Strict        as M (fromList, lookup, member, (!))
 import           Data.Maybe             (catMaybes, fromJust)
 import           Data.Text              (Text)
 import qualified Data.Text              as T (head, init, last, null, pack,
@@ -47,8 +47,11 @@ fromText = first T.pack . parseOnly maeP
 instance StructureModels Mae where
   modelsOf Mae{..} = V.fromList $ fmap blockToModel blocks
     where
-      getFromContentsMap :: FromMaeValue a => Map Text [MaeValue] -> Text -> Int -> a
-      getFromContentsMap m name i = unsafeFromMaeValue $ (m M.! name) !! i
+      unsafeGetFromContentsMap :: FromMaeValue a => Map Text [MaeValue] -> Text -> Int -> a
+      unsafeGetFromContentsMap m name i = unsafeFromMaeValue $ (m M.! name) !! i
+
+      getFromContentsMap :: FromMaeValue a => Map Text [MaeValue] -> Text -> Int -> Maybe a
+      getFromContentsMap m name i = fromMaeValue $ (m M.! name) !! i
 
       blockToModel :: Block -> Model
       blockToModel Block{..} = Model (atomsTableToChains atomsTable) bonds
@@ -66,6 +69,9 @@ instance StructureModels Mae where
           stripQuotes t | not (T.null t) && T.head t == T.last t, T.last t == '\"' = T.strip $ T.init $ T.tail t
                         | otherwise                                                = T.strip t
 
+          toGroupsOn :: (Eq b, Ord b) => (a -> b) -> [a] -> [[a]]
+          toGroupsOn f = L.groupBy ((==) `on` f) . L.sortOn f
+
           bondsTableToGlobalBonds :: Map Text [MaeValue] -> (Map Int [(Int, Int)], Vector (Bond GlobalID))
           bondsTableToGlobalBonds m = bimap toMap V.fromList bonds'
             where
@@ -73,8 +79,7 @@ instance StructureModels Mae where
               bonds'        = unzip $ fmap indexToBond [0 .. numberOfBonds - 1]
 
               toMap :: [(Int, (Int, Int))] -> Map Int [(Int, Int)]
-              toMap = M.fromList . fmap (\g@((k, _) : _) -> (k, fmap snd g))
-                                 . L.groupBy ((==) `on` fst) . L.sortOn fst
+              toMap = M.fromList . fmap (\l@((k, _) : _) -> (k, fmap snd l)) . toGroupsOn fst
 
               indexToBond :: Int -> ((Int, (Int, Int)), Bond GlobalID)
               indexToBond i = ((x, (y, o)), Bond (GlobalID x) (GlobalID y) o)
@@ -84,33 +89,36 @@ instance StructureModels Mae where
                   o = getFromContentsI "i_m_order"
 
                   getFromContentsI :: FromMaeValue a => Text -> a
-                  getFromContentsI = flip (getFromContentsMap m) i
+                  getFromContentsI = flip (unsafeGetFromContentsMap m) i
 
           atomsTableToChains :: Map Text [MaeValue] -> Vector Chain
           atomsTableToChains m = V.fromList $ fmap groupToChain groupedByChains
             where
-              groupedByChains = L.groupBy (comparingOn @Text "s_m_chain_name") [0 .. numberOfAtoms - 1]
+              groupedByChains = toGroupsOn (unsafeGetFromContents @Text "s_m_chain_name") [0 .. numberOfAtoms - 1]
 
-              getFromContents :: FromMaeValue a => Text -> Int -> a
+              unsafeGetFromContents :: FromMaeValue a => Text -> Int -> a
+              unsafeGetFromContents = unsafeGetFromContentsMap m
+
+              getFromContents :: FromMaeValue a => Text -> Int -> Maybe a
               getFromContents = getFromContentsMap m
-
-              comparingOn :: forall a. (Eq a, FromMaeValue a) => Text -> Int -> Int -> Bool
-              comparingOn name = (==) `on` (getFromContents name :: Int -> a)
 
               groupToChain :: [Int] -> Chain
               groupToChain []            = error "Group that is result of List.groupBy can't be empty."
               groupToChain group@(h : _) = Chain name residues
                 where
-                  name = stripQuotes $ getFromContents "s_m_chain_name" h
+                  name = stripQuotes $ unsafeGetFromContents "s_m_chain_name" h
 
-                  groupedByResidues = L.groupBy (comparingOn @Int "i_m_residue_number") group
+                  groupedByResidues = toGroupsOn by group
                   residues          = V.fromList $ fmap groupToResidue groupedByResidues
+
+                  by :: Int -> (Int, Text)
+                  by i = (unsafeGetFromContents "i_m_residue_number" i, unsafeGetFromContents "s_m_pdb_residue_name" i)
 
               groupToResidue :: [Int] -> Residue
               groupToResidue []            = error "Group that is result of List.groupBy can't be empty."
               groupToResidue group@(h : _) = Residue name atoms (V.fromList localBonds) secondary chemCompType
                 where
-                  name  = stripQuotes $ getFromContents "s_m_pdb_residue_name" h
+                  name  = stripQuotes $ unsafeGetFromContents "s_m_pdb_residue_name" h
                   atoms = V.fromList $ fmap indexToAtom group
 
                   localInds     = [0 .. length group - 1]
@@ -132,12 +140,16 @@ instance StructureModels Mae where
                                    (stripQuotes $ getFromContentsI "s_m_pdb_atom_name")
                                    (elIndToElement M.! getFromContentsI "i_m_atomic_number")
                                    coords
-                                   (getFromContentsI "i_m_formal_charge")
-                                   (getFromContentsI "r_m_pdb_tfactor")
-                                   (getFromContentsI "r_m_pdb_occupancy")
+                                   (getFromContentsIWithDef 0 "i_m_formal_charge")
+                                   (getFromContentsIWithDef 0 "r_m_pdb_tfactor")
+                                   (getFromContentsIWithDef 0 "r_m_pdb_occupancy")
                 where
                   getFromContentsI :: FromMaeValue a => Text -> a
-                  getFromContentsI = flip getFromContents i
+                  getFromContentsI = flip unsafeGetFromContents i
+
+                  getFromContentsIWithDef :: FromMaeValue a => a -> Text -> a
+                  getFromContentsIWithDef def n | n `M.member` m = maybe def id $ getFromContents n i
+                                                | otherwise      = def
 
                   coords :: V3 Float
                   coords = V3 (getFromContentsI "r_m_x_coord")

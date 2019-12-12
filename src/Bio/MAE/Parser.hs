@@ -29,9 +29,7 @@ maeP = Mae <$> versionP
            <*  endOfInput
 
 versionP :: Parser Text
-versionP = inBrackets $  lineP
-                      *> delimiterP
-                      *> lineP
+versionP = many' tillEndOfLine *> inBrackets (lineP *> delimiterP *> lineP)
 
 blockP :: Parser Block
 blockP = uncurry <$> (Block <$> anyStringP <* many' oneSpaceP)
