@@ -11,6 +11,14 @@ import           Data.Text            as T (Text, pack)
 import qualified Data.Vector          as V (empty, fromList, singleton)
 import           Test.Hspec
 
+
+import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Data.Attoparsec.Text   (parseOnly)
+import           Data.Bifunctor         (first)
+import           Data.Text              (Text, lines, append, take)
+import           Data.Text              (pack, unpack, length)
+import qualified Data.Text.IO           as TIO (readFile, writeFile)
+
 oneModelSpecP :: Spec
 oneModelSpecP = describe "One model." $
         it "correctly parses pdb with only one model without strings \"MODEL\" & \"ENDMDL\"" $ do
@@ -419,3 +427,56 @@ pdbEmptyModel = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME
 
 fromTextPDB :: Text -> Either Text PDB
 fromTextPDB = first pack . parseOnly pdbP
+
+
+-- preprocessPdb fileText = do
+--                         print fileText
+--                         print "AAA"
+--                         let l = Data.Text.lines fileText
+--                          in print l
+
+
+
+
+
+
+addSpaces :: Text -> Text
+addSpaces line = append line (Data.Text.pack [' ' | i <- [1..spacesCount]])
+        where
+           desiredLength = 80  -- cause it is max length in standart pdb file
+           lineLength = Data.Text.length line
+           spacesCount = desiredLength - lineLength
+
+isMdlLine :: Text -> Bool
+isMdlLine line = elem (Data.Text.take 6 line) modelStrings || elem (Data.Text.take 5 line) modelStrings
+        where 
+            modelStrings = ["MODEL ", "ENDMDL", "ATOM ", "TER   ", "HETATM", "ANISOU"]
+        
+textPartition :: [[Text]] -> [Text] -> [[Text]]
+textPartition partedText []   = partedText
+textPartition partedText text = textPartition (partedText ++ [notMdlpart] ++ [mdlPart]) remainder 
+        where 
+            (notMdlpart, remainderWithMdl) = span (not . isMdlLine) text
+            (mdlPart, remainder) = span isMdlLine remainderWithMdl
+
+removeTrashfromMdl :: [[Text]] -> [[Text]]
+removeTrashfromMdl [] = []
+removeTrashfromMdl (notMdlPart:([]):[]) = [notMdlPart] 
+removeTrashfromMdl (notMdlpart:mdlPart:partedText) = mdlPart : removeTrashfromMdl partedText
+
+fromFilePDB f = do 
+        content <- liftIO (TIO.readFile f) 
+        print content
+        let linesOfFile = Data.Text.lines content
+        print linesOfFile
+        let longLines = addSpaces <$> linesOfFile
+        print "--------------"
+        let partedText = textPartition [] longLines
+        print partedText
+        print "--------------"
+        let mdlWithoutTrash = removeTrashfromMdl partedText
+        print $ mdlWithoutTrash
+        print "-------------"
+        let infoBeforeMdl = [head partedText]
+            cleanedText = infoBeforeMdl ++ mdlWithoutTrash
+        print cleanedText
