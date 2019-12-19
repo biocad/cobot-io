@@ -7,16 +7,17 @@ import qualified Bio.PDB.Type  as PDB
 import           Bio.Structure
 
 import           Control.Arrow ((&&&))
-import qualified Data.Vector as V
+import           Data.Coerce   (coerce)
 import           Data.Foldable (Foldable (..))
 import           Data.Text     as T (Text, singleton, unpack)
+import qualified Data.Vector   as V
 import           Linear.V3     (V3 (..))
 
 instance StructureModels PDB.PDB where
     modelsOf PDB.PDB {..} = fmap mkModel models
       where
         mkModel :: PDB.Model -> Model
-        mkModel = Model . fmap mkChain
+        mkModel = flip Model V.empty . fmap mkChain
 
         mkChain :: PDB.Chain -> Chain
         mkChain = uncurry Chain . (mkChainName &&& mkChainResidues)
@@ -51,7 +52,8 @@ instance StructureModels PDB.PDB where
 
 
         mkAtom :: PDB.Atom -> Atom
-        mkAtom PDB.Atom{..} = Atom atomName
+        mkAtom PDB.Atom{..} = Atom (coerce atomSerial)
+                                   atomName
                                    atomElement
                                    (V3 atomX atomY atomZ)
                                    (read $ T.unpack atomCharge)
