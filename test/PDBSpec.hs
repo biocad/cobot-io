@@ -2,27 +2,22 @@
 
 module PDBSpec where
 
-import           Bio.PDB.Parser       (pdbP)
-import           Bio.PDB.Type         (Atom (..), FieldType (..), PDB (..))
-import           Data.Attoparsec.Text (parseOnly)
-import           Data.Bifunctor       (first)
-import qualified Data.Map.Strict      (empty, fromList, singleton)
-import           Data.Text            as T (Text, pack)
-import qualified Data.Vector          as V (empty, fromList, singleton)
+import           Bio.PDB.Reader    (PDBWarnings (..), fromTextPDB)
+import           Bio.PDB.Type      (Atom (..), FieldType (..), PDB (..))
+import           Control.Exception (evaluate)
+import           Control.Exception (ArithException, ErrorCall, IOException,
+                                    SomeException)
+import qualified Data.Map.Strict   (empty, fromList, singleton)
+import           Data.Text         as T (Text, intercalate, length, lines, pack,
+                                         replicate, take)
+import qualified Data.Vector       as V (empty, fromList, singleton)
 import           Test.Hspec
 
-
-import           Control.Monad.IO.Class (MonadIO, liftIO)
-import           Data.Attoparsec.Text   (parseOnly)
-import           Data.Bifunctor         (first)
-import           Data.Text              (Text, lines, append, take)
-import           Data.Text              (pack, unpack, length)
-import qualified Data.Text.IO           as TIO (readFile, writeFile)
 
 oneModelSpecP :: Spec
 oneModelSpecP = describe "One model." $
         it "correctly parses pdb with only one model without strings \"MODEL\" & \"ENDMDL\"" $ do
-        let mt  = fromTextPDB $ T.pack ( "HEADER header\n" ++
+        let mt  = fromTextPDB . lenghtenLines $ T.pack ( "HEADER header\n" ++
                                          "TITLE STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME\n" ++
                                          "COMPND compnd\n" ++
                                          "SOURCE source\n" ++
@@ -47,7 +42,7 @@ oneModelSpecP = describe "One model." $
                                          "MASTER 1 2 3 4 5 6 7 8\n" ++
                                          "END"
                                        )
-        mt `shouldBe` Right oneModelPDB
+        mt `shouldBe` Right ([], Right oneModelPDB)
 
 oneModelPDB :: PDB
 oneModelPDB =  PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME"
@@ -70,7 +65,7 @@ oneModelPDB =  PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME"
 manyModelsSpecP :: Spec
 manyModelsSpecP = describe "Some models." $
         it "correctly parses pdb with many models - they have strings \"MODEL\" & \"ENDMDL\" and text has disordered strings" $ do
-        let mt = fromTextPDB $ T.pack ( "HEADER header\n" ++
+        let mt = fromTextPDB . lenghtenLines $ T.pack ( "HEADER header\n" ++
                                         "TITLE STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME\n" ++
                                         "COMPND compnd\n" ++
                                         "SOURCE source\n" ++
@@ -84,7 +79,6 @@ manyModelsSpecP = describe "Some models." $
                                         "TER    2034      CYS A 214                                                      \n" ++
                                         "ANISOU anisou\n" ++
                                         "ENDMDL \n" ++
-                                        "SEQRES seqres\n" ++
                                         "MODEL  5 \n" ++
                                         "ATOM   2035  N   GLU B   1      18.637-691.583  66.852  1.0 118.48           N  \n" ++
                                         "ATOM  12531 HH12 ARG D 474      45.558 -39.551 -49.936  1.00 15.00           H  \n" ++
@@ -95,16 +89,17 @@ manyModelsSpecP = describe "Some models." $
                                         "ATOM  12533 HH22 ARG D 474      47.405 -39.268 -48.629  1.00 15.00           H  \n" ++
                                         "HETATM12535  C1  NAG B 475       5.791 -20.194  -7.051  1.00 34.66           C  \n" ++
                                         "HETATM12538  C4  NAG B 475       6.943 -19.507  -9.597  1.00 25.87           C  \n" ++
-                                        "ENDMDL\n" ++
+                                        "CONECT conect conect\n" ++
                                         "CONECT conect\n" ++
+                                        "ENDMDL\n" ++
+                                        "SEQRES seqres\n" ++
                                         "KEYWDS keywds\n" ++
                                         "EXPDTA expdta\n" ++
                                         "AUTHOR  Masha\n" ++
                                         "REVDAT revdat\n" ++
-                                        "CONECT conect conect\n" ++
                                         "MASTER 1 2 3 4 5 6 7 8\n"
                                       )
-        mt `shouldBe` Right manyModelsPDB
+        mt `shouldBe` Right ([], Right manyModelsPDB)
 
 manyModelsPDB :: PDB
 manyModelsPDB = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME"
@@ -135,7 +130,7 @@ manyModelsPDB = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME
 noModelsSpecP :: Spec
 noModelsSpecP = describe "No models." $
         it "correctly parses pdb without models (no ATOM, TER, HETATM strings)" $ do
-        let mt = fromTextPDB $ T.pack ( "HEADER header\n" ++
+        let mt = fromTextPDB . lenghtenLines $ T.pack ( "HEADER header\n" ++
                                         "TITLE STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME\n" ++
                                         "COMPND compnd\n" ++
                                         "SOURCE source\n" ++
@@ -148,11 +143,9 @@ noModelsSpecP = describe "No models." $
                                         "CRYST1 cryst1\n" ++
                                         "ORIGX1 origx1 n=1\n" ++
                                         "SCALE2 sclaen n=2\n" ++
-                                        "CONECT conect\n" ++
-                                        "CONECT conect conect\n" ++
                                         "MASTER 1 2 3 4 5 6 7 8\n"
                                       )
-        mt `shouldBe` Right noModelsPDB
+        mt `shouldBe` Right ([], Right noModelsPDB)
 
 noModelsPDB :: PDB
 noModelsPDB = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME"
@@ -165,7 +158,7 @@ noModelsPDB = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME"
 allFieldsModelSpecP :: Spec
 allFieldsModelSpecP = describe "PDB with all strings." $
         it "correctly parses pdb with all types of string" $ do
-        let mt = fromTextPDB $ T.pack ( "HEADER header\n" ++
+        let mt = fromTextPDB . lenghtenLines $ T.pack ( "HEADER header\n" ++
                                         "OBSLTE obslte\n" ++
                                         "TITLE STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME\n" ++
                                         "SPLIT split\n" ++
@@ -207,13 +200,13 @@ allFieldsModelSpecP = describe "PDB with all strings." $
                                         "ATOM  12532 HH21 ARG D 474      47.457 -38.007 -47.445  1.00 15.00           H  \n" ++
                                         "TER   12534      ARG D 474                                                      \n" ++
                                         "HETATM12535  C1  NAG B 475       5.791 -20.194  -7.051  1.00 34.66           C  \n" ++
-                                        "ENDMDL\n" ++
                                         "CONECT conect\n" ++
                                         "CONECT conect conect\n" ++
+                                        "ENDMDL\n" ++
                                         "MASTER 1 2 3 4 5 6 7 8\n" ++
                                         "END"
                                       )
-        mt `shouldBe` Right pdbWithAllFields
+        mt `shouldBe` Right ([], Right pdbWithAllFields)
 
 pdbWithAllFields :: PDB
 pdbWithAllFields = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME"
@@ -238,7 +231,7 @@ emptySpecP :: Spec
 emptySpecP = describe "empty PDB." $
         it "correctly parses empty pdb" $ do
         let mt = fromTextPDB ""
-        mt `shouldBe` Right emptyPdb
+        mt `shouldBe` Right ([], Right emptyPdb)
 
 emptyPdb :: PDB
 emptyPdb = PDB { title = ""
@@ -250,7 +243,7 @@ emptyPdb = PDB { title = ""
 trashBetweenModelsSpecP :: Spec
 trashBetweenModelsSpecP = describe "PDB has trash." $
         it "correctly parses pdb with trash string between models and other field strings" $ do
-        let mt = fromTextPDB $ T.pack ( "trash strings 1\n" ++
+        let mt = fromTextPDB  . lenghtenLines $ T.pack ( "trash strings 1\n" ++
                                         "HEADER header\n" ++
                                         "TITLE STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME\n" ++
                                         "REMARK 1   REFERENCE 1\n" ++
@@ -275,12 +268,12 @@ trashBetweenModelsSpecP = describe "PDB has trash." $
                                         "ATOM  12533 HH22 ARG D 474      47.405 -39.268 -48.629  1.00 15.00           H  \n" ++
                                         "HETATM12535  C1  NAG B 475       5.791 -20.194  -7.051  1.00 34.66           C  \n" ++
                                         "HETATM12538  C4  NAG B 475       6.943 -19.507  -9.597  1.00 25.87           C  \n" ++
-                                        "ENDMDL\n" ++
                                         "CONECT conect conect\n" ++
+                                        "ENDMDL\n" ++
                                         "MASTER 1 2 3 4 5 6 7 8\n" ++
                                         "trash strings 5\n"
                                        )
-        mt `shouldBe` Right pdbWithoutTrash
+        mt `shouldBe` Left "There are trash strings between model strings"
 
 pdbWithoutTrash :: PDB
 pdbWithoutTrash = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME"
@@ -311,7 +304,7 @@ pdbWithoutTrash = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZY
 onlyOneModelSpecP :: Spec
 onlyOneModelSpecP = describe "Only One model." $
         it "correctly parses pdb with only one model without other field/title/trash/remarks strings" $ do
-        let mt  = fromTextPDB $ T.pack ( "ATOM   2032  OXT CYS A 214      -4.546 -29.673  26.796  1.0 143.51           O  \n" ++
+        let mt = fromTextPDB . lenghtenLines $ T.pack ( "ATOM   2032  OXT CYS A 214      -4.546 -29.673  26.796  1.0 143.51           O  \n" ++
                                          "ATOM   2033  H   CYS A 214      -6.124 -27.225  26.558  1.00 15.00           H  \n" ++
                                          "TER    2034      CYS A 214                                                      \n" ++
                                          "ATOM   2035  N   GLU B   1      18.637 -61.583  66.852  1.0 118.48           N  \n" ++
@@ -320,7 +313,7 @@ onlyOneModelSpecP = describe "Only One model." $
                                          "HETATM12538  C4  NAG B 475       6.943 -19.507  -9.597  1.00 25.87           C  \n" ++
                                          "ATOM   2036  CA  GLU B   1      19.722 -62.606  66.868  1.00 19.77           C  \n"
                                         )
-        mt `shouldBe` Right onlyOneModelPDB
+        mt `shouldBe` Right ([], Right onlyOneModelPDB)
 
 onlyOneModelPDB :: PDB
 onlyOneModelPDB = PDB { title = ""
@@ -342,7 +335,7 @@ onlyOneModelPDB = PDB { title = ""
 repeatedStringsSpecP :: Spec
 repeatedStringsSpecP = describe "PDB with repeated other field strings." $
         it "correctly parses pdb with repeated other field strings (SOURCE)" $ do
-        let mt = fromTextPDB $ T.pack ( "HEADER header\n" ++
+        let mt = fromTextPDB . lenghtenLines $ T.pack ( "HEADER header\n" ++
                                         "TITLE STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME\n" ++
                                         "COMPND compnd\n" ++
                                         "EXPDTA expdta\n" ++
@@ -356,13 +349,11 @@ repeatedStringsSpecP = describe "PDB with repeated other field strings." $
                                         "ORIGX1 origx1 n=1\n" ++
                                         "SOURCE source2\n" ++
                                         "SCALE2 sclaen n=2\n" ++
-                                        "CONECT conect\n" ++
-                                        "CONECT conect conect\n" ++
                                         "MASTER 1 2 3 4 5 6 7 8\n" ++
                                         "SOURCE source3\n" ++
                                         "END"
                                       )
-        mt `shouldBe` Right repeatedStringsPDB
+        mt `shouldBe` Right ([], Right repeatedStringsPDB)
 
 repeatedStringsPDB :: PDB
 repeatedStringsPDB = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME"
@@ -375,7 +366,7 @@ repeatedStringsPDB = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYS
 emptyRemarkSpecP :: Spec
 emptyRemarkSpecP = describe "PDB with repeated remark strings without code." $
         it "correctly parses pdb with repeated remark strings without code" $ do
-        let mt = fromTextPDB $ T.pack ( "REMARK 111 remark111_1/2\n" ++
+        let mt = fromTextPDB . lenghtenLines $ T.pack ( "REMARK 111 remark111_1/2\n" ++
                                         "COMPND compnd\n" ++
                                         "SOURCE source1\n" ++
                                         "KEYWDS keywds\n" ++
@@ -388,7 +379,7 @@ emptyRemarkSpecP = describe "PDB with repeated remark strings without code." $
                                         "REMARK     empty remark 2/2\n" ++
                                         "SCALE2 sclaen n=2\n"
                                       )
-        mt `shouldBe` Right pdbWithEmptyRemarks
+        mt `shouldBe` Right ([], Right pdbWithEmptyRemarks)
 
 pdbWithEmptyRemarks :: PDB
 pdbWithEmptyRemarks = PDB { title = ""
@@ -401,7 +392,7 @@ pdbWithEmptyRemarks = PDB { title = ""
 emptyModelSpecP :: Spec
 emptyModelSpecP = describe "PDB with one empty model." $
         it "correctly parses pdb with one model without strings inside" $ do
-        let mt = fromTextPDB $ T.pack ( "trash strings 1\n" ++
+        let mt = fromTextPDB . lenghtenLines $ T.pack ( "trash strings 1\n" ++
                                         "HEADER header\n" ++
                                         "TITLE STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME\n" ++
                                         "REMARK 1   REFERENCE 1\n" ++
@@ -409,11 +400,10 @@ emptyModelSpecP = describe "PDB with one empty model." $
                                         "REMARK 2   Reference 2_1/1\n" ++
                                         "MODEL  4  \n" ++
                                         "ENDMDL\n" ++
-                                        "CONECT conect conect\n" ++
                                         "MASTER 1 2 3 4 5 6 7 8\n" ++
                                         "trash strings 5\n"
                                       )
-        mt `shouldBe` Right pdbEmptyModel
+        mt `shouldBe` Right ([], Right pdbEmptyModel)
 
 
 pdbEmptyModel :: PDB
@@ -424,59 +414,18 @@ pdbEmptyModel = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME
                                                               (MASTER,V.fromList[" 1 2 3 4 5 6 7 8"])]
                     }
 
+lenghtenLines :: Text -> Text
+lenghtenLines text = longLinedText
+   where
+       textLines = T.lines text
+       longTextLines = changeLine <$> textLines
+       desiredLength = 80  -- cause it is max length in standart pdb file
+       longLinedText = T.intercalate "\n" longTextLines
 
-fromTextPDB :: Text -> Either Text PDB
-fromTextPDB = first pack . parseOnly pdbP
+       changeLine :: Text -> Text
+       changeLine line | T.length line > desiredLength = T.take desiredLength line
+                       | T.length line < desiredLength = line <> T.replicate spacesCount " "
+                       | otherwise = line
+            where
+                    spacesCount = desiredLength - T.length line
 
-
--- preprocessPdb fileText = do
---                         print fileText
---                         print "AAA"
---                         let l = Data.Text.lines fileText
---                          in print l
-
-
-
-
-
-
-addSpaces :: Text -> Text
-addSpaces line = append line (Data.Text.pack [' ' | i <- [1..spacesCount]])
-        where
-           desiredLength = 80  -- cause it is max length in standart pdb file
-           lineLength = Data.Text.length line
-           spacesCount = desiredLength - lineLength
-
-isMdlLine :: Text -> Bool
-isMdlLine line = elem (Data.Text.take 6 line) modelStrings || elem (Data.Text.take 5 line) modelStrings
-        where 
-            modelStrings = ["MODEL ", "ENDMDL", "ATOM ", "TER   ", "HETATM", "ANISOU"]
-        
-textPartition :: [[Text]] -> [Text] -> [[Text]]
-textPartition partedText []   = partedText
-textPartition partedText text = textPartition (partedText ++ [notMdlpart] ++ [mdlPart]) remainder 
-        where 
-            (notMdlpart, remainderWithMdl) = span (not . isMdlLine) text
-            (mdlPart, remainder) = span isMdlLine remainderWithMdl
-
-removeTrashfromMdl :: [[Text]] -> [[Text]]
-removeTrashfromMdl [] = []
-removeTrashfromMdl (notMdlPart:([]):[]) = [notMdlPart] 
-removeTrashfromMdl (notMdlpart:mdlPart:partedText) = mdlPart : removeTrashfromMdl partedText
-
-fromFilePDB f = do 
-        content <- liftIO (TIO.readFile f) 
-        print content
-        let linesOfFile = Data.Text.lines content
-        print linesOfFile
-        let longLines = addSpaces <$> linesOfFile
-        print "--------------"
-        let partedText = textPartition [] longLines
-        print partedText
-        print "--------------"
-        let mdlWithoutTrash = removeTrashfromMdl partedText
-        print $ mdlWithoutTrash
-        print "-------------"
-        let infoBeforeMdl = [head partedText]
-            cleanedText = infoBeforeMdl ++ mdlWithoutTrash
-        print cleanedText

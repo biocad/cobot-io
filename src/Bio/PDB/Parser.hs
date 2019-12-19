@@ -12,12 +12,12 @@ import           Control.Applicative  (many, some, (<|>))
 import           Control.DeepSeq      ()
 import           Data.Attoparsec.Text (Parser, choice, count, endOfLine,
                                        isEndOfLine, satisfy, skipWhile, space,
-                                       string, takeWhile)
+                                       string, takeWhile, endOfInput)
 import qualified Data.List            as L (groupBy)
 import           Data.Map.Strict      (Map, fromListWithKey)
 import           Data.Maybe           (catMaybes)
 import           Data.Monoid          ((<>))
-import           Data.Text            as T (Text, concat, pack)
+import           Data.Text            as T (Text, concat, pack, stripEnd)
 import qualified Data.Vector          as V (Vector, empty, fromList, singleton)
 import           GHC.Generics         ()
 import           Text.Read            (readMaybe)
@@ -80,12 +80,13 @@ atomP = let atom = Atom <$>
                     <*> (read <$> count 6 notEndLineChar)                    -- (55 - 60) atomOccupancy
                     <*> (read <$> count 6 notEndLineChar) <* count 10 space  -- (61 - 66) atomTempFactor
                     <*> (T.pack <$> count 2 notEndLineChar)                  -- (77 - 78) atomElement
-                    <*> (T.pack <$> count 2 notEndLineChar) <* endOfLine     -- (79 - 80) atomCharge
+                    <*> (T.pack <$> count 2 notEndLineChar)                  -- (79 - 80) atomCharge
+                    <* (endOfLine <|> endOfInput)
         in AtomLine <$> atom
 
 coordNotAtomP :: Parser CoordLike
 coordNotAtomP = do
-    _ <- string "HETATM" <|> string "TER " <|> string "ANISOU"
+    _ <- string "HETATM" <|> string "TER " <|> string "ANISOU" <|> string "CONECT"
     skipWhile $ not . isEndOfLine
     endOfLine
     return CoordNotAtomLine
@@ -117,7 +118,7 @@ modelP = do
     endOfLine
     chains <- chainsP
     string "ENDMDL" >> skipWhile (not . isEndOfLine)
-    endOfLine
+    endOfLine <|> endOfInput
     pure chains
 
 manyModelsP :: Parser PdbData
@@ -130,7 +131,7 @@ titleStringP = do
     _ <- string "TITLE "
     titleText <- takeText
     endOfLine
-    pure titleText
+    pure $ T.stripEnd titleText
 
 titleP :: Parser PdbData
 titleP =  do
@@ -145,7 +146,7 @@ remarkStringP = do
     _ <- notEndLineChar
     remarkText <- takeText
     endOfLine
-    pure $ RemarkData (remarkCode, remarkText)
+    pure $ RemarkData (remarkCode, T.stripEnd remarkText)
 
 fromRevListWith :: Ord k => (a -> a -> a) -> [(k,a)] -> Map k a
 fromRevListWith f xs = fromListWithKey (\_ x y -> f y x) xs
@@ -154,5 +155,5 @@ otherFieldP :: Parser PdbData
 otherFieldP = do
     (fieldType :: Maybe FieldType) <- readMaybe <$> count 6 notEndLineChar
     fieldTypeText <- takeText
-    endOfLine
-    return $ OtherFieldData (fieldType, fieldTypeText)
+    endOfLine <|> endOfInput
+    return $ OtherFieldData (fieldType,  T.stripEnd fieldTypeText)
