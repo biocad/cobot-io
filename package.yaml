@@ -1,5 +1,5 @@
 name:                cobot-io
-version:             0.1.2.0
+version:             0.1.2.3
 github:              "less-wrong/cobot-io"
 license:             BSD3
 category:            Bio 
@@ -50,6 +50,7 @@ library:
     - RecordWildCards
     - ScopedTypeVariables
     - OverloadedStrings
+    - TypeApplications
     - TypeFamilies
     - DataKinds
     - ConstraintKinds
@@ -71,6 +72,8 @@ tests:
       - TypeFamilies
     dependencies:
     - cobot-io
-    - QuickCheck >= 2.9.2 && < 2.13
-    - hspec >= 2.4.1 && < 2.7
+    - directory
+    - QuickCheck >= 2.9.2 && < 2.14
+    - hspec >= 2.4.1 && < 2.8
     - neat-interpolation >= 0.3
+    - linear >= 1.20 && < 1.21
