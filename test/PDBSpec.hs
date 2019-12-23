@@ -2,15 +2,12 @@
 
 module PDBSpec where
 
-import           Bio.PDB.Reader    (PDBWarnings (..), fromTextPDB)
-import           Bio.PDB.Type      (Atom (..), FieldType (..), PDB (..))
-import           Control.Exception (evaluate)
-import           Control.Exception (ArithException, ErrorCall, IOException,
-                                    SomeException)
-import qualified Data.Map.Strict   (empty, fromList, singleton)
-import           Data.Text         as T (Text, intercalate, length, lines, pack,
-                                         replicate, take)
-import qualified Data.Vector       as V (empty, fromList, singleton)
+import           Bio.PDB.Reader  (fromTextPDB)
+import           Bio.PDB.Type    (Atom (..), FieldType (..), PDB (..))
+import qualified Data.Map.Strict (empty, fromList, singleton)
+import           Data.Text       as T (Text, intercalate, length, lines, pack,
+                                       replicate, take)
+import qualified Data.Vector     as V (empty, fromList, singleton)
 import           Test.Hspec
 
 

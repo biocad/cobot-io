@@ -5,11 +5,9 @@ import           Bio.PDB.Type           (PDB (..))
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Attoparsec.Text   (parseOnly)
 import           Data.Bifunctor         (first)
-import           Data.Either            (lefts)
-import           Data.List              (findIndices)
-import           Data.List              as L (length)
-import           Data.Text              as T (Text, intercalate, length, lines,
-                                              pack, replicate, take)
+import           Data.List              as L (findIndices, length)
+import           Data.Text              as T (Text, append, length, lines, pack,
+                                              replicate, take)
 import qualified Data.Text.IO           as TIO (readFile)
 
 
@@ -18,24 +16,20 @@ type LineNumber = Int
 data PDBWarnings = LineTooLong LineNumber | LineTooShort LineNumber
  deriving (Show, Eq)
 
-standardizeLines :: Int -> [Text] -> [Either (Text, PDBWarnings) Text]
-standardizeLines _ [] = []
-standardizeLines lineNumber (line:text) = [changeLine line] ++ standardizeLines (lineNumber + 1) text
+standardizeLines :: Int -> [Text] -> ([PDBWarnings], Text)
+standardizeLines _ [] = ([], "")
+standardizeLines lineNumber (line:text) = (warnings ++ textWarnings, changedLine `T.append` "\n" `T.append` textChangedLines)
    where
        desiredLength = 80  -- cause it is max length in standart pdb file
        lineLength = T.length line
        spacesCount = desiredLength - lineLength
+       (warnings, changedLine) = changeLine line
+       (textWarnings, textChangedLines) = standardizeLines (lineNumber + 1) text
 
-       changeLine :: Text -> Either (Text, PDBWarnings) Text
-       changeLine str | lineLength < desiredLength = Left (str <> T.replicate spacesCount " ", LineTooShort lineNumber)
-                      | lineLength > desiredLength = Left (T.take desiredLength str, LineTooLong lineNumber)
-                      | otherwise = Right str
-
-composeText :: [Either (Text, PDBWarnings) Text] -> ([PDBWarnings], Text)
-composeText lines'n'warnigs = (warnings, cleanedText)
-        where
-            warnings = snd <$> lefts lines'n'warnigs
-            cleanedText = T.intercalate "\n" $ map extractText lines'n'warnigs
+       changeLine :: Text -> ([PDBWarnings], Text)
+       changeLine str | lineLength < desiredLength = ([LineTooShort lineNumber], str <> T.replicate spacesCount " ")
+                      | lineLength > desiredLength = ([LineTooLong lineNumber], T.take desiredLength str)
+                      | otherwise = ([], str)
 
 extractText :: Either (Text, PDBWarnings) Text -> Text
 extractText (Right text)     = text
@@ -50,16 +44,16 @@ checkRow :: [Int] -> Bool
 checkRow [] = True
 checkRow xs = last xs - head xs + 1 == L.length xs
 
-checkMdlLines :: [Either (Text, PDBWarnings) Text] -> Bool
-checkMdlLines text'n'warnings = checkRow mdlLineNumbers
+checkMdlLines :: ([PDBWarnings], Text) -> Bool
+checkMdlLines warnings'n'text = checkRow mdlLineNumbers
     where
-        mdlLineNumbers = findIndices isMdlLine $ map extractText text'n'warnings
+        mdlLineNumbers = findIndices isMdlLine $ T.lines (snd warnings'n'text)
 
 preprocess :: [Text] -> Either Text ([PDBWarnings], Text)
 preprocess textLines = do
     let standardizedLines = standardizeLines 1 textLines
     if checkMdlLines standardizedLines
-    then Right $ composeText standardizedLines
+    then Right standardizedLines
     else Left "There are trash strings between model strings"
 
 fromFilePDB :: MonadIO m => FilePath -> m (Either Text ([PDBWarnings], Either Text PDB))
