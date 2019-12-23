@@ -10,47 +10,45 @@ import           Bio.PDB.Type         (Atom (..), Chain, FieldType, Model,
                                        PDB (..), RemarkCode)
 import           Control.Applicative  (many, some, (<|>))
 import           Control.DeepSeq      ()
-import           Data.Attoparsec.Text (Parser, choice, count, endOfLine,
-                                       isEndOfLine, satisfy, skipWhile, space,
-                                       string, takeWhile, endOfInput)
+import           Data.Attoparsec.Text (Parser, choice, count, endOfInput,
+                                       endOfLine, isEndOfLine, satisfy,
+                                       skipWhile, space, string, takeWhile)
 import qualified Data.List            as L (groupBy)
 import           Data.Map.Strict      (Map, fromListWithKey)
 import           Data.Maybe           (catMaybes)
 import           Data.Monoid          ((<>))
 import           Data.Text            as T (Text, concat, pack, stripEnd)
-import qualified Data.Vector          as V (Vector, empty, fromList, singleton)
+import qualified Data.Vector          as V (Vector, concat, fromList, singleton)
 import           GHC.Generics         ()
 import           Text.Read            (readMaybe)
 
 pdbP :: Parser PDB
 pdbP = do
     pdbData <- many (choice [titleP, remarkStringP, manyModelsP, otherFieldP]) -- parser order is important
-    let models = foldr (<>) V.empty $ catMaybes (getModels <$> pdbData)
+    let
+        models         = V.concat $ catMaybes (getModels <$> pdbData)
         otherFieldsMap = fromRevListWith (<>) $ catMaybes (getOtherField <$> pdbData)
-        title = foldr (<>) "" $ catMaybes (getTitle <$> pdbData)
-        remarks = fromRevListWith (<>) $ catMaybes (getRemarks <$> pdbData)
+        title          = T.concat $ catMaybes (getTitle <$> pdbData)
+        remarks        = fromRevListWith (<>) $ catMaybes (getRemarks <$> pdbData)
 
     return $ PDB title models remarks otherFieldsMap
-    where
-      getModels :: PdbData -> Maybe (V.Vector Model)
-      getModels item = case item of
-        ModelData x -> Just x
-        _           -> Nothing
-
-      getOtherField :: PdbData -> Maybe (FieldType, V.Vector Text)
-      getOtherField item = case item of
-        OtherFieldData (Just x, y) -> Just (x, V.singleton y)
-        _                          -> Nothing
-
-      getTitle :: PdbData -> Maybe Text
-      getTitle item = case item of
-        TitleData x -> Just x
-        _           -> Nothing
-
-      getRemarks :: PdbData -> Maybe (RemarkCode, V.Vector Text)
-      getRemarks item = case item of
-        RemarkData (x, y) -> Just (x, V.singleton y)
-        _                 -> Nothing
+  where
+    getModels :: PdbData -> Maybe (V.Vector Model)
+    getModels item = case item of
+      ModelData x -> Just x
+      _           -> Nothing
+    getOtherField :: PdbData -> Maybe (FieldType, V.Vector Text)
+    getOtherField item = case item of
+      OtherFieldData (Just x, y) -> Just (x, V.singleton y)
+      _                          -> Nothing
+    getTitle :: PdbData -> Maybe Text
+    getTitle item = case item of
+      TitleData x -> Just x
+      _           -> Nothing
+    getRemarks :: PdbData -> Maybe (RemarkCode, V.Vector Text)
+    getRemarks item = case item of
+      RemarkData (x, y) -> Just (x, V.singleton y)
+      _                 -> Nothing
 
 data PdbData = ModelData (V.Vector Model)
              | OtherFieldData (Maybe FieldType, Text)
@@ -100,16 +98,16 @@ coordLikeP = some (coordNotAtomP <|> atomP)
 chainsP :: Parser (V.Vector Chain)
 chainsP = do
     coordLikeLines <- coordLikeP
-    let atoms = catMaybes (getAtom <$> coordLikeLines)
-    let chains = V.fromList (map V.fromList $ groupByChains atoms)
+    let atoms  = catMaybes (getAtom <$> coordLikeLines)
+        chains = V.fromList (map V.fromList $ groupByChains atoms)
     pure chains
-    where
-      getAtom :: CoordLike -> Maybe Atom
-      getAtom line = case line of
-        AtomLine x -> Just x
-        _          -> Nothing
-      groupByChains :: [Atom]-> [[Atom]]
-      groupByChains = L.groupBy (\x y ->  atomChainID x == atomChainID y)
+  where
+    getAtom :: CoordLike -> Maybe Atom
+    getAtom line = case line of
+      AtomLine x -> Just x
+      _          -> Nothing
+    groupByChains :: [Atom]-> [[Atom]]
+    groupByChains = L.groupBy (\x y ->  atomChainID x == atomChainID y)
 
 modelP :: Parser Model
 modelP = do
