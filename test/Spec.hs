@@ -11,6 +11,7 @@ import           SequenceSpec
 import           System.IO
 import           Test.Hspec
 import           UniprotSpec
+import           PDBSpec
 
 main :: IO ()
 main = do
@@ -40,3 +41,14 @@ main = do
          -- Mae
          maeParserSpec
          maeSpec
+         -- PDB
+         oneModelSpecP
+         manyModelsSpecP
+         noModelsSpecP
+         allFieldsModelSpecP
+         emptySpecP
+         trashBetweenModelsSpecP
+         onlyOneModelSpecP
+         repeatedStringsSpecP
+         emptyRemarkSpecP
+         emptyModelSpecP

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.1.2.4] - 2019-12-23
+### Added
+- Preprocessing for pdb-files.
+- Pdb parser.
+
 ## [0.1.2.3] - 2019-12-12
 ### Fixed
 - Fixes for .mae pasrser.
