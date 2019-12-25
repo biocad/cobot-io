@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.2.5] - 2019-12-24
+### Fixed
+- Possibility to have spaces in Fasta sequences.
+
 ## [0.1.2.4] - 2019-12-23
 ### Added
 - Preprocessing for pdb-files.

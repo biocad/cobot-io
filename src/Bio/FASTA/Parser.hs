@@ -2,12 +2,13 @@ module Bio.FASTA.Parser
   ( fastaP
   ) where
 
-import           Bio.FASTA.Type         (Fasta, FastaItem(..))
-import           Bio.Sequence           (BareSequence, bareSequence)
-import           Data.Attoparsec.Text   (Parser, many', many1', char, endOfLine, letter,
-                                            takeWhile, choice, endOfInput)
-import           Data.Text              (Text, strip)
-import           Prelude         hiding (takeWhile)
+import           Bio.FASTA.Type       (Fasta, FastaItem (..))
+import           Bio.Sequence         (BareSequence, bareSequence)
+import           Data.Attoparsec.Text (Parser, char, choice, endOfInput,
+                                       endOfLine, letter, many', many1',
+                                       takeWhile)
+import           Data.Text            (Text, strip)
+import           Prelude              hiding (takeWhile)
 
 -- | Parser of .fasta file.
 --
@@ -23,8 +24,8 @@ seqName = strip <$> (char '>' *> tabs *> takeWhile (`notElem` ['\n', '\r']) <* t
 fastaSeq :: Parser (BareSequence Char)
 fastaSeq = bareSequence . mconcat <$> many' line
 
-line :: Parser (String)
-line = many1' letter <* eol
+line :: Parser String
+line = concat <$> many1' (many1' letter <* many' (char ' ')) <* eol
 
 eol :: Parser ()
 eol = tabs *> choice [slashN, endOfInput]
