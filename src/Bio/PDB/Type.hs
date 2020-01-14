@@ -24,7 +24,7 @@ data FieldType
    -- Title Section (except TITLE and REMARKS)
      HEADER
    | OBSLTE
-   | SPLT
+   | SPLIT
    | CAVEAT
    | COMPND
    | SOURCE
@@ -59,12 +59,18 @@ data FieldType
    | SITE
    -- Crystallographic and Coordinate Transformation Section
    | CRYST1
-   | MTRIXn
-   | ORIGXn
-   | SCALEn
+   | MTRIX1
+   | MTRIX2
+   | MTRIX3
+   | ORIGX1
+   | ORIGX2
+   | ORIGX3
+   | SCALE1
+   | SCALE2
+   | SCALE3
    -- Bookkeeping Section
    | MASTER
-  deriving (Show, Eq, Read, Generic, NFData)
+  deriving (Show, Eq, Read, Generic, NFData, Ord)
 
 type Model = Vector Chain
 

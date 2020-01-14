@@ -95,7 +95,7 @@ instance StructureModels Mae where
           atomsTableToChains :: Map Text [MaeValue] -> Vector Chain
           atomsTableToChains m = V.fromList $ fmap groupToChain groupedByChains
             where
-              groupedByChains = toGroupsOn (getFromContents ("A" :: Text) "s_m_chain_name") [0 .. numberOfAtoms - 1]
+              groupedByChains = toGroupsOn (getFromContents defaultChainName "s_m_chain_name") [0 .. numberOfAtoms - 1]
 
               getFromContents :: FromMaeValue a => a -> Text -> Int -> a
               getFromContents def name ind = maybe def id $ getFromContentsMap m name ind
@@ -107,13 +107,16 @@ instance StructureModels Mae where
               groupToChain []            = error "Group that is result of List.groupBy can't be empty."
               groupToChain group@(h : _) = Chain name residues
                 where
-                  name = stripQuotes $ getFromContents ("A" :: Text) "s_m_chain_name" h
+                  name = stripQuotes $ getFromContents defaultChainName "s_m_chain_name" h
 
                   groupedByResidues = toGroupsOn by group
                   residues          = V.fromList $ fmap groupToResidue groupedByResidues
 
                   by :: Int -> (Int, Text)
                   by i = (unsafeGetFromContents "i_m_residue_number" i, unsafeGetFromContents "s_m_pdb_residue_name" i)
+
+              defaultChainName :: Text
+              defaultChainName = "A"
 
               groupToResidue :: [Int] -> Residue
               groupToResidue []            = error "Group that is result of List.groupBy can't be empty."

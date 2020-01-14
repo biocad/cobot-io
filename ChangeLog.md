@@ -6,6 +6,15 @@
 ### Fixed
 - Fixes for instance of `StructureModels` for `Mae` when working with structures without explicit chain names.
 
+## [0.1.2.5] - 2019-12-24
+### Fixed
+- Possibility to have spaces in Fasta sequences.
+
+## [0.1.2.4] - 2019-12-23
+### Added
+- Preprocessing for pdb-files.
+- Pdb parser.
+
 ## [0.1.2.3] - 2019-12-12
 ### Fixed
 - Fixes for .mae pasrser.
