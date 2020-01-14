@@ -18,13 +18,14 @@ import           Bio.Structure          (Atom (..), Bond (..), Chain (..),
                                          Model (..), Residue (..),
                                          SecondaryStructure (..),
                                          StructureModels (..))
+import           Control.Monad          (join)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Attoparsec.Text   (parseOnly)
 import           Data.Bifunctor         (bimap, first)
 import           Data.Function          (on)
 import qualified Data.List              as L (find, groupBy, sortOn)
 import           Data.Map.Strict        (Map)
-import qualified Data.Map.Strict        as M (fromList, lookup, member, (!))
+import qualified Data.Map.Strict        as M (fromList, lookup, (!))
 import           Data.Maybe             (catMaybes, fromJust)
 import           Data.Text              (Text)
 import qualified Data.Text              as T (head, init, last, null, pack,
@@ -51,7 +52,7 @@ instance StructureModels Mae where
       unsafeGetFromContentsMap m name i = unsafeFromMaeValue $ (m M.! name) !! i
 
       getFromContentsMap :: FromMaeValue a => Map Text [MaeValue] -> Text -> Int -> Maybe a
-      getFromContentsMap m name i = fromMaeValue $ (m M.! name) !! i
+      getFromContentsMap m name i = join $ fromMaeValue . (!! i) <$> name `M.lookup` m
 
       blockToModel :: Block -> Model
       blockToModel Block{..} = Model (atomsTableToChains atomsTable) bonds
@@ -94,19 +95,19 @@ instance StructureModels Mae where
           atomsTableToChains :: Map Text [MaeValue] -> Vector Chain
           atomsTableToChains m = V.fromList $ fmap groupToChain groupedByChains
             where
-              groupedByChains = toGroupsOn (unsafeGetFromContents @Text "s_m_chain_name") [0 .. numberOfAtoms - 1]
+              groupedByChains = toGroupsOn (getFromContents ("A" :: Text) "s_m_chain_name") [0 .. numberOfAtoms - 1]
+
+              getFromContents :: FromMaeValue a => a -> Text -> Int -> a
+              getFromContents def name ind = maybe def id $ getFromContentsMap m name ind
 
               unsafeGetFromContents :: FromMaeValue a => Text -> Int -> a
               unsafeGetFromContents = unsafeGetFromContentsMap m
-
-              getFromContents :: FromMaeValue a => Text -> Int -> Maybe a
-              getFromContents = getFromContentsMap m
 
               groupToChain :: [Int] -> Chain
               groupToChain []            = error "Group that is result of List.groupBy can't be empty."
               groupToChain group@(h : _) = Chain name residues
                 where
-                  name = stripQuotes $ unsafeGetFromContents "s_m_chain_name" h
+                  name = stripQuotes $ getFromContents ("A" :: Text) "s_m_chain_name" h
 
                   groupedByResidues = toGroupsOn by group
                   residues          = V.fromList $ fmap groupToResidue groupedByResidues
@@ -140,16 +141,12 @@ instance StructureModels Mae where
                                    (stripQuotes $ getFromContentsI "s_m_pdb_atom_name")
                                    (elIndToElement M.! getFromContentsI "i_m_atomic_number")
                                    coords
-                                   (getFromContentsIWithDef 0 "i_m_formal_charge")
-                                   (getFromContentsIWithDef 0 "r_m_pdb_tfactor")
-                                   (getFromContentsIWithDef 0 "r_m_pdb_occupancy")
+                                   (getFromContents 0 "i_m_formal_charge" i)
+                                   (getFromContents 0 "r_m_pdb_tfactor" i)
+                                   (getFromContents 0 "r_m_pdb_occupancy" i)
                 where
                   getFromContentsI :: FromMaeValue a => Text -> a
                   getFromContentsI = flip unsafeGetFromContents i
-
-                  getFromContentsIWithDef :: FromMaeValue a => a -> Text -> a
-                  getFromContentsIWithDef def n | n `M.member` m = maybe def id $ getFromContents n i
-                                                | otherwise      = def
 
                   coords :: V3 Float
                   coords = V3 (getFromContentsI "r_m_x_coord")
