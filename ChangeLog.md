@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.2.6] - 2019-12-12
+### Fixed
+- Fixes for instance of `StructureModels` for `Mae` when working with structures without explicit chain names.
+
 ## [0.1.2.5] - 2019-12-24
 ### Fixed
 - Possibility to have spaces in Fasta sequences.
