@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.2.7] - 2020-02-11
+### Changed
+- Support GHC-8.8.
+
 ## [0.1.2.6] - 2019-12-12
 ### Fixed
 - Fixes for instance of `StructureModels` for `Mae` when working with structures without explicit chain names.
