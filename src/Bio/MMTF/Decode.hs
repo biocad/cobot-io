@@ -14,19 +14,19 @@ import           Data.Vector                 (Vector, fromList)
 
 -- | Parses format data from ObjectMap
 --
-formatData :: Monad m => Map Text Object -> m FormatData
+formatData :: MonadFail m => Map Text Object -> m FormatData
 formatData mp = do v <- atP mp "mmtfVersion"  asStr
                    p <- atP mp "mmtfProducer" asStr
                    pure $ FormatData v p
 
 -- | Parses model data from ObjectMap
 --
-modelData :: Monad m => Map Text Object -> m ModelData
+modelData :: MonadFail m => Map Text Object -> m ModelData
 modelData mp = ModelData . l2v <$> atP mp "chainsPerModel" asIntList
 
 -- | Parses chain data from ObjectMap
 --
-chainData :: Monad m => Map Text Object -> m ChainData
+chainData :: MonadFail m => Map Text Object -> m ChainData
 chainData mp = do gpc <- atP mp "groupsPerChain" asIntList
                   cil <- codec5 . parseBinary <$> atP   mp "chainIdList"   asBinary
                   cnl <- codec5 . parseBinary <$> atPMD mp "chainNameList" asBinary empty
@@ -34,7 +34,7 @@ chainData mp = do gpc <- atP mp "groupsPerChain" asIntList
 
 -- | Parses atom data from ObjectMap
 --
-atomData :: Monad m => Map Text Object -> m AtomData
+atomData :: MonadFail m => Map Text Object -> m AtomData
 atomData mp = do ail' <-       codec8 . parseBinary <$> atPMD mp "atomIdList"    asBinary empty
                  all' <- c2s . codec6 . parseBinary <$> atPMD mp "altLocList"    asBinary empty
                  bfl' <-      codec10 . parseBinary <$> atPMD mp "bFactorList"   asBinary empty
@@ -46,7 +46,7 @@ atomData mp = do ail' <-       codec8 . parseBinary <$> atPMD mp "atomIdList"   
 
 -- | Parses group data from ObjectMap
 --
-groupData :: Monad m => Map Text Object -> m GroupData
+groupData :: MonadFail m => Map Text Object -> m GroupData
 groupData mp = do gl' <-                                        atP   mp "groupList"          asObjectList >>= traverse (transformObjectMap >=> groupType)
                   gtl' <-              codec4 . parseBinary <$> atP   mp "groupTypeList"     asBinary
                   gil' <-              codec8 . parseBinary <$> atP   mp "groupIdList"       asBinary
@@ -57,7 +57,7 @@ groupData mp = do gl' <-                                        atP   mp "groupL
 
 -- | Parses group type from ObjectMap
 --
-groupType :: Monad m => Map Text Object -> m GroupType
+groupType :: MonadFail m => Map Text Object -> m GroupType
 groupType mp = do fcl' <-          atP mp "formalChargeList" asIntList
                   anl' <-          atP mp "atomNameList"     asStrList
                   el'  <-          atP mp "elementList"      asStrList
@@ -70,7 +70,7 @@ groupType mp = do fcl' <-          atP mp "formalChargeList" asIntList
 
 -- | Parses structure data from ObjectMap
 --
-structureData :: Monad m => Map Text Object -> m StructureData
+structureData :: MonadFail m => Map Text Object -> m StructureData
 structureData mp = do ttl' <-                                  atPMD mp "title"               asStr        ""
                       sid' <-                                  atPMD mp "structureId"         asStr        ""
                       dd'  <-                                  atPMD mp "depositionDate"      asStr        ""
@@ -98,21 +98,21 @@ structureData mp = do ttl' <-                                  atPMD mp "title" 
 
 -- | Parses bio assembly data from ObjectMap
 --
-bioAssembly :: Monad m => Map Text Object -> m Assembly
+bioAssembly :: MonadFail m => Map Text Object -> m Assembly
 bioAssembly mp = do nme' <- atP mp "name"          asStr
                     tlt' <- atP mp "transformList" asObjectList >>= traverse (transformObjectMap >=> transform)
                     pure $ Assembly (l2v tlt') nme'
 
 -- | Parses transform data from ObjectMap
 --
-transform :: Monad m => Map Text Object -> m Transform
+transform :: MonadFail m => Map Text Object -> m Transform
 transform mp = do cil' <- atP mp "chainIndexList" asIntList
                   mtx' <- atP mp "matrix"         asFloatList >>= m44Dec
                   pure $ Transform (l2v cil') mtx'
 
 -- | Parses entity data from ObjectMap
 --
-entity :: Monad m => Map Text Object -> m Entity
+entity :: MonadFail m => Map Text Object -> m Entity
 entity mp = do cil' <- atP mp "chainIndexList" asIntList
                dsc' <- atP mp "description"    asStr
                tpe' <- atP mp "type"           asStr

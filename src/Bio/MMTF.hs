@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Bio.MMTF
   ( module Bio.MMTF.Type
@@ -22,14 +24,18 @@ import           Data.Text              (Text)
 import           Data.Vector            (Vector, empty, toList, (!))
 import           Linear.V3              (V3 (..))
 import           Network.HTTP.Simple    (getResponseBody, httpLBS)
+#if !MIN_VERSION_base(4,13,0)
+import           Control.Monad.Fail     (MonadFail(..))
+import           Prelude                hiding (fail)
+#endif
 
 -- | Decodes a 'ByteString' to 'MMTF'
 --
-decode :: Monad m => ByteString -> m MMTF
+decode :: MonadFail m => ByteString -> m MMTF
 decode = unpack
 
 -- | Fetches MMTF structure from RSCB
-fetch :: MonadIO m => String -> m MMTF
+fetch :: (MonadFail m, MonadIO m) => String -> m MMTF
 fetch pdbid = do let url = fromString $ "https://mmtf.rcsb.org/v1.0/full/" <> pdbid
                  resp <- httpLBS url
                  decode (getResponseBody resp)
