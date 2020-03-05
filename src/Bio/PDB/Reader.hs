@@ -61,13 +61,13 @@ preprocess text = do
   then Right standardizedText
   else Left "There are trash strings between model strings"
 
-fromFilePDB :: MonadIO m => FilePath -> m (Either Text ([PDBWarnings], Either Text PDB))
-fromFilePDB f = do
-  content <- liftIO (TIO.readFile f)
-  let preprocessed = preprocess content
-  pure $ fmap (first pack . parseOnly pdbP) <$> preprocessed
 
-fromTextPDB :: Text -> Either Text ([PDBWarnings], Either Text PDB)
-fromTextPDB text = fmap (first pack . parseOnly pdbP) <$> preprocessed
-  where
-    preprocessed = preprocess text
+fromFilePDB :: MonadIO m => FilePath -> m (Either Text ([PDBWarnings], PDB))
+fromFilePDB = liftIO . fmap fromTextPDB . TIO.readFile
+
+fromTextPDB :: Text -> Either Text ([PDBWarnings], PDB)
+fromTextPDB text = do
+  (warnings, preprocessedText) <- preprocess text
+  pdb <- first pack $ parseOnly pdbP preprocessedText
+
+  pure (warnings, pdb)

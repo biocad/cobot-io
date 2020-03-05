@@ -4,10 +4,11 @@ module PDBSpec where
 
 import           Bio.PDB.Reader  (fromTextPDB)
 import           Bio.PDB.Type    (Atom (..), FieldType (..), PDB (..))
+import           Data.Either     (fromRight)
 import qualified Data.Map.Strict (empty, fromList, singleton)
 import           Data.Text       as T (Text, intercalate, length, lines, pack,
                                        replicate, take)
-import qualified Data.Vector     as V (empty, fromList, singleton)
+import qualified Data.Vector     as V (empty, fromList, toList, singleton, concat)
 import           Test.Hspec
 
 
@@ -38,21 +39,21 @@ oneModelSpecP = describe "One model." $
                                          "CONECT conect conect\n" ++
                                          "MASTER 1 2 3 4 5 6 7 8\n" ++
                                          "END"
-                                       )
-        mt `shouldBe` Right ([], Right oneModelPDB)
+                                        )
+        mt `shouldBe` Right ([], oneModelPDB)
 
 oneModelPDB :: PDB
 oneModelPDB =  PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME"
                    , remarks = Data.Map.Strict.singleton (Just 1) (V.singleton "REFERENCE 1")
-                   , models = V.singleton $ V.fromList [V.fromList [Atom {atomSerial = 2032, atomName = " OXT", atomAltLoc = ' ', atomResName = "CYS", atomChainID = 'A', atomResSeq = 214, atomICode = ' ',
+                   , models = V.singleton $ V.fromList [V.fromList [Atom {atomSerial = 2032, atomName = " OXT", atomAltLoc = ' ', atomResName = "CYS", atomChainID = 'A', atomResSeq = "214", atomICode = ' ',
                                                                            atomX = -4.546, atomY = -29.673, atomZ = 26.796, atomOccupancy = 1.0, atomTempFactor = 143.51, atomElement = " O",
                                                                            atomCharge = "  "},
                                                                            Atom {atomSerial = 2033, atomName = " H  ", atomAltLoc = ' ', atomResName = "CYS", atomChainID = 'A',
-                                                                           atomResSeq = 214, atomICode = ' ', atomX = -6.124, atomY = -27.225, atomZ = 26.558, atomOccupancy = 1.0, atomTempFactor = 15.0,
+                                                                           atomResSeq = "214", atomICode = ' ', atomX = -6.124, atomY = -27.225, atomZ = 26.558, atomOccupancy = 1.0, atomTempFactor = 15.0,
                                                                            atomElement = " H", atomCharge = "  "}],
-                                                                           V.fromList [Atom {atomSerial = 2035, atomName = " N  ", atomAltLoc = ' ', atomResName = "GLU", atomChainID = 'B', atomResSeq = 1, atomICode = ' ',
+                                                                           V.fromList [Atom {atomSerial = 2035, atomName = " N  ", atomAltLoc = ' ', atomResName = "GLU", atomChainID = 'B', atomResSeq = "1", atomICode = ' ',
                                                                            atomX = 18.637, atomY = -61.583, atomZ = 66.852, atomOccupancy = 1.0, atomTempFactor = 118.48, atomElement = " N", atomCharge = "  "},
-                                                                           Atom {atomSerial = 2036, atomName = " CA ", atomAltLoc = ' ', atomResName = "GLU", atomChainID = 'B', atomResSeq = 1, atomICode = ' ',
+                                                                           Atom {atomSerial = 2036, atomName = " CA ", atomAltLoc = ' ', atomResName = "GLU", atomChainID = 'B', atomResSeq = "1", atomICode = ' ',
                                                                            atomX = 19.722, atomY = -62.606, atomZ = 66.868, atomOccupancy = 1.0, atomTempFactor = 19.77, atomElement = " C", atomCharge = "  "}]
                                                                         ]
                   , otherFields = Data.Map.Strict.fromList [(HEADER, V.fromList [" header"]),(COMPND,V.fromList[" compnd"]),(SOURCE,V.fromList[" source"]),(KEYWDS,V.fromList[" keywds"]),(AUTHOR,V.fromList["  Masha"]),(REVDAT,V.fromList[" revdat"]),(SEQRES,V.fromList [" seqres"]),
@@ -96,27 +97,27 @@ manyModelsSpecP = describe "Some models." $
                                         "REVDAT revdat\n" ++
                                         "MASTER 1 2 3 4 5 6 7 8\n"
                                       )
-        mt `shouldBe` Right ([], Right manyModelsPDB)
+        mt `shouldBe` Right ([], manyModelsPDB)
 
 manyModelsPDB :: PDB
 manyModelsPDB = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME"
                     , remarks = Data.Map.Strict.fromList [(Just 1, V.singleton "REFERENCE 1"), (Just 2, V.singleton "Reference 2_1/1")]
                     , models = V.fromList [V.fromList [V.fromList [Atom {atomSerial = 2033, atomName = " H  ", atomAltLoc = ' ', atomResName = "CYS",
-                                                                                                  atomChainID = 'A', atomResSeq = 214, atomICode = ' ', atomX = -6.124, atomY = -27.225,
+                                                                                                  atomChainID = 'A', atomResSeq = "214", atomICode = ' ', atomX = -6.124, atomY = -27.225,
                                                                                                   atomZ = 26.558, atomOccupancy = 1.0, atomTempFactor = 15.0, atomElement = " H", atomCharge = "  "}]
                                                                           ],
                                                     V.fromList [V.fromList [Atom {atomSerial = 2035, atomName = " N  ", atomAltLoc = ' ', atomResName = "GLU",
-                                                                                                 atomChainID = 'B', atomResSeq = 1, atomICode = ' ', atomX = 18.637, atomY = -691.583,
+                                                                                                 atomChainID = 'B', atomResSeq = "1", atomICode = ' ', atomX = 18.637, atomY = -691.583,
                                                                                                  atomZ = 66.852, atomOccupancy = 1.0, atomTempFactor = 118.48, atomElement = " N", atomCharge = "  "}],
                                                                           V.fromList [Atom {atomSerial = 12531, atomName = "HH12", atomAltLoc = ' ', atomResName = "ARG",
-                                                                                                 atomChainID = 'D', atomResSeq = 474, atomICode = ' ', atomX = 45.558, atomY = -39.551, atomZ = -49.936,
+                                                                                                 atomChainID = 'D', atomResSeq = "474", atomICode = ' ', atomX = 45.558, atomY = -39.551, atomZ = -49.936,
                                                                                                  atomOccupancy = 1.0, atomTempFactor = 15.0, atomElement = " H", atomCharge = "  "}]
                                                                          ],
                                                     V.fromList [V.fromList [Atom {atomSerial = 12532, atomName = "HH21", atomAltLoc = ' ', atomResName = "ARG",
-                                                                                                 atomChainID = 'D', atomResSeq = 474, atomICode = ' ', atomX = 47.457, atomY = -38.007, atomZ = -47.445,
+                                                                                                 atomChainID = 'D', atomResSeq = "474", atomICode = ' ', atomX = 47.457, atomY = -38.007, atomZ = -47.445,
                                                                                                  atomOccupancy = 1.0, atomTempFactor = 15.0, atomElement = " H", atomCharge = "  "},
                                                                                                 Atom {atomSerial = 12533, atomName = "HH22", atomAltLoc = ' ', atomResName = "ARG",
-                                                                                                 atomChainID = 'D', atomResSeq = 474, atomICode = ' ', atomX = 47.405, atomY = -39.268, atomZ = -48.629,
+                                                                                                 atomChainID = 'D', atomResSeq = "474", atomICode = ' ', atomX = 47.405, atomY = -39.268, atomZ = -48.629,
                                                                                                  atomOccupancy = 1.0, atomTempFactor = 15.0, atomElement = " H", atomCharge = "  "}]
                                                                           ]
                                                       ]
@@ -142,7 +143,7 @@ noModelsSpecP = describe "No models." $
                                         "SCALE2 sclaen n=2\n" ++
                                         "MASTER 1 2 3 4 5 6 7 8\n"
                                       )
-        mt `shouldBe` Right ([], Right noModelsPDB)
+        mt `shouldBe` Right ([], noModelsPDB)
 
 noModelsPDB :: PDB
 noModelsPDB = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME"
@@ -203,12 +204,12 @@ allFieldsModelSpecP = describe "PDB with all strings." $
                                         "MASTER 1 2 3 4 5 6 7 8\n" ++
                                         "END"
                                       )
-        mt `shouldBe` Right ([], Right pdbWithAllFields)
+        mt `shouldBe` Right ([], pdbWithAllFields)
 
 pdbWithAllFields :: PDB
 pdbWithAllFields = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME"
                        , models = V.fromList [V.fromList [V.singleton Atom {atomSerial = 12532, atomName = "HH21", atomAltLoc = ' ', atomResName = "ARG",
-                                     atomChainID = 'D', atomResSeq = 474, atomICode = ' ', atomX = 47.457, atomY = -38.007, atomZ = -47.445,
+                                     atomChainID = 'D', atomResSeq = "474", atomICode = ' ', atomX = 47.457, atomY = -38.007, atomZ = -47.445,
                                      atomOccupancy = 1.0, atomTempFactor = 15.0, atomElement = " H", atomCharge = "  "}]]
                        , remarks = Data.Map.Strict.singleton (Just 1) (V.singleton "REFERENCE 1")
                        , otherFields = Data.Map.Strict.fromList [(HEADER, V.fromList [" header"]),(OBSLTE, V.fromList [" obslte"]), (SPLIT, V.fromList ["split"]), (CAVEAT, V.fromList [" caveat"]),
@@ -228,7 +229,7 @@ emptySpecP :: Spec
 emptySpecP = describe "empty PDB." $
         it "correctly parses empty pdb" $ do
         let mt = fromTextPDB ""
-        mt `shouldBe` Right ([], Right emptyPdb)
+        mt `shouldBe` Right ([], emptyPdb)
 
 emptyPdb :: PDB
 emptyPdb = PDB { title = ""
@@ -276,21 +277,21 @@ pdbWithoutTrash :: PDB
 pdbWithoutTrash = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME"
                       , remarks = Data.Map.Strict.fromList [(Just 1, V.singleton "REFERENCE 1"), (Just 2, V.singleton "Reference 2_1/1")]
                       , models = V.fromList [V.fromList [V.fromList [Atom {atomSerial = 2033, atomName = " H  ", atomAltLoc = ' ', atomResName = "CYS",
-                                                                                                    atomChainID = 'A', atomResSeq = 214, atomICode = ' ', atomX = -6.124, atomY = -27.225,
+                                                                                                    atomChainID = 'A', atomResSeq = "214", atomICode = ' ', atomX = -6.124, atomY = -27.225,
                                                                                                     atomZ = 26.558, atomOccupancy = 1.0, atomTempFactor = 15.0, atomElement = " H", atomCharge = "  "}]
                                                                             ],
                                                       V.fromList [V.fromList [Atom {atomSerial = 2035, atomName = " N  ", atomAltLoc = ' ', atomResName = "GLU",
-                                                                                                   atomChainID = 'B', atomResSeq = 1, atomICode = ' ', atomX = 18.637, atomY = -691.583,
+                                                                                                   atomChainID = 'B', atomResSeq = "1", atomICode = ' ', atomX = 18.637, atomY = -691.583,
                                                                                                    atomZ = 66.852, atomOccupancy = 1.0, atomTempFactor = 118.48, atomElement = " N", atomCharge = "  "}],
                                                                             V.fromList [Atom {atomSerial = 12531, atomName = "HH12", atomAltLoc = ' ', atomResName = "ARG",
-                                                                                                   atomChainID = 'D', atomResSeq = 474, atomICode = ' ', atomX = 45.558, atomY = -39.551, atomZ = -49.936,
+                                                                                                   atomChainID = 'D', atomResSeq = "474", atomICode = ' ', atomX = 45.558, atomY = -39.551, atomZ = -49.936,
                                                                                                    atomOccupancy = 1.0, atomTempFactor = 15.0, atomElement = " H", atomCharge = "  "}]
                                                                            ],
                                                       V.fromList [V.fromList [Atom {atomSerial = 12532, atomName = "HH21", atomAltLoc = ' ', atomResName = "ARG",
-                                                                                                   atomChainID = 'D', atomResSeq = 474, atomICode = ' ', atomX = 47.457, atomY = -38.007, atomZ = -47.445,
+                                                                                                   atomChainID = 'D', atomResSeq = "474", atomICode = ' ', atomX = 47.457, atomY = -38.007, atomZ = -47.445,
                                                                                                    atomOccupancy = 1.0, atomTempFactor = 15.0, atomElement = " H", atomCharge = "  "},
                                                                                                   Atom {atomSerial = 12533, atomName = "HH22", atomAltLoc = ' ', atomResName = "ARG",
-                                                                                                   atomChainID = 'D', atomResSeq = 474, atomICode = ' ', atomX = 47.405, atomY = -39.268, atomZ = -48.629,
+                                                                                                   atomChainID = 'D', atomResSeq = "474", atomICode = ' ', atomX = 47.405, atomY = -39.268, atomZ = -48.629,
                                                                                                    atomOccupancy = 1.0, atomTempFactor = 15.0, atomElement = " H", atomCharge = "  "}]
                                                                             ]
                                                         ]
@@ -310,20 +311,20 @@ onlyOneModelSpecP = describe "Only One model." $
                                          "HETATM12538  C4  NAG B 475       6.943 -19.507  -9.597  1.00 25.87           C  \n" ++
                                          "ATOM   2036  CA  GLU B   1      19.722 -62.606  66.868  1.00 19.77           C  \n"
                                         )
-        mt `shouldBe` Right ([], Right onlyOneModelPDB)
+        mt `shouldBe` Right ([], onlyOneModelPDB)
 
 onlyOneModelPDB :: PDB
 onlyOneModelPDB = PDB { title = ""
                       , remarks = Data.Map.Strict.empty
-                      , models = V.singleton $ V.fromList [V.fromList [Atom {atomSerial = 2032, atomName = " OXT", atomAltLoc = ' ', atomResName = "CYS", atomChainID = 'A', atomResSeq = 214, atomICode = ' ',
+                      , models = V.singleton $ V.fromList [V.fromList [Atom {atomSerial = 2032, atomName = " OXT", atomAltLoc = ' ', atomResName = "CYS", atomChainID = 'A', atomResSeq = "214", atomICode = ' ',
                                                                               atomX = -4.546, atomY = -29.673, atomZ = 26.796, atomOccupancy = 1.0, atomTempFactor = 143.51, atomElement = " O",
                                                                               atomCharge = "  "},
                                                                               Atom {atomSerial = 2033, atomName = " H  ", atomAltLoc = ' ', atomResName = "CYS", atomChainID = 'A',
-                                                                              atomResSeq = 214, atomICode = ' ', atomX = -6.124, atomY = -27.225, atomZ = 26.558, atomOccupancy = 1.0, atomTempFactor = 15.0,
+                                                                              atomResSeq = "214", atomICode = ' ', atomX = -6.124, atomY = -27.225, atomZ = 26.558, atomOccupancy = 1.0, atomTempFactor = 15.0,
                                                                               atomElement = " H", atomCharge = "  "}],
-                                                                              V.fromList [Atom {atomSerial = 2035, atomName = " N  ", atomAltLoc = ' ', atomResName = "GLU", atomChainID = 'B', atomResSeq = 1, atomICode = ' ',
+                                                                              V.fromList [Atom {atomSerial = 2035, atomName = " N  ", atomAltLoc = ' ', atomResName = "GLU", atomChainID = 'B', atomResSeq = "1", atomICode = ' ',
                                                                               atomX = 18.637, atomY = -61.583, atomZ = 66.852, atomOccupancy = 1.0, atomTempFactor = 118.48, atomElement = " N", atomCharge = "  "},
-                                                                              Atom {atomSerial = 2036, atomName = " CA ", atomAltLoc = ' ', atomResName = "GLU", atomChainID = 'B', atomResSeq = 1, atomICode = ' ',
+                                                                              Atom {atomSerial = 2036, atomName = " CA ", atomAltLoc = ' ', atomResName = "GLU", atomChainID = 'B', atomResSeq = "1", atomICode = ' ',
                                                                               atomX = 19.722, atomY = -62.606, atomZ = 66.868, atomOccupancy = 1.0, atomTempFactor = 19.77, atomElement = " C", atomCharge = "  "}]
                                                                               ]
                       , otherFields = Data.Map.Strict.empty
@@ -350,7 +351,7 @@ repeatedStringsSpecP = describe "PDB with repeated other field strings." $
                                         "SOURCE source3\n" ++
                                         "END"
                                       )
-        mt `shouldBe` Right ([], Right repeatedStringsPDB)
+        mt `shouldBe` Right ([], repeatedStringsPDB)
 
 repeatedStringsPDB :: PDB
 repeatedStringsPDB = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME"
@@ -376,7 +377,7 @@ emptyRemarkSpecP = describe "PDB with repeated remark strings without code." $
                                         "REMARK     empty remark 2/2\n" ++
                                         "SCALE2 sclaen n=2\n"
                                       )
-        mt `shouldBe` Right ([], Right pdbWithEmptyRemarks)
+        mt `shouldBe` Right ([], pdbWithEmptyRemarks)
 
 pdbWithEmptyRemarks :: PDB
 pdbWithEmptyRemarks = PDB { title = ""
@@ -400,7 +401,7 @@ emptyModelSpecP = describe "PDB with one empty model." $
                                         "MASTER 1 2 3 4 5 6 7 8\n" ++
                                         "trash strings 5\n"
                                       )
-        mt `shouldBe` Right ([], Right pdbEmptyModel)
+        mt `shouldBe` Right ([], pdbEmptyModel)
 
 
 pdbEmptyModel :: PDB

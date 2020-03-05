@@ -81,7 +81,7 @@ data Atom = Atom { atomSerial     :: Int     -- ^ Atom serial number.
                  , atomAltLoc     :: Char    -- ^ Alternate location indicator.
                  , atomResName    :: Text    -- ^ Residue name.
                  , atomChainID    :: Char    -- ^ Chain identifier.
-                 , atomResSeq     :: Int     -- ^ Residue sequence number.
+                 , atomResSeq     :: Text    -- ^ Residue sequence number.
                  , atomICode      :: Char    -- ^ Code for insertion of residues.
                  , atomX          :: Float   -- ^ Orthogonal coordinates for X in Angstroms.
                  , atomY          :: Float   -- ^ Orthogonal coordinates for Y in Angstroms.

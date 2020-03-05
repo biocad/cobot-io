@@ -70,7 +70,8 @@ instance StructureModels MMTF where
                              in  (end, mkAtom <$> zip4 cl nl el ics)
 
         mkResidue :: (GroupType, SecondaryStructure, [Atom]) -> Residue
-        mkResidue (gt, ss, atoms) = Residue (gtGroupName gt) (l2v atoms)
+        -- TODO: support residue number here
+        mkResidue (gt, ss, atoms) = Residue (gtGroupName gt) "" (l2v atoms)
                                             (mkBonds (gtBondAtomList gt) (gtBondOrderList gt))
                                              ss (gtChemCompType gt)
 

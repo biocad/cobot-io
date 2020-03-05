@@ -117,18 +117,21 @@ instance StructureModels Mae where
                   groupedByResidues = toGroupsOn by group
                   residues          = V.fromList $ fmap groupToResidue groupedByResidues
 
-                  by :: Int -> (Int, Text)
-                  by i = (unsafeGetFromContents "i_m_residue_number" i, unsafeGetFromContents "s_m_pdb_residue_name" i)
+                  by :: Int -> (Int, Text, Text)
+                  by i = (unsafeGetFromContents "i_m_residue_number" i, getFromContents "" "s_m_insertion_code" i, unsafeGetFromContents "s_m_pdb_residue_name" i)
 
               defaultChainName :: Text
               defaultChainName = "A"
 
               groupToResidue :: [Int] -> Residue
               groupToResidue []            = error "Group that is result of List.groupBy can't be empty."
-              groupToResidue group@(h : _) = Residue name atoms (V.fromList localBonds) secondary chemCompType
+              groupToResidue group@(h : _) = Residue name residueNumber atoms (V.fromList localBonds) secondary chemCompType
                 where
-                  name  = stripQuotes $ unsafeGetFromContents "s_m_pdb_residue_name" h
-                  atoms = V.fromList $ fmap indexToAtom group
+                  name          = stripQuotes $ unsafeGetFromContents "s_m_pdb_residue_name" h
+                  number        = stripQuotes $ unsafeGetFromContents "i_m_residue_number" h
+                  insertionCode = stripQuotes $ getFromContents "" "s_m_insertion_code" h
+                  residueNumber = number <> insertionCode
+                  atoms         = V.fromList $ fmap indexToAtom group
 
                   localInds     = [0 .. length group - 1]
                   globalToLocal = M.fromList $ zip group localInds

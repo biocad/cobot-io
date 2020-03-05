@@ -9,10 +9,11 @@ import           Bio.Structure
 import           Control.Arrow ((&&&))
 import           Data.Coerce   (coerce)
 import           Data.Foldable (Foldable (..))
-import           Data.Text     as T (Text, singleton, unpack)
+import           Data.Text     as T (Text, singleton, unpack, pack)
 import qualified Data.Vector   as V
 import           Linear.V3     (V3 (..))
 
+-- TODO: bonds recovering must have been done here
 instance StructureModels PDB.PDB where
     modelsOf PDB.PDB {..} = fmap mkModel models
       where
@@ -45,6 +46,7 @@ instance StructureModels PDB.PDB where
         mkResidue :: [PDB.Atom] -> Residue
         mkResidue []    = error "Cound not make residue from empty list"
         mkResidue atoms = Residue (PDB.atomResName . head $ atoms)
+                                  (pack . show . PDB.atomResSeq . head $ atoms)
                                   (V.fromList $ mkAtom <$> atoms)
                                   V.empty   -- now we do not read bonds
                                   Undefined -- now we do not read secondary structure
