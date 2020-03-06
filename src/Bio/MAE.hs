@@ -31,6 +31,7 @@ import           Data.Maybe             (catMaybes, fromJust)
 import           Data.Text              (Text)
 import qualified Data.Text              as T (head, init, last, null, pack,
                                               strip, tail)
+import           Data.Text.Read         (decimal)
 import qualified Data.Text.IO           as TIO (readFile)
 import           Data.Vector            (Vector)
 import qualified Data.Vector            as V (fromList)
@@ -125,12 +126,11 @@ instance StructureModels Mae where
 
               groupToResidue :: [Int] -> Residue
               groupToResidue []            = error "Group that is result of List.groupBy can't be empty."
-              groupToResidue group@(h : _) = Residue name residueNumber atoms (V.fromList localBonds) secondary chemCompType
+              groupToResidue group@(h : _) = Residue name residueNumber insertionCode atoms (V.fromList localBonds) secondary chemCompType
                 where
                   name          = stripQuotes $ unsafeGetFromContents "s_m_pdb_residue_name" h
-                  number        = stripQuotes $ unsafeGetFromContents "i_m_residue_number" h
-                  insertionCode = stripQuotes $ getFromContents "" "s_m_insertion_code" h
-                  residueNumber = number <> insertionCode
+                  residueNumber = unsafeGetFromContents "i_m_residue_number" h
+                  insertionCode = T.head . stripQuotes $ getFromContents " " "s_m_insertion_code" h
                   atoms         = V.fromList $ fmap indexToAtom group
 
                   localInds     = [0 .. length group - 1]

@@ -17,7 +17,7 @@ import qualified Data.List            as L (groupBy)
 import           Data.Map.Strict      (Map, fromListWithKey)
 import           Data.Maybe           (catMaybes)
 import           Data.Monoid          ((<>))
-import           Data.Text            as T (Text, concat, pack, stripEnd, strip)
+import           Data.Text            as T (Text, concat, pack, stripEnd)
 import qualified Data.Vector          as V (Vector, concat, fromList, singleton)
 import           GHC.Generics         ()
 import           Text.Read            (readMaybe)
@@ -70,7 +70,7 @@ atomP = let atom = Atom <$>
                     <*> notEndLineChar                                       -- (17)      atomAltLoc
                     <*> (T.pack <$> count 3 notEndLineChar) <* space         -- (18 - 20) atomResName
                     <*> notEndLineChar                                       -- (22)      atomChainID
-                    <*> ((T.strip . T.pack) <$> count 4 notEndLineChar)                    -- (23 - 26) atomResSeq
+                    <*> (read <$> count 4 notEndLineChar)                    -- (23 - 26) atomResSeq
                     <*> notEndLineChar <* count 3 space                      -- (27)      atomICode
                     <*> (read <$> count 8 notEndLineChar)                    -- (31 - 38) atomX
                     <*> (read <$> count 8 notEndLineChar)                    -- (39 - 46) atomY

@@ -45,12 +45,15 @@ instance StructureModels PDB.PDB where
 
         mkResidue :: [PDB.Atom] -> Residue
         mkResidue []    = error "Cound not make residue from empty list"
-        mkResidue atoms = Residue (PDB.atomResName . head $ atoms)
-                                  (pack . show . PDB.atomResSeq . head $ atoms)
+        mkResidue atoms = Residue (PDB.atomResName firstResidueAtom)
+                                  (PDB.atomResSeq firstResidueAtom)
+                                  (PDB.atomICode firstResidueAtom)
                                   (V.fromList $ mkAtom <$> atoms)
                                   V.empty   -- now we do not read bonds
                                   Undefined -- now we do not read secondary structure
                                   ""        -- chemical component type?!
+          where
+            firstResidueAtom = head atoms
 
 
         mkAtom :: PDB.Atom -> Atom

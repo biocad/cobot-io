@@ -71,7 +71,7 @@ instance StructureModels MMTF where
 
         mkResidue :: (GroupType, SecondaryStructure, [Atom]) -> Residue
         -- TODO: support residue number here
-        mkResidue (gt, ss, atoms) = Residue (gtGroupName gt) "" (l2v atoms)
+        mkResidue (gt, ss, atoms) = Residue (gtGroupName gt) 1 ' ' (l2v atoms)
                                             (mkBonds (gtBondAtomList gt) (gtBondOrderList gt))
                                              ss (gtChemCompType gt)
 

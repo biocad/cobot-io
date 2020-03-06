@@ -62,12 +62,13 @@ instance NFData a => NFData (Bond a)
 
 -- | A set of atoms, organized to a residues
 --
-data Residue = Residue { resName         :: Text                  -- ^ residue name
-                       , resNumber       :: Text                  -- ^ residue number represented by Text to support possible letters (insertion code)
-                       , resAtoms        :: Vector Atom           -- ^ a set of residue atoms
-                       , resBonds        :: Vector (Bond LocalID) -- ^ a set of residue bonds with local identifiers (position in 'resAtoms')
-                       , resSecondary    :: SecondaryStructure    -- ^ residue secondary structure
-                       , resChemCompType :: Text                  -- ^ chemical component type
+data Residue = Residue { resName          :: Text                  -- ^ residue name
+                       , resNumber        :: Int                   -- ^ residue number
+                       , resInsertionCode :: Char                  -- ^ residue insertion code
+                       , resAtoms         :: Vector Atom           -- ^ a set of residue atoms
+                       , resBonds         :: Vector (Bond LocalID) -- ^ a set of residue bonds with local identifiers (position in 'resAtoms')
+                       , resSecondary     :: SecondaryStructure    -- ^ residue secondary structure
+                       , resChemCompType  :: Text                  -- ^ chemical component type
                        }
   deriving (Show, Eq, Generic, NFData)
 
