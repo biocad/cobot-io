@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.2.8] - 2020-03-12
+### Added
+- `instance Traversable (Sequence mk w)`.
+
 ## [0.1.2.7] - 2020-02-11
 ### Changed
 - Support GHC-8.8.
