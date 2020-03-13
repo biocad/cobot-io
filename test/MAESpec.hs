@@ -20,14 +20,26 @@ maeSpec :: Spec
 maeSpec = describe "Mae spec." $ do
     Model{..} <- runIO $ V.toList . modelsOf <$> fromFile "test/MAE/small.mae" >>= \[x] -> pure x
 
+    let firstChainResidues = (chainResidues $ modelChains V.! 0)
+    let secondChainResidues = (chainResidues $ modelChains V.! 1)
+
     it "two chains" $ length modelChains `shouldBe` 2
-    it "residues" $ do
-        fmap resName (chainResidues $ modelChains V.! 0) `shouldBe` V.fromList ["ACE", "ASP", "ILE", "LYS"]
-        fmap resName (chainResidues $ modelChains V.! 1) `shouldBe` V.fromList ["GLU", "LEU", "VAL", "ARG", "PRO", "GLY", "ALA", "LEU", "VAL"]
+    
+    it "residue numbers" $ do
+        fmap resName firstChainResidues `shouldBe` V.fromList ["ACE", "ASP", "ILE", "LYS"]
+        fmap resName secondChainResidues `shouldBe` V.fromList ["GLU", "LEU", "VAL", "ARG", "PRO", "GLY", "ALA", "LEU", "VAL"]
+    
+    it "residue names" $ do
+        fmap resNumber firstChainResidues `shouldBe` V.fromList [0, 1, 2, 3]
+        fmap resNumber secondChainResidues `shouldBe` V.fromList [10, 11, 12, 13, 13, 15, 16, 17, 18] -- 13 is doubled because the second 13 has 'A' insertion code
+
+    it "residue insertion codes" $ do
+        fmap resInsertionCode firstChainResidues `shouldBe` V.fromList [' ', ' ', ' ', ' ']
+        fmap resInsertionCode secondChainResidues `shouldBe` V.fromList [' ', ' ', ' ', ' ', 'A', ' ', ' ', ' ', ' ']
 
     it "atoms count" $ do
-        sum (fmap (length . resAtoms) $ chainResidues $ modelChains V.! 0) `shouldBe` 62
-        sum (fmap (length . resAtoms) $ chainResidues $ modelChains V.! 1) `shouldBe` 140
+        sum (fmap (length . resAtoms) firstChainResidues) `shouldBe` 62
+        sum (fmap (length . resAtoms) secondChainResidues) `shouldBe` 140
 
     let allBonds = [ (2, 15, 1), (31, 44, 1), (15, 60, 1), (52, 27, 1), (57, 30, 1), (56, 8, 1), (38, 9, 1), (16, 36, 1), (31, 35, 1), (42, 22, 1), (38, 10, 1), (46, 40, 1), (36, 8, 1)
                    , (46, 7, 1), (35, 13, 1), (60, 31, 1), (40, 32, 1), (46, 45, 1), (29, 1, 1), (9, 53, 1), (22, 33, 1), (41, 18, 1), (45, 31, 1), (13, 53, 1), (40, 19, 1), (55, 20, 1)
@@ -50,8 +62,8 @@ maeSpec = describe "Mae spec." $ do
     it "global bonds" $ do
         modelBonds `shouldBe` toBond GlobalID <$> V.fromList allBonds
 
-    let residue1 = (chainResidues $ modelChains V.! 0) V.! 3
-    let residue2 = (chainResidues $ modelChains V.! 1) V.! 0
+    let residue1 = firstChainResidues V.! 3
+    let residue2 = secondChainResidues V.! 0
 
     it "atoms in residues" $ do
         let atoms1 = resAtoms residue1

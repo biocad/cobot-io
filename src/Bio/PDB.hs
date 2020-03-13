@@ -14,6 +14,7 @@ import qualified Data.Vector   as V
 import           Linear.V3     (V3 (..))
 
 -- TODO: bonds recovering must have been done here
+-- TODO: write tests for this conversion
 instance StructureModels PDB.PDB where
     modelsOf PDB.PDB {..} = fmap mkModel models
       where

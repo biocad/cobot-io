@@ -9,6 +9,7 @@ module Bio.MAE.Type
 import           Data.Map.Strict (Map)
 import           Data.Maybe      (fromJust)
 import           Data.Text       (Text)
+import qualified Data.Text       as T (head, strip, null, last, init, tail)
 
 data Mae = Mae { version :: Text
                , blocks  :: [Block]
@@ -58,3 +59,12 @@ instance FromMaeValue Text where
     fromMaeValue :: MaeValue -> Maybe Text
     fromMaeValue (StringMaeValue t) = Just t
     fromMaeValue _                  = Nothing
+
+instance FromMaeValue Char where
+    fromMaeValue :: MaeValue -> Maybe Char
+    fromMaeValue (StringMaeValue t) = Just $ if T.null t then ' ' else T.head $ stripQuotes t
+    fromMaeValue _                  = Nothing
+
+stripQuotes :: Text -> Text
+stripQuotes t | not (T.null t) && T.head t == T.last t, T.last t == '\"' = T.init $ T.tail t
+              | otherwise                                                = t

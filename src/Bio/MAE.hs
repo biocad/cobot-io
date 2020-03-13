@@ -118,8 +118,8 @@ instance StructureModels Mae where
                   groupedByResidues = toGroupsOn by group
                   residues          = V.fromList $ fmap groupToResidue groupedByResidues
 
-                  by :: Int -> (Int, Text, Text)
-                  by i = (unsafeGetFromContents "i_m_residue_number" i, getFromContents "" "s_m_insertion_code" i, unsafeGetFromContents "s_m_pdb_residue_name" i)
+                  by :: Int -> (Int, Char, Text)
+                  by i = (unsafeGetFromContents "i_m_residue_number" i, unsafeGetFromContents "s_m_insertion_code" i, unsafeGetFromContents "s_m_pdb_residue_name" i)
 
               defaultChainName :: Text
               defaultChainName = "A"
@@ -130,7 +130,7 @@ instance StructureModels Mae where
                 where
                   name          = stripQuotes $ unsafeGetFromContents "s_m_pdb_residue_name" h
                   residueNumber = unsafeGetFromContents "i_m_residue_number" h
-                  insertionCode = T.head . stripQuotes $ getFromContents " " "s_m_insertion_code" h
+                  insertionCode = unsafeGetFromContents "s_m_insertion_code" h
                   atoms         = V.fromList $ fmap indexToAtom group
 
                   localInds     = [0 .. length group - 1]
