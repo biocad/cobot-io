@@ -26,6 +26,7 @@ mmtfParserSpec :: Spec
 mmtfParserSpec =
   describe "MMTF parser" $
   it "should parse 1FSD" $ do
+    -- TODO: avoid fetching via rest api, read from resources instead
     m <- fetch "1FSD"
     (structureId . structure) m `shouldBe` "1FSD"
     (numModels . structure) m `shouldBe` 41
