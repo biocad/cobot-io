@@ -11,7 +11,7 @@ import           SequenceSpec
 import           System.IO
 import           Test.Hspec
 import           UniprotSpec
-import           PDBSpec
+import           PDBParserSpec
 
 main :: IO ()
 main = do

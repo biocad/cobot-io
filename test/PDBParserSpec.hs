@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module PDBSpec where
+module PDBParserSpec where
 
 import           Bio.PDB.Reader  (fromTextPDB)
 import           Bio.PDB.Type    (Atom (..), FieldType (..), PDB (..))
