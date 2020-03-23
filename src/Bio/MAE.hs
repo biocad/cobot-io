@@ -113,7 +113,7 @@ instance StructureModels Mae where
                   residues          = V.fromList $ fmap groupToResidue groupedByResidues
 
                   by :: Int -> (Int, Text)
-                  by i = (unsafeGetFromContents "i_m_residue_number" i, unsafeGetFromContents "s_m_pdb_residue_name" i)
+                  by i = (unsafeGetFromContents "i_m_residue_number" i, unsafeGetFromContents "s_m_insertion_code" i)
 
               defaultChainName :: Text
               defaultChainName = "A"
