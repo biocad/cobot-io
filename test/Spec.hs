@@ -7,11 +7,12 @@ import           GBWriterSpec
 import           MAEParserSpec
 import           MAESpec
 import           MMTFSpec
+import           PDBSpec
 import           SequenceSpec
+import           StructureSpec
 import           System.IO
 import           Test.Hspec
 import           UniprotSpec
-import           PDBSpec
 
 main :: IO ()
 main = do
@@ -52,3 +53,5 @@ main = do
          repeatedStringsSpecP
          emptyRemarkSpecP
          emptyModelSpecP
+         -- Structure
+         structureSpec

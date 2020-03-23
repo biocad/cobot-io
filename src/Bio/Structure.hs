@@ -31,10 +31,10 @@ data SecondaryStructure = PiHelix       -- ^ pi helix
 instance NFData SecondaryStructure
 
 newtype GlobalID = GlobalID { getGlobalID :: Int }
-  deriving (Eq, Show, Generic, NFData)
+  deriving (Eq, Show, Ord, Generic, NFData)
 
 newtype LocalID  = LocalID { getLocalID :: Int }
-  deriving (Eq, Show, Generic, NFData)
+  deriving (Eq, Show, Ord, Generic, NFData)
 
 -- | Generic atom representation
 --
