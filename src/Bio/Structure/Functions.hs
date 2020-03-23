@@ -11,7 +11,7 @@ import qualified Data.Set        as S (fromList, notMember, unions)
 import           Data.Vector     (Vector)
 import qualified Data.Vector     as V (filter, fromList, length, toList, unzip)
 
--- | Takes predicate on 'Atoms' of 'Model' and returns new 'Model' containing only atoms
+-- | Takes predicate on 'Atom's of 'Model' and returns new 'Model' containing only atoms
 --   satisfying given predicate.
 --
 filterAtomsOfModel :: (Atom -> Bool) -> Model -> Model

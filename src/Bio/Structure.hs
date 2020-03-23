@@ -56,7 +56,15 @@ data Bond m = Bond { bondStart :: m    -- ^ index of first incident atom
                    , bondEnd   :: m    -- ^ index of second incident atom
                    , bondOrder :: Int  -- ^ the order of chemical bond
                    }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Functor, Generic)
+
+instance Ord (Bond LocalID) where
+    (Bond (LocalID x) (LocalID y) _) <= (Bond (LocalID x') (LocalID y') _) | x == x'   = y <= y'
+                                                                           | otherwise = x <= x'
+
+instance Ord (Bond GlobalID) where
+    (Bond (GlobalID x) (GlobalID y) _) <= (Bond (GlobalID x') (GlobalID y') _) | x == x'   = y <= y'
+                                                                               | otherwise = x <= x'
 
 instance NFData a => NFData (Bond a)
 
