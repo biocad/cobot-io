@@ -88,11 +88,3 @@ maeSpec = describe "Mae spec." $ do
 
     toSet :: Ord a => Vector a -> Set a
     toSet = S.fromList . V.toList
-
-instance Ord (Bond LocalID) where
-    (Bond (LocalID x) (LocalID y) _) <= (Bond (LocalID x') (LocalID y') _) | x == x'   = y <= y'
-                                                                           | otherwise = x <= x'
-
-instance Ord (Bond GlobalID) where
-    (Bond (GlobalID x) (GlobalID y) _) <= (Bond (GlobalID x') (GlobalID y') _) | x == x'   = y <= y'
-                                                                               | otherwise = x <= x'
