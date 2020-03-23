@@ -87,6 +87,9 @@ instance Foldable (Sequence mk w) where
 
   length = V.length . _sequ
 
+instance Traversable (Sequence mk w) where
+  traverse f s@Sequence{..} = fmap (\newSeq -> s { _sequ = newSeq }) $ traverse f _sequ
+
 -- | Exported constructor for 'Sequence'. Should be used ONLY in module Bio.Sequence.
 --
 _sequenceInner :: Vector a -> [(mk, Range)] -> Vector w -> Sequence mk w a

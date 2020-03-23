@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 module Bio.MMTF.Decode.Codec where
 
 import           Data.Binary          (Binary, decode)
@@ -8,6 +10,10 @@ import           Data.Int             (Int16, Int32, Int8)
 import           Data.List            (mapAccumL)
 import           Data.Text            (Text)
 import qualified Data.Text            as T (pack)
+
+#if !MIN_VERSION_base(4,13,0)
+import Bio.MMTF.Decode.MessagePack (MonadFail)
+#endif
 
 import           Bio.MMTF.Type
 import           Bio.Structure
@@ -161,11 +167,11 @@ ssDec n | n == 0    = PiHelix
         | n == 7    = Coil
         | otherwise = Undefined
 
-ucDec :: Monad m => [Float] -> m UnitCell
+ucDec :: MonadFail m => [Float] -> m UnitCell
 ucDec [a,b,c,d,e,f] = pure $ UnitCell a b c d e f
 ucDec _             = fail "Wrong list format for unit cell"
 
-m44Dec :: Monad m => [Float] -> m M44
+m44Dec :: MonadFail m => [Float] -> m M44
 m44Dec [ a11, a12, a13, a14
        , a21, a22, a23, a24
        , a31, a32, a33, a34

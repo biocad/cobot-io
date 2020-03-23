@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -34,10 +35,14 @@ import qualified Data.Text.IO           as TIO (readFile)
 import           Data.Vector            (Vector)
 import qualified Data.Vector            as V (fromList)
 import           Linear.V3              (V3 (..))
+#if !MIN_VERSION_base(4,13,0)
+import           Control.Monad.Fail     (MonadFail(..))
+import           Prelude                hiding (fail)
+#endif
 
 -- | Reads 'Mae' from givem file.
 --
-fromFile :: MonadIO m => FilePath -> m Mae
+fromFile :: (MonadFail m, MonadIO m) => FilePath -> m Mae
 fromFile f = liftIO (TIO.readFile f) >>= either fail pure . parseOnly maeP
 
 -- | Reads 'Mae' from 'Text'.
@@ -114,6 +119,9 @@ instance StructureModels Mae where
 
                   by :: Int -> (Int, Text)
                   by i = (unsafeGetFromContents "i_m_residue_number" i, unsafeGetFromContents "s_m_insertion_code" i)
+
+              defaultChainName :: Text
+              defaultChainName = "A"
 
               defaultChainName :: Text
               defaultChainName = "A"

@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 module Bio.GB
   ( module T
   , fromFile
@@ -15,10 +17,14 @@ import           Data.Attoparsec.Text   (parseOnly)
 import           Data.Bifunctor         (first)
 import           Data.Text              (Text, pack)
 import qualified Data.Text.IO           as TIO (readFile, writeFile)
+#if !MIN_VERSION_base(4,13,0)
+import           Control.Monad.Fail     (MonadFail(..))
+import           Prelude                hiding (fail)
+#endif
 
 -- | Reads 'GenBankSequence' from givem file.
 --
-fromFile :: MonadIO m => FilePath -> m GenBankSequence
+fromFile :: (MonadFail m, MonadIO m) => FilePath -> m GenBankSequence
 fromFile f = liftIO (TIO.readFile f) >>= either fail pure . parseOnly genBankP
 
 -- | Writes 'GenBankSequence' to file.
