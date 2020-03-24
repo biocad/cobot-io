@@ -1,17 +1,22 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Bio.PDB
-  (
+  ( modelsFromPDBText
+  , modelsFromPDBFile
   ) where
 
-import qualified Bio.PDB.Type  as PDB
+import qualified Bio.PDB.Type           as PDB
+import           Bio.PDB.Reader         (fromFilePDB, fromTextPDB, PDBWarnings)
+import           Bio.PDB.BondsRestoring (restoreModelBonds)
 import           Bio.Structure
 
-import           Control.Arrow ((&&&))
-import           Data.Coerce   (coerce)
-import           Data.Foldable (Foldable (..))
-import           Data.Text     as T (Text, singleton, unpack, pack)
-import qualified Data.Vector   as V
-import           Linear.V3     (V3 (..))
+import           Control.Arrow          ((&&&))
+import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Data.Coerce            (coerce)
+import           Data.Foldable          (Foldable (..))
+import           Data.Text              as T (Text, singleton, unpack, pack, strip)
+import           Data.Text.IO           as TIO (readFile)
+import qualified Data.Vector            as V
+import           Linear.V3              (V3 (..))
 
 -- TODO: bonds recovering must have been done here
 -- TODO: write tests for this conversion
@@ -19,7 +24,7 @@ instance StructureModels PDB.PDB where
     modelsOf PDB.PDB {..} = fmap mkModel models
       where
         mkModel :: PDB.Model -> Model
-        mkModel = flip Model V.empty . fmap mkChain
+        mkModel model = Model (fmap mkChain model) (restoreModelBonds model)
 
         mkChain :: PDB.Chain -> Chain
         mkChain = uncurry Chain . (mkChainName &&& mkChainResidues)
@@ -46,7 +51,7 @@ instance StructureModels PDB.PDB where
 
         mkResidue :: [PDB.Atom] -> Residue
         mkResidue []    = error "Cound not make residue from empty list"
-        mkResidue atoms = Residue (PDB.atomResName firstResidueAtom)
+        mkResidue atoms = Residue (T.strip $ PDB.atomResName firstResidueAtom)
                                   (PDB.atomResSeq firstResidueAtom)
                                   (PDB.atomICode firstResidueAtom)
                                   (V.fromList $ mkAtom <$> atoms)
@@ -59,9 +64,18 @@ instance StructureModels PDB.PDB where
 
         mkAtom :: PDB.Atom -> Atom
         mkAtom PDB.Atom{..} = Atom (coerce atomSerial)
-                                   atomName
+                                   (T.strip atomName)
                                    atomElement
                                    (V3 atomX atomY atomZ)
                                    (read $ T.unpack atomCharge)
                                    atomTempFactor
                                    atomOccupancy
+
+modelsFromPDBFile :: (MonadIO m) => FilePath -> m (Either Text ([PDBWarnings], V.Vector Model))
+modelsFromPDBFile = liftIO . fmap modelsFromPDBText . TIO.readFile
+
+modelsFromPDBText :: Text -> Either Text ([PDBWarnings], V.Vector Model)
+modelsFromPDBText pdbText = do
+  (warnings, parsedPDB) <- fromTextPDB pdbText
+  let models = modelsOf parsedPDB
+  pure (warnings, models)

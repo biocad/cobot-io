@@ -1,6 +1,7 @@
 module Bio.PDB.Reader
   ( fromTextPDB
   , fromFilePDB
+  , PDBWarnings(..)
   ) where
 
 import           Bio.PDB.Parser         (pdbP)

@@ -12,6 +12,7 @@ import           System.IO
 import           Test.Hspec
 import           UniprotSpec
 import           PDBParserSpec
+import           PDBSpec
 
 main :: IO ()
 main = do
@@ -52,3 +53,4 @@ main = do
          repeatedStringsSpecP
          emptyRemarkSpecP
          emptyModelSpecP
+         rawPDBToModelConversionSpec
