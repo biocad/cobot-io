@@ -1,5 +1,5 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE AllowAmbiguousTypes  #-}
+{-# LANGUAGE CPP                  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Bio.MAE
@@ -37,7 +37,7 @@ import           Data.Vector            (Vector)
 import qualified Data.Vector            as V (fromList)
 import           Linear.V3              (V3 (..))
 #if !MIN_VERSION_base(4,13,0)
-import           Control.Monad.Fail     (MonadFail(..))
+import           Control.Monad.Fail     (MonadFail (..))
 import           Prelude                hiding (fail)
 #endif
 
@@ -118,11 +118,14 @@ instance StructureModels Mae where
                   groupedByResidues = toGroupsOn by group
                   residues          = V.fromList $ fmap groupToResidue groupedByResidues
 
-                  by :: Int -> (Int, Char, Text)
-                  by i = (unsafeGetFromContents "i_m_residue_number" i, unsafeGetFromContents "s_m_insertion_code" i, unsafeGetFromContents "s_m_pdb_residue_name" i)
+                  by :: Int -> (Int, Char)
+                  by i = (unsafeGetFromContents "i_m_residue_number" i, getFromContents defaultInsertionCode "s_m_insertion_code" i)
 
               defaultChainName :: Text
               defaultChainName = "A"
+
+              defaultInsertionCode :: Char
+              defaultInsertionCode = ' '
 
               groupToResidue :: [Int] -> Residue
               groupToResidue []            = error "Group that is result of List.groupBy can't be empty."

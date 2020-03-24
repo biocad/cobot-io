@@ -1,8 +1,8 @@
 name:                cobot-io
-version:             0.1.2.7
+version:             0.1.2.9
 github:              "less-wrong/cobot-io"
 license:             BSD3
-category:            Bio 
+category:            Bio
 author:              "Pavel Yakovlev, Bogdan Neterebskii, Alexander Sadovnikov"
 maintainer:          "pavel@yakovlev.me"
 copyright:           "2018-2019, Less Wrong Bio"
@@ -57,7 +57,7 @@ library:
     - TypeOperators
     - TemplateHaskell
     - FlexibleContexts
-      
+
 
 tests:
   cobot-io-test:

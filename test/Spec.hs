@@ -7,12 +7,13 @@ import           GBWriterSpec
 import           MAEParserSpec
 import           MAESpec
 import           MMTFSpec
+import           PDBSpec
 import           SequenceSpec
+import           StructureSpec
 import           System.IO
 import           Test.Hspec
 import           UniprotSpec
 import           PDBParserSpec
-import           PDBSpec
 
 main :: IO ()
 main = do
@@ -54,3 +55,5 @@ main = do
          emptyRemarkSpecP
          emptyModelSpecP
          rawPDBToModelConversionSpec
+         -- Structure
+         structureSpec

@@ -13,7 +13,7 @@ import qualified Data.Vector as V
 import           Data.List (groupBy, sortOn, find)
 import           Data.Text       (Text)
 import qualified Data.Text as T  (strip, pack, unpack)
-import           Data.Map (Map, fromList, lookup, (!))
+import           Data.Map.Strict (Map, fromList, lookup, (!))
 import           Data.Maybe (maybe)
 
 import           Linear.Metric                    (distance)
