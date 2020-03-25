@@ -35,7 +35,7 @@ restoreModelBonds chains = V.fromList $ interResidueBonds ++ peptideBonds ++ dis
     disulfideBonds = restoreDisulfideBonds . concat $ V.toList chainAtomsGroupedByResidue
 
 restoreDisulfideBonds :: [[PDB.Atom]] -> [Bond GlobalID]
-restoreDisulfideBonds atomsGroupedByResidues = do
+restoreDisulfideBonds atomsGroupedByResidue = do
   atom1 <- cystineSulfur
   atom2 <- cystineSulfur
   guard (PDB.atomSerial atom1 < PDB.atomSerial atom2)
@@ -46,7 +46,7 @@ restoreDisulfideBonds atomsGroupedByResidues = do
     cystineSulfur :: [PDB.Atom]
     cystineSulfur = filter (("SG" ==) . T.strip . PDB.atomName) $ concat cystines
     cystines :: [[PDB.Atom]]
-    cystines = filter cystinePredicate atomsGroupedByResidues
+    cystines = filter cystinePredicate atomsGroupedByResidue
     cystinePredicate :: [PDB.Atom] -> Bool
     cystinePredicate residue = any (("SG" ==) . T.strip . PDB.atomName) residue && all (("HG" /=) . T.strip . PDB.atomName) residue
     coords :: PDB.Atom -> V3 Float
