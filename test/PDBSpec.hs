@@ -21,14 +21,13 @@ import           Test.Hspec
 
 rawPDBToModelConversionSpec = describe "Cobot Model from raw PDB" $ do
   modelFromPDB <- runIO $ firstPDBModel "test/PDB/1PPE_I.pdb"
-  modelFromMae <- runIO $ firstPDBModel "test/PDB/1PPE_I.mae"
+  modelFromMae <- runIO $ firstMaeModel "test/PDB/1PPE_I.mae"
   let (pdbBondCount, pdbChainCount, pdbAtomCount) = getStats modelFromPDB
-  -- let (maeBondCount, _, _) = getStats modelFromMae
+  let (maeBondCount, _, _) = getStats modelFromMae
 
   it "should have correct number of atoms" $ pdbAtomCount `shouldBe` 436
   it "should have correct number of chains" $ pdbChainCount `shouldBe` 1
-  -- it "should restore bonds correctly" $ pdbBondCount `shouldBe` maeBondCount
-  it "should restore bonds correctly" $ pdbBondCount `shouldBe` 441
+  it "should restore bonds correctly" $ pdbBondCount `shouldBe` maeBondCount
   where
     getStats :: Model -> (Int, Int, Int)
     getStats model = (bondCount, chainCount, atomCount)
