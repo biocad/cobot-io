@@ -8,13 +8,15 @@ module Bio.MAE
   , Table (..)
   , fromFile
   , fromText
+  , modelsFromMaeText
+  , modelsFromMaeFile
   , maeP
   ) where
 
 import           Bio.MAE.Parser
 import           Bio.MAE.Type           (Block (..), FromMaeValue (..),
                                          Mae (..), MaeValue (..), Table (..))
-import           Bio.Structure          (Atom (..), Bond (..), Chain (..),
+import           Bio.Structure          (Atom (..), Bond (..), Chain (..), Model (..),
                                          GlobalID (..), LocalID (..),
                                          Model (..), Residue (..),
                                          SecondaryStructure (..),
@@ -50,6 +52,12 @@ fromFile f = liftIO (TIO.readFile f) >>= either fail pure . parseOnly maeP
 --
 fromText :: Text -> Either Text Mae
 fromText = first T.pack . parseOnly maeP
+
+modelsFromMaeFile :: (MonadIO m) => FilePath -> m (Either Text (Vector Model))
+modelsFromMaeFile = liftIO . fmap modelsFromMaeText . TIO.readFile
+
+modelsFromMaeText :: Text -> Either Text (Vector Model)
+modelsFromMaeText maeText = modelsOf <$> fromText maeText
 
 instance StructureModels Mae where
   modelsOf Mae{..} = V.fromList $ fmap blockToModel blocks

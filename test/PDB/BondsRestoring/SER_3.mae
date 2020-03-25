@@ -1,0 +1,333 @@
+{ 
+ s_m_m2io_version
+ :::
+ 2.0.0 
+} 
+
+f_m_ct { 
+ s_m_title
+ s_m_entry_name
+ i_m_stars
+ s_m_entry_id
+ s_m_job_name
+ r_mmod_Potential_Energy-OPLS-2005
+ r_mmod_Stretch_Energy-OPLS-2005
+ r_mmod_Bend_Energy-OPLS-2005
+ r_mmod_Torsional_Energy-OPLS-2005
+ r_mmod_Improper_Torsional_Energy-OPLS-2005
+ r_mmod_Van_der_Waal_Energy-OPLS-2005
+ r_mmod_Electrostatic_Energy-OPLS-2005
+ s_pdb_PDB_TITLE
+ s_pdb_PDB_ID
+ r_pdb_PDB_CRYST1_a
+ r_pdb_PDB_CRYST1_b
+ r_pdb_PDB_CRYST1_c
+ r_pdb_PDB_CRYST1_alpha
+ r_pdb_PDB_CRYST1_beta
+ r_pdb_PDB_CRYST1_gamma
+ s_pdb_PDB_CRYST1_Space_Group
+ i_pdb_PDB_CRYST1_z
+ s_pdb_PDB_CLASSIFICATION
+ s_pdb_PDB_DEPOSITION_DATE
+ s_pdb_PDB_format_version
+ r_pdb_PDB_R
+ r_pdb_PDB_Rfree
+ r_pdb_PDB_RESOLUTION
+ s_pdb_PDB_EXPDTA
+ r_pdb_PDB_EXPDTA_TEMPERATURE
+ r_pdb_PDB_EXPDTA_PH
+ s_pdb_PDB_REMARK_350_Biomolecule_1_Chains
+ s_pdb_PDB_REMARK_350_Biomolecule_1_Transformation_1
+ s_pdb_PDB_REMARK_350_Biomolecule_2_Chains
+ s_pdb_PDB_REMARK_350_Biomolecule_2_Transformation_1
+ s_ppw_entry_id_backup
+ b_ppw_prepared
+ b_ppw_assigned_bond_orders
+ b_ppw_added_hydrogens
+ b_ppw_treated_metals
+ b_ppw_created_disulfur
+ b_ppw_deleted_far_waters
+ s_m_Source_Path
+ s_m_Source_File
+ i_m_Source_File_Index
+ s_st_Chirality_1
+ b_psp_distorted_structure
+ i_psp_model_num
+ r_psp_Prime_Coulomb
+ r_psp_Prime_Covalent
+ r_psp_Prime_vdW
+ r_psp_Prime_Solv_GB
+ r_psp_Prime_Lipo
+ r_psp_Prime_Energy
+ r_psp_Prime_Hbond
+ r_psp_Prime_Packing
+ r_psp_Prime_SelfCont
+ r_i_target_temperature
+ b_ppw_ran_impref
+ b_ppw_ran_protassign
+ i_m_source_file_index
+ i_lp_mmshare_version
+ r_epik_Ionization_Penalty
+ r_epik_Ionization_Penalty_Charging
+ r_epik_Ionization_Penalty_Neutral
+ r_epik_State_Penalty
+ i_epik_Tot_Q
+ s_st_Chirality_2
+ s_st_Chirality_3
+ b_mmod_Minimization_Converged-OPLS-2005
+ r_mmod_RMS_Derivative-OPLS-2005
+ i_mmod_Times_Found-OPLS-2005
+ r_mmod_Relative_Potential_Energy-OPLS-2005
+ b_mmod_Chiralities_Consistent-OPLS-2005
+ i_mmod_Conformation-OPLS-2005
+ i_mmod_Serial_Number-OPLS-2005
+ r_mmod_Solvation_Energy-OPLS-2005
+ :::
+ SER3 
+  Structure 
+  0
+  318 
+  ILE3 
+  -384.701110839844
+  3.21672987937927
+  47.5902709960938
+  105.539138793945
+  0.0302495043724775
+  241.22998046875
+  -343.904479980469
+  "CRYSTAL STRUCTURE OF EGFR KINASE DOMAIN T790M MUTATION IN COMPEX WITH HKI-272" 
+  2JIV 
+  56.087
+  98.989
+  73.326
+  90
+  109.94
+  90
+  "P 1 21 1" 
+  4
+  TRANSFERASE 
+  02-JUL-07 
+  3.30 
+  0.250999987125397
+  0.284000009298325
+  3.5
+  "X-RAY DIFFRACTION" 
+  100
+  7.5
+  A 
+  "1.000000 0.000000 0.000000   0.000000;0.000000 1.000000 0.000000   0.000000;0.000000 0.000000 1.000000   0.000000" 
+  B 
+  "1.000000 0.000000 0.000000   0.000000;0.000000 1.000000 0.000000   0.000000;0.000000 0.000000 1.000000   0.000000" 
+  287 
+  1
+  1
+  1
+  1
+  1
+  1
+  /home/shehovtsov/ownCloud/SchResults/ChemNext/OPLSCrack.prj 
+  2jiv.pdb 
+  1
+  4_S_3_5_2_22 
+  0
+  0
+  -15228.2951610052
+  8844.27158380025
+  50916082887.1437
+  -4025.5362735107
+  -3537.76289714321
+  50916068618.8497
+  -130.726704687813
+  -13.8491664174113
+  -176.395432431619
+  298
+  1
+  1
+  1
+  32018
+    0.1225 
+    0.1222 
+    0.0002 
+    0.1115 
+  0
+  7_S_6_8_10_24 
+  12_S_11_13_15_29 
+  1
+  0.00200419803149998
+  1
+  0
+  1
+  1
+  1
+  -438.402984619141
+ m_depend[24] { 
+  # First column is dependency index #
+  i_m_depend_dependency
+  s_m_depend_property
+  :::
+  1 30 s_m_job_name 
+  2 20 r_mmod_Potential_Energy-OPLS-2005 
+  3 20 r_mmod_Stretch_Energy-OPLS-2005 
+  4 20 r_mmod_Bend_Energy-OPLS-2005 
+  5 20 r_mmod_Torsional_Energy-OPLS-2005 
+  6 20 r_mmod_Improper_Torsional_Energy-OPLS-2005 
+  7 20 r_mmod_Van_der_Waal_Energy-OPLS-2005 
+  8 20 r_mmod_Electrostatic_Energy-OPLS-2005 
+  9 10 s_st_Chirality_1 
+  10 10 r_epik_Ionization_Penalty 
+  11 10 r_epik_Ionization_Penalty_Charging 
+  12 10 r_epik_Ionization_Penalty_Neutral 
+  13 10 r_epik_State_Penalty 
+  14 10 i_epik_Tot_Q 
+  15 10 s_st_Chirality_2 
+  16 10 s_st_Chirality_3 
+  17 20 b_mmod_Minimization_Converged-OPLS-2005 
+  18 20 r_mmod_RMS_Derivative-OPLS-2005 
+  19 20 i_mmod_Times_Found-OPLS-2005 
+  20 20 r_mmod_Relative_Potential_Energy-OPLS-2005 
+  21 20 b_mmod_Chiralities_Consistent-OPLS-2005 
+  22 20 i_mmod_Conformation-OPLS-2005 
+  23 10 i_mmod_Serial_Number-OPLS-2005 
+  24 20 r_mmod_Solvation_Energy-OPLS-2005 
+  :::
+ } 
+ m_atom[36] { 
+  # First column is atom index #
+  i_m_mmod_type
+  r_m_x_coord
+  r_m_y_coord
+  r_m_z_coord
+  i_m_residue_number
+  s_m_mmod_res
+  s_m_chain_name
+  i_m_color
+  r_m_charge1
+  r_m_charge2
+  s_m_pdb_residue_name
+  s_m_pdb_atom_name
+  s_m_grow_name
+  i_m_atomic_number
+  i_m_formal_charge
+  i_m_representation
+  i_m_visibility
+  s_m_color_rgb
+  s_m_atom_name
+  i_m_secondary_structure
+  s_m_label_format
+  i_m_label_color
+  s_m_label_user_text
+  r_m_pdb_occupancy
+  r_m_pdb_tfactor
+  r_psp_Prime_Coulomb
+  r_psp_Prime_Covalent
+  r_psp_Prime_Energy
+  r_psp_Prime_Hbond
+  r_psp_Prime_Lipo
+  r_psp_Prime_Packing
+  r_psp_Prime_SelfCont
+  r_psp_Prime_Solv_GB
+  r_psp_Prime_Solv_SA
+  r_psp_Prime_vdW
+  r_psp_atom_born_radius
+  r_psp_atom_partial_charge
+  r_psp_atom_sgb_radius
+  r_psp_atom_vdw_radius
+  r_psp_ffld_partial_charge
+  r_psp_solvent_exposed_surface_area
+  i_i_constraint
+  i_i_internal_atom_index
+  i_m_Hcount
+  i_pa_atomindex
+  i_pdb_PDB_serial
+  i_pdb_seqres_chain
+  i_pdb_seqres_index
+  i_zob_match_atom_index
+  i_zob_match_atom_type
+  r_epik_H2O_pKa
+  r_epik_H2O_pKa_uncertainty
+  :::
+  1 15 14.990554 -6.772408 3.076800 702 S A 75 -0.50000 -0.50000 "SER " " O  " "    " 8 0 3 1 FF5757  ""  0 ""  75 ""  1 38.22 -52.863 0.002 -4.166 -0.053 0 0 0 43.242 0 5.505 4.286 -0.5 1.678 1.48 -0.5 2.293 0 6 0 6 18 1 3 1 -1 <> <>
+  2 32 17.252295 -5.273120 3.576736 702 S A 38 -0.30000 -0.30000 "SER " " N  " "    " 7 1 3 1 2F2FFF  ""  0 ""  38 ""  1 39.05 -44.236 0.556 -8.041 -0.03 0 0 0 35.782 0 -0.114 4.721 -0.5 1.92 1.625 -0.5 0 0 8 3 8 15 1 3 2 44 <> <>
+  3 3 16.468061 -5.032000 2.351712 702 S A 10 0.25000 0.25000 "SER " " CA " "    " 6 0 3 1 1EE11E  ""  0 ""  10 ""  1 38.59 11.935 0.574 3.991 0 -1.399 0 0 -6.836 0 -0.283 4.771 0.14 1.975 1.75 0.14 0 0 9 1 9 16 1 3 3 -1 <> <>
+  4 2 15.106278 -5.729636 2.433057 702 S A 10 0.50000 0.50000 "SER " " C  " "    " 6 0 3 1 1EE11E  ""  0 ""  10 ""  1 38.18 40.757 0.733 3.047 0 0 0 0 -46.947 0 8.503 5.367 0.5 2.112 1.875 0.5 0 0 10 0 10 17 1 3 4 -1 <> <>
+  5 25 14.093802 -5.132405 1.779119 703 S A 38 -0.50000 -0.50000 "SER " " N  " "  c1" 7 0 3 1 2F2FFF  "N12"  -1 ""  38 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 0 12 1 12 <> <> <> 5 -1 <> <>
+  6 3 12.691092 -5.556884 1.686621 703 S A 10 0.14000 0.14000 "SER " " CA " "  g0" 6 0 3 1 1EE11E  "C13"  -1 ""  10 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 0 13 1 13 <> <> <> 6 -1 <> <>
+  7 2 11.838035 -5.066554 2.867123 703 S A 10 0.50000 0.50000 "SER " " C  " "  n1" 6 0 3 1 1EE11E  "C14"  -1 ""  10 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 0 14 0 14 <> <> <> 7 -1 <> <>
+  8 15 12.356370 -4.855328 3.963740 703 S A 75 -0.50000 -0.50000 "SER " " O  " "    " 8 0 3 1 FF5757  "O15"  -1 ""  75 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 0 15 0 15 <> <> <> 8 -1  -1.677    0.746 
+  9 25 10.529949 -4.890188 2.610446 704 S A 38 -0.50000 -0.50000 "SER " " N  " "  c1" 7 0 3 1 2F2FFF  "N22"  -1 ""  38 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 0 22 1 22 <> <> <> 9 -1 <> <>
+  10 3 9.475121 -4.435355 3.520735 704 S A 10 0.04000 0.04000 "SER " " CA " "  g0" 6 0 3 1 1EE11E  "C23"  -1 ""  10 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 0 23 1 23 <> <> <> 10 -1 <> <>
+  11 2 9.393844 -2.904178 3.567672 704 S A 10 0.70000 0.70000 "SER " " C  " "  n1" 6 0 3 1 1EE11E  "C24"  -1 ""  10 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 0 24 0 24 <> <> <> 11 -1 <> <>
+  12 15 8.706856 -2.346088 2.683930 704 S A 75 -0.80000 -0.80000 "SER " " O  " "    " 8 0 3 1 FF5757  "O25"  -1 ""  75 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 0 25 0 25 <> <> <> 12 -1 <> <>
+  13 18 10.030686 -2.315400 4.468878 704 X A 75 -0.80000 -0.80000 "SER " "OXT " "  n2" 8 -1 3 1 FF5757  "O27"  -1 "%UT"  75 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 0 32 0 27 <> <> <> 13 -1   3.647    0.775 
+  14 44 18.144641 -4.805768 3.503240 702 S A 21 0.00000 0.00000 "SER " " H1 " "    " 1 0 3 1 FFFFFF  ""  -1 ""  21 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 44 45 <> <>
+  15 44 16.749240 -4.913557 4.375329 702 S A 21 0.00000 0.00000 "SER " " H2 " "    " 1 0 3 1 FFFFFF  ""  -1 ""  21 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 45 -1 <> <>
+  16 44 17.400988 -6.265442 3.692004 702 S A 21 0.00000 0.00000 "SER " " H3 " "    " 1 0 3 1 FFFFFF  ""  -1 ""  21 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 46 -1 <> <>
+  17 41 16.297161 -3.959271 2.261460 702 S A 21 0.00000 0.00000 "SER " " HA " "    " 1 0 3 0 FFFFFF  ""  0 ""  21 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 47 -1 <> <>
+  18 43 14.257990 -4.277618 1.266790 703 S A 21 0.00000 0.00000 "SER " " H  " "    " 1 0 3 1 FFFFFF  ""  -1 ""  21 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 48 -1 <> <>
+  19 41 12.295224 -5.033197 0.816483 703 S A 21 0.00000 0.00000 "SER " " HA " "    " 1 0 3 0 FFFFFF  ""  -1 ""  21 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 49 -1 <> <>
+  20 43 10.166444 -5.079505 1.687341 704 S A 21 0.00000 0.00000 "SER " " H  " "    " 1 0 3 1 FFFFFF  ""  -1 ""  21 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 50 -1 <> <>
+  21 41 8.544335 -4.749933 3.048741 704 S A 21 0.00000 0.00000 "SER " " HA " "    " 1 0 3 0 FFFFFF  ""  -1 ""  21 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> 51 -1 <> <>
+  22 3 17.243256 -5.497465 1.122448 702 S A 2 0.00000 0.00000 "SER " " CB " "  g1" 6 0 3 1 A0A0A0  ""  0 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  23 16 17.256617 -4.461087 0.133173 702 S A 70 0.00000 0.00000 "SER " " OG " "    " 8 0 3 1 FF2F2F  ""  0 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  24 41 18.268112 -5.735544 1.407209 702 S A 21 0.00000 0.00000 "SER " " HB2" "    " 1 0 3 1 FFFFFF  ""  0 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  25 41 16.766766 -6.385140 0.706405 702 S A 21 0.00000 0.00000 "SER " " HB3" "    " 1 0 3 1 FFFFFF  ""  0 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  26 42 17.745428 -4.759722 -0.637205 702 S A 21 0.00000 0.00000 "SER " " HG " "    " 1 0 3 1 FFFFFF  ""  0 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  27 3 12.517151 -7.038987 1.367573 703 S A 2 0.00000 0.00000 "SER " " CB " "  g1" 6 0 3 1 A0A0A0  ""  -1 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  28 16 12.555105 -7.240188 -0.050525 703 S A 70 0.00000 0.00000 "SER " " OG " "    " 8 0 3 1 FF2F2F  ""  -1 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  29 41 13.321876 -7.608217 1.832862 703 S A 21 0.00000 0.00000 "SER " " HB2" "    " 1 0 3 1 FFFFFF  ""  -1 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  30 41 11.558150 -7.384222 1.753877 703 S A 21 0.00000 0.00000 "SER " " HB3" "    " 1 0 3 1 FFFFFF  ""  -1 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  31 42 12.445222 -8.173887 -0.244769 703 S A 21 0.00000 0.00000 "SER " " HG " "    " 1 0 3 1 FFFFFF  ""  -1 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  32 3 9.479205 -5.131189 4.878849 704 S A 2 0.00000 0.00000 "SER " " CB " "  g1" 6 0 3 1 A0A0A0  ""  -1 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  33 16 8.203067 -5.736131 5.120590 704 S A 70 0.00000 0.00000 "SER " " OG " "    " 8 0 3 1 FF2F2F  ""  -1 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  34 41 10.250063 -5.901734 4.890567 704 S A 21 0.00000 0.00000 "SER " " HB2" "    " 1 0 3 1 FFFFFF  ""  -1 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  35 41 9.684506 -4.400671 5.661342 704 S A 21 0.00000 0.00000 "SER " " HB3" "    " 1 0 3 1 FFFFFF  ""  -1 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  36 42 8.211908 -6.171988 5.975898 704 S A 21 0.00000 0.00000 "SER " " HG " "    " 1 0 3 1 FFFFFF  ""  -1 ""  1 ""  <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <> <>
+  :::
+ } 
+ m_bond[35] { 
+  # First column is bond index #
+  i_m_from
+  i_m_to
+  i_m_order
+  i_m_from_rep
+  i_m_to_rep
+  :::
+  1 1 4 2 3 3
+  2 2 3 1 3 3
+  3 2 14 1 3 3
+  4 2 15 1 3 3
+  5 2 16 1 3 3
+  6 3 4 1 3 3
+  7 3 17 1 3 3
+  8 3 22 1 3 3
+  9 4 5 1 3 3
+  10 5 6 1 3 3
+  11 5 18 1 3 3
+  12 6 7 1 3 3
+  13 6 19 1 3 3
+  14 6 27 1 3 3
+  15 7 8 2 3 3
+  16 7 9 1 3 3
+  17 9 10 1 3 3
+  18 9 20 1 3 3
+  19 10 11 1 3 3
+  20 10 21 1 3 3
+  21 10 32 1 3 3
+  22 11 12 2 3 3
+  23 11 13 1 3 3
+  24 22 23 1 3 3
+  25 22 24 1 3 3
+  26 22 25 1 3 3
+  27 23 26 1 3 3
+  28 27 28 1 3 3
+  29 27 29 1 3 3
+  30 27 30 1 3 3
+  31 28 31 1 3 3
+  32 32 33 1 3 3
+  33 32 34 1 3 3
+  34 32 35 1 3 3
+  35 33 36 1 3 3
+  :::
+ } 
+} 
+

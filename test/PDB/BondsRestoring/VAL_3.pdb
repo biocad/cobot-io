@@ -1,0 +1,75 @@
+HEADER    TRANSFERASE                             02-JUL-07   2JIV
+REMARK   4 2JIV COMPLIES WITH FORMAT V. 3.30,
+REMARK 888
+REMARK 888 WRITTEN BY MAESTRO (A PRODUCT OF SCHRODINGER, LLC)
+TITLE     CRYSTAL STRUCTURE OF EGFR KINASE DOMAIN T790M MUTATION IN
+TITLE    2 COMPEX WITH HKI-272
+EXPDTA    X-RAY DIFFRACTION
+REMARK   2 RESOLUTION.    3.50 ANGSTROMS
+REMARK 200  TEMPERATURE           (KELVIN) : 100.00
+REMARK 200  PH                             : 7.50
+REMARK 350 BIOMOLECULE:  1
+REMARK 350 APPLY THE FOLLOWING TO CHAINS: A
+REMARK 350   BIOMT1  1   1.000000 0.000000 0.000000   0.000000
+REMARK 350   BIOMT2  1   0.000000 1.000000 0.000000   0.000000
+REMARK 350   BIOMT3  1   0.000000 0.000000 1.000000   0.000000
+REMARK 350 BIOMOLECULE:  2
+REMARK 350 APPLY THE FOLLOWING TO CHAINS: B
+REMARK 350   BIOMT1  1   1.000000 0.000000 0.000000   0.000000
+REMARK 350   BIOMT2  1   0.000000 1.000000 0.000000   0.000000
+REMARK 350   BIOMT3  1   0.000000 0.000000 1.000000   0.000000
+CRYST1   56.087   98.989   73.326  90.00 109.94  90.00 P 1 21 1      4
+MODEL        1
+ATOM      1  N   VAL A 702      17.252  -5.273   3.577  1.00 39.05           N1+
+ATOM      2  CA  VAL A 702      16.468  -5.032   2.352  1.00 38.59           C  
+ATOM      3  C   VAL A 702      15.106  -5.730   2.433  1.00 38.18           C  
+ATOM      4  O   VAL A 702      14.991  -6.772   3.077  1.00 38.22           O  
+ATOM      5  CB  VAL A 702      17.243  -5.497   1.122  1.00  0.00           C  
+ATOM      6  CG1 VAL A 702      17.245  -4.377   0.080  1.00  0.00           C  
+ATOM      7  CG2 VAL A 702      18.695  -5.867   1.456  1.00  0.00           C  
+ATOM      8  H1  VAL A 702      18.145  -4.806   3.503  1.00  0.00           H  
+ATOM      9  H2  VAL A 702      16.749  -4.914   4.375  1.00  0.00           H  
+ATOM     10  H3  VAL A 702      17.401  -6.265   3.692  1.00  0.00           H  
+ATOM     11  HA  VAL A 702      16.297  -3.959   2.261  1.00  0.00           H  
+ATOM     12  HB  VAL A 702      16.745  -6.371   0.701  1.00  0.00           H  
+ATOM     13 HG11 VAL A 702      16.218  -4.107  -0.165  1.00  0.00           H  
+ATOM     14 HG12 VAL A 702      17.764  -3.507   0.483  1.00  0.00           H  
+ATOM     15 HG13 VAL A 702      17.755  -4.719  -0.820  1.00  0.00           H  
+ATOM     16 HG21 VAL A 702      18.706  -6.665   2.199  1.00  0.00           H  
+ATOM     17 HG22 VAL A 702      19.202  -6.206   0.553  1.00  0.00           H  
+ATOM     18 HG23 VAL A 702      19.210  -4.993   1.856  1.00  0.00           H  
+ATOM     19  N   VAL A 703      14.094  -5.132   1.779  1.00  0.00           N  
+ATOM     20  CA  VAL A 703      12.691  -5.557   1.687  1.00  0.00           C  
+ATOM     21  C   VAL A 703      11.838  -5.067   2.867  1.00  0.00           C  
+ATOM     22  O   VAL A 703      12.356  -4.855   3.964  1.00  0.00           O  
+ATOM     23  CB  VAL A 703      12.517  -7.039   1.368  1.00  0.00           C  
+ATOM     24  CG1 VAL A 703      12.561  -7.231  -0.150  1.00  0.00           C  
+ATOM     25  CG2 VAL A 703      13.611  -7.904   2.009  1.00  0.00           C  
+ATOM     26  H   VAL A 703      14.258  -4.278   1.267  1.00  0.00           H  
+ATOM     27  HA  VAL A 703      12.295  -5.033   0.816  1.00  0.00           H  
+ATOM     28  HB  VAL A 703      11.546  -7.368   1.737  1.00  0.00           H  
+ATOM     29 HG11 VAL A 703      11.787  -6.621  -0.616  1.00  0.00           H  
+ATOM     30 HG12 VAL A 703      13.538  -6.929  -0.527  1.00  0.00           H  
+ATOM     31 HG13 VAL A 703      12.388  -8.280  -0.389  1.00  0.00           H  
+ATOM     32 HG21 VAL A 703      13.589  -7.775   3.091  1.00  0.00           H  
+ATOM     33 HG22 VAL A 703      13.436  -8.952   1.765  1.00  0.00           H  
+ATOM     34 HG23 VAL A 703      14.586  -7.600   1.627  1.00  0.00           H  
+ATOM     35  N   VAL A 704      10.530  -4.890   2.610  1.00  0.00           N  
+ATOM     36  CA  VAL A 704       9.475  -4.435   3.521  1.00  0.00           C  
+ATOM     37  C   VAL A 704       9.394  -2.904   3.568  1.00  0.00           C  
+ATOM     38  O   VAL A 704       8.707  -2.346   2.684  1.00  0.00           O  
+ATOM     39  OXT VAL A 704      10.031  -2.315   4.469  1.00  0.00           O1-
+ATOM     40  CB  VAL A 704       9.479  -5.131   4.879  1.00  0.00           C  
+ATOM     41  CG1 VAL A 704       8.109  -5.769   5.116  1.00  0.00           C  
+ATOM     42  CG2 VAL A 704      10.557  -6.220   4.971  1.00  0.00           C  
+ATOM     43  H   VAL A 704      10.166  -5.080   1.687  1.00  0.00           H  
+ATOM     44  HA  VAL A 704       8.544  -4.750   3.049  1.00  0.00           H  
+ATOM     45  HB  VAL A 704       9.662  -4.388   5.655  1.00  0.00           H  
+ATOM     46 HG11 VAL A 704       7.336  -5.004   5.054  1.00  0.00           H  
+ATOM     47 HG12 VAL A 704       7.927  -6.532   4.360  1.00  0.00           H  
+ATOM     48 HG13 VAL A 704       8.088  -6.227   6.106  1.00  0.00           H  
+ATOM     49 HG21 VAL A 704      11.538  -5.776   4.803  1.00  0.00           H  
+ATOM     50 HG22 VAL A 704      10.530  -6.677   5.960  1.00  0.00           H  
+ATOM     51 HG23 VAL A 704      10.369  -6.982   4.214  1.00  0.00           H  
+ENDMDL
+END   

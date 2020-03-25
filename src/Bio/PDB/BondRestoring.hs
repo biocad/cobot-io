@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
 
-module Bio.PDB.BondsRestoring
+module Bio.PDB.BondRestoring
   ( restoreBonds
   , restoreModelBonds
   ) where
@@ -13,8 +13,8 @@ import qualified Data.Vector as V
 import           Data.List (groupBy, sortOn, find)
 import           Data.Text       (Text)
 import qualified Data.Text as T  (strip, pack, unpack)
-import           Data.Map.Strict (Map, fromList, lookup, (!))
-import           Data.Maybe (maybe)
+import           Data.Map.Strict (Map, fromList, (!?), (!))
+import           Data.Maybe (maybe, catMaybes)
 
 import           Linear.Metric                    (distance)
 import           Linear.V3                        (V3(..))
@@ -60,7 +60,7 @@ restoreChainPeptideBonds atomsGroupedByResidue = restoreChainPeptideBonds' atoms
   where
     restoreChainPeptideBonds' :: [[PDB.Atom]] -> [Bond GlobalID] -> [Bond GlobalID]
     restoreChainPeptideBonds' [] acc = acc
-    restoreChainPeptideBonds' (_:[]) acc = acc
+    restoreChainPeptideBonds' [_] acc = acc
     restoreChainPeptideBonds' (residue1:residue2:residues) acc = 
       restoreChainPeptideBonds' (residue2:residues) (constructBond residue1 residue2 : acc)
 
@@ -80,50 +80,52 @@ restoreChainInterResidueBonds :: [[PDB.Atom]] -> [Bond GlobalID]
 restoreChainInterResidueBonds = concatMap restoreIntraResidueBonds
 
 restoreIntraResidueBonds :: [PDB.Atom] -> [Bond GlobalID]
-restoreIntraResidueBonds residueAtoms = map constructBond residueBonds
+restoreIntraResidueBonds residueAtoms = catMaybes $ constructBond <$> residueBonds
   where
-    -- TODO: use safe 'lookup' operation and throw errors with clear messages
     -- TODO: support bond order somehow
-    constructBond :: (Text, Text) -> Bond GlobalID
-    constructBond (fromAtomName, toAtomName) = Bond (GlobalID $ atomNameToIndex ! fromAtomName) (GlobalID $ atomNameToIndex ! toAtomName) 1
+    constructBond :: (Text, Text) -> Maybe (Bond GlobalID)
+    constructBond (fromAtomName, toAtomName) = Bond <$> constructGlobalID fromAtomName <*> constructGlobalID  toAtomName <*> Just 1
+    constructGlobalID :: Text -> Maybe GlobalID
+    constructGlobalID atomName = GlobalID <$> atomNameToIndex !? atomName
     atomNameToIndex :: Map Text Int
-    atomNameToIndex = fromList $ (\PDB.Atom{..} -> (atomName, atomSerial)) <$> residueAtoms
+    atomNameToIndex = fromList $ (\PDB.Atom{..} -> (T.strip atomName, atomSerial)) <$> residueAtoms
     residueBonds :: [(Text, Text)]
     residueBonds = intraResidueBonds . T.strip . PDB.atomResName $ head residueAtoms
 
 intraResidueBonds :: Text -> [(Text, Text)]
 intraResidueBonds "NMA" = [("CA", "N")]
 intraResidueBonds "ACE" = [("C", "O"), ("C", "CH3")]
-intraResidueBonds residueName = [("N", "CA"), ("CA", "C"), ("C", "O")] ++ caCbBond residueName ++ sideChainBonds residueName
+intraResidueBonds residueName = backboneBonds ++ caCbBonds residueName ++ sideChainBonds residueName
 
-caCbBond :: Text -> [(Text, Text)]
-caCbBond aminoacid = case aminoacid of
-  "GLY" -> []
-  _     -> [("CA", "CB")]
+backboneBonds :: [(Text, Text)]
+backboneBonds = [("N", "CA"), ("CA", "C"), ("C", "O"), ("N", "H")] ++ [("C","OXT")] ++ bwhMany [("N", ["H1", "H2", "H3"])]
 
---TODO: don't forget to check what is happening on terminal residues
---TODO: don't forget about HIE, HID, etc.
+caCbBonds :: Text -> [(Text, Text)]
+caCbBonds aminoacid = case aminoacid of
+  "GLY" -> bwhMany [("CA", ["HA2", "HA3"])]
+  _     -> [("CA", "CB"), ("CA", "HA")]
+
 sideChainBonds :: Text -> [(Text, Text)]
-sideChainBonds "ALA" = [] -- CB [HB1, HB2, HB3]
+sideChainBonds "ALA" = bwhMany [("CB", ["HB1", "HB2", "HB3"])]
+sideChainBonds "ARG" = [("CB", "CG") , ("CG", "CD") , ("CD", "NE")  , ("NE", "CZ")  , ("CZ", "NH2") , ("CZ", "NH1")] ++ bwhMany[("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("CD", ["HD3", "HD2"]), ("NE", ["HE"]), ("NH1", ["HH12", "HH11"]), ("NH2", ["HH22", "HH21"])]
+sideChainBonds "ASN" = [("CB", "CG") , ("CG", "OD1"), ("CG", "ND2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("ND2", ["HD22", "HD21"])]
+sideChainBonds "ASP" = [("CB", "CG") , ("CG", "OD1"), ("CG", "OD2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("OD2", ["HD2"])]
+sideChainBonds "CYS" = [("CB", "SG")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("SG", ["HG"])]
+sideChainBonds "GLN" = [("CB", "CG") , ("CG", "CD") , ("CD", "OE1") , ("CD", "NE2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("NE2", ["HE22", "HE21"])]
+sideChainBonds "GLU" = [("CB", "CG") , ("CG", "CD") , ("CD", "OE1") , ("CD", "OE2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("OE2", ["HE2"])]
 sideChainBonds "GLY" = [] -- nothing
-sideChainBonds "VAL" = [("CB", "CG1"), ("CB", "CG2")] ++ bwhMany [("CB", ["HB"]), ("CG1", ["HG11", "HG12", "HG13"]), ("CG2", ["HG21", "HG22", "HG23"])]
+sideChainBonds "HIS" = [("CB", "CG") , ("CG", "ND1"), ("ND1", "CE1"), ("CE1", "NE2"), ("NE2", "CD2"), ("CD2", "CG")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("ND1", ["HD1"]), ("CE1", ["HE1"]), ("NE2", ["HE2"]), ("CD2", ["HD2"])]
 sideChainBonds "ILE" = [("CB", "CG1"), ("CB", "CG2"), ("CG1", "CD1")] ++ bwhMany [("CB", ["HB"]), ("CG1", ["HG13", "HG12"]), ("CG2", ["HG21", "HG22", "HG23"]), ("CD1", ["HD11", "HD12", "HD13"])]
 sideChainBonds "LEU" = [("CB", "CG") , ("CG", "CD1"), ("CG", "CD2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG"]), ("CD1", ["HD11", "HD12", "HD13"]), ("CD2", ["HD21", "HD22", "HD23"])]
+sideChainBonds "LYS" = [("CB", "CG") , ("CG", "CD") , ("CD", "CE")  , ("CE", "NZ")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("CD", ["HD3", "HD2"]), ("CE", ["HE3", "HE2"]), ("NZ", ["HZ1", "HZ2", "HZ3"])]
 sideChainBonds "MET" = [("CB", "CG") , ("CG", "SD") , ("SD", "CE")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("CE", ["HE1", "HE2", "HE3"])]
 sideChainBonds "PHE" = [("CB", "CG") , ("CG", "CD1"), ("CD1", "CE1"), ("CE1", "CZ") , ("CZ", "CE2") , ("CE2", "CD2"), ("CD2", "CG")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CD1", ["HD1"]), ("CE1", ["HE1"]), ("CZ", ["HZ"]), ("CE2", ["HE2"]), ("CD2", ["HD2"])]
-sideChainBonds "TYR" = [("CB", "CG") , ("CG", "CD1"), ("CD1", "CE1"), ("CE1", "CZ") , ("CZ", "CE2") , ("CE2", "CD2"), ("CD2", "CG") , ("CZ", "OH")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CD1", ["HD1"]), ("CE1", ["HE1"]), ("CE2", ["HE2"]), ("CD2", ["HD2"]), ("OH", ["HH"])]
-sideChainBonds "TRP" = [("CB", "CG") , ("CG", "CD1"), ("CD1", "NE1"), ("NE1", "CE2"), ("CE2", "CD2"), ("CD2", "CG") , ("CD2", "CE3"), ("CE3", "CZ3"), ("CZ3", "CH2"), ("CH2", "CZ2"), ("CZ2", "CE2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CD1", ["HD1"]), ("NE1", ["HE1"]), ("CE3", ["HE3"]), ("CZ3", ["HZ3"]), ("CH2", ["HH2"]), ("CZ2", ["HZ2"])]
+sideChainBonds "PRO" = [("CB", "CG") , ("CG", "CD") , ("CD", "N")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("CD", ["HD2", "HD3"])]
 sideChainBonds "SER" = [("CB", "OG")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("OG", ["HG"])]
 sideChainBonds "THR" = [("CB", "OG1"), ("CB", "CG2")] ++ bwhMany [("CB", ["HB"]), ("OG1", ["HG1"]), ("CG2", ["HG21", "HG22", "HG23"])]
-sideChainBonds "ASN" = [("CB", "CG") , ("CG", "OD1"), ("CG", "ND2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("ND2", ["HD22", "HD21"])]
-sideChainBonds "GLN" = [("CB", "CG") , ("CG", "CD") , ("CD", "OE1") , ("CD", "NE2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("NE2", ["HE22", "HE21"])]
-sideChainBonds "CYS" = [("CB", "SG")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("SG", ["HG"])]
-sideChainBonds "PRO" = [("CB", "CG") , ("CG", "CD") , ("CD", "N")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("CD", ["HD2", "HD3"])]
-sideChainBonds "ARG" = [("CB", "CG") , ("CG", "CD") , ("CD", "NE")  , ("NE", "CZ")  , ("CZ", "NH2") , ("CZ", "NH1")] ++ bwhMany[("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("CD", ["HD3", "HD2"]), ("NE", ["HE"]), ("NH1", ["HH12", "HH11"]), ("NH2", ["HH22", "HH21"])]
-sideChainBonds "HIS" = [("CB", "CG") , ("CG", "ND1"), ("ND1", "CE1"), ("CE1", "NE2"), ("NE2", "CD2"), ("CD2", "CG")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("ND1", ["HD1"]), ("CE1", ["HE1"]), ("NE2", ["HE2"]), ("CD2", ["HD2"])]
-sideChainBonds "LYS" = [("CB", "CG") , ("CG", "CD") , ("CD", "CE")  , ("CE", "NZ")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("CD", ["HD3", "HD2"]), ("CE", ["HE3", "HE2"]), ("NZ", ["HZ1", "HZ2", "HZ3"])]
-sideChainBonds "ASP" = [("CB", "CG") , ("CG", "OD1"), ("CG", "OD2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("OD2", ["HD2"])]
-sideChainBonds "GLU" = [("CB", "CG") , ("CG", "CD") , ("CD", "OE1") , ("CD", "OE2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("OE2", ["HE2"])]
+sideChainBonds "TRP" = [("CB", "CG") , ("CG", "CD1"), ("CD1", "NE1"), ("NE1", "CE2"), ("CE2", "CD2"), ("CD2", "CG") , ("CD2", "CE3"), ("CE3", "CZ3"), ("CZ3", "CH2"), ("CH2", "CZ2"), ("CZ2", "CE2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CD1", ["HD1"]), ("NE1", ["HE1"]), ("CE3", ["HE3"]), ("CZ3", ["HZ3"]), ("CH2", ["HH2"]), ("CZ2", ["HZ2"])]
+sideChainBonds "TYR" = [("CB", "CG") , ("CG", "CD1"), ("CD1", "CE1"), ("CE1", "CZ") , ("CZ", "CE2") , ("CE2", "CD2"), ("CD2", "CG") , ("CZ", "OH")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CD1", ["HD1"]), ("CE1", ["HE1"]), ("CE2", ["HE2"]), ("CD2", ["HD2"]), ("OH", ["HH"])]
+sideChainBonds "VAL" = [("CB", "CG1"), ("CB", "CG2")] ++ bwhMany [("CB", ["HB"]), ("CG1", ["HG11", "HG12", "HG13"]), ("CG2", ["HG21", "HG22", "HG23"])]
 
 bwhMany :: [(Text, [Text])] -> [(Text, Text)]
 bwhMany = concatMap bwh

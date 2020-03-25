@@ -6,7 +6,7 @@ module Bio.PDB
 
 import qualified Bio.PDB.Type           as PDB
 import           Bio.PDB.Reader         (fromFilePDB, fromTextPDB, PDBWarnings)
-import           Bio.PDB.BondsRestoring (restoreModelBonds)
+import           Bio.PDB.BondRestoring  (restoreModelBonds)
 import           Bio.Structure
 
 import           Control.Arrow          ((&&&))

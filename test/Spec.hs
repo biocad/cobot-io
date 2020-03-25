@@ -55,5 +55,6 @@ main = do
          emptyRemarkSpecP
          emptyModelSpecP
          rawPDBToModelConversionSpec
+         bondsRestoringSpec
          -- Structure
          structureSpec

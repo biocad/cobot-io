@@ -1,0 +1,80 @@
+HEADER    TRANSFERASE                             02-JUL-07   2JIV
+REMARK   4 2JIV COMPLIES WITH FORMAT V. 3.30,
+REMARK 888
+REMARK 888 WRITTEN BY MAESTRO (A PRODUCT OF SCHRODINGER, LLC)
+TITLE     CRYSTAL STRUCTURE OF EGFR KINASE DOMAIN T790M MUTATION IN
+TITLE    2 COMPEX WITH HKI-272
+EXPDTA    X-RAY DIFFRACTION
+REMARK   2 RESOLUTION.    3.50 ANGSTROMS
+REMARK 200  TEMPERATURE           (KELVIN) : 100.00
+REMARK 200  PH                             : 7.50
+REMARK 350 BIOMOLECULE:  1
+REMARK 350 APPLY THE FOLLOWING TO CHAINS: A
+REMARK 350   BIOMT1  1   1.000000 0.000000 0.000000   0.000000
+REMARK 350   BIOMT2  1   0.000000 1.000000 0.000000   0.000000
+REMARK 350   BIOMT3  1   0.000000 0.000000 1.000000   0.000000
+REMARK 350 BIOMOLECULE:  2
+REMARK 350 APPLY THE FOLLOWING TO CHAINS: B
+REMARK 350   BIOMT1  1   1.000000 0.000000 0.000000   0.000000
+REMARK 350   BIOMT2  1   0.000000 1.000000 0.000000   0.000000
+REMARK 350   BIOMT3  1   0.000000 0.000000 1.000000   0.000000
+CRYST1   56.087   98.989   73.326  90.00 109.94  90.00 P 1 21 1      4
+MODEL        1
+ATOM      1  N   HIS A 702      17.252  -5.273   3.577  1.00 39.05           N1+
+ATOM      2  CA  HIS A 702      16.468  -5.032   2.352  1.00 38.59           C  
+ATOM      3  C   HIS A 702      15.106  -5.730   2.433  1.00 38.18           C  
+ATOM      4  O   HIS A 702      14.991  -6.772   3.077  1.00 38.22           O  
+ATOM      5  CB  HIS A 702      17.243  -5.497   1.122  1.00  0.00           C  
+ATOM      6  CG  HIS A 702      18.168  -6.677   1.315  1.00  0.00           C  
+ATOM      7  ND1 HIS A 702      18.888  -6.853   2.426  1.00  0.00           N  
+ATOM      8  CD2 HIS A 702      18.466  -7.737   0.493  1.00  0.00           C  
+ATOM      9  CE1 HIS A 702      19.609  -7.979   2.302  1.00  0.00           C  
+ATOM     10  NE2 HIS A 702      19.387  -8.564   1.125  1.00  0.00           N  
+ATOM     11  H2  HIS A 702      16.749  -4.914   4.375  1.00  0.00           H  
+ATOM     12  H3  HIS A 702      17.401  -6.265   3.692  1.00  0.00           H  
+ATOM     13  HA  HIS A 702      16.297  -3.959   2.261  1.00  0.00           H  
+ATOM     14  HB2 HIS A 702      16.543  -5.793   0.341  1.00  0.00           H  
+ATOM     15  HB3 HIS A 702      17.871  -4.684   0.758  1.00  0.00           H  
+ATOM     16  HD1 HIS A 702      18.825  -6.184   3.180  1.00  0.00           H  
+ATOM     17  HD2 HIS A 702      17.998  -7.818  -0.477  1.00  0.00           H  
+ATOM     18  HE1 HIS A 702      20.259  -8.296   3.104  1.00  0.00           H  
+ATOM     19  H1  HIS A 702      18.145  -4.806   3.502  1.00  0.00           H  
+ATOM     20  N   HIS A 703      14.094  -5.132   1.779  1.00  0.00           N  
+ATOM     21  CA  HIS A 703      12.691  -5.557   1.687  1.00  0.00           C  
+ATOM     22  C   HIS A 703      11.838  -5.067   2.867  1.00  0.00           C  
+ATOM     23  O   HIS A 703      12.356  -4.855   3.964  1.00  0.00           O  
+ATOM     24  CB  HIS A 703      12.517  -7.039   1.368  1.00  0.00           C  
+ATOM     25  CG  HIS A 703      13.585  -7.972   1.891  1.00  0.00           C  
+ATOM     26  ND1 HIS A 703      14.878  -7.640   1.920  1.00  0.00           N  
+ATOM     27  CD2 HIS A 703      13.504  -9.244   2.405  1.00  0.00           C  
+ATOM     28  CE1 HIS A 703      15.578  -8.666   2.432  1.00  0.00           C  
+ATOM     29  NE2 HIS A 703      14.777  -9.683   2.746  1.00  0.00           N  
+ATOM     30  HA  HIS A 703      12.295  -5.033   0.816  1.00  0.00           H  
+ATOM     31  HB2 HIS A 703      11.578  -7.395   1.792  1.00  0.00           H  
+ATOM     32  HB3 HIS A 703      12.503  -7.179   0.287  1.00  0.00           H  
+ATOM     33  HD1 HIS A 703      15.175  -6.734   1.586  1.00  0.00           H  
+ATOM     34  HD2 HIS A 703      12.544  -9.733   2.487  1.00  0.00           H  
+ATOM     35  HE1 HIS A 703      16.650  -8.589   2.539  1.00  0.00           H  
+ATOM     36  H   HIS A 703      14.258  -4.278   1.267  1.00  0.00           H  
+ATOM     37  N   HIS A 704      10.530  -4.890   2.610  1.00  0.00           N  
+ATOM     38  CA  HIS A 704       9.475  -4.435   3.521  1.00  0.00           C  
+ATOM     39  C   HIS A 704       9.394  -2.904   3.568  1.00  0.00           C  
+ATOM     40  O   HIS A 704       8.707  -2.346   2.684  1.00  0.00           O  
+ATOM     41 OXT  HIS A 704      10.031  -2.315   4.469  1.00  0.00           O1-
+ATOM     42  CB  HIS A 704       9.479  -5.131   4.879  1.00  0.00           C  
+ATOM     43  CG  HIS A 704      10.825  -5.570   5.409  1.00  0.00           C  
+ATOM     44  ND1 HIS A 704      11.783  -6.061   4.619  1.00  0.00           N  
+ATOM     45  CD2 HIS A 704      11.339  -5.572   6.683  1.00  0.00           C  
+ATOM     46  CE1 HIS A 704      12.854  -6.361   5.372  1.00  0.00           C  
+ATOM     47  NE2 HIS A 704      12.632  -6.081   6.655  1.00  0.00           N  
+ATOM     48  HA  HIS A 704       8.544  -4.750   3.049  1.00  0.00           H  
+ATOM     49  HB2 HIS A 704       9.067  -4.460   5.633  1.00  0.00           H  
+ATOM     50  HB3 HIS A 704       8.872  -6.035   4.827  1.00  0.00           H  
+ATOM     51  HD1 HIS A 704      11.623  -6.151   3.626  1.00  0.00           H  
+ATOM     52  HD2 HIS A 704      10.742  -5.212   7.507  1.00  0.00           H  
+ATOM     53  HE1 HIS A 704      13.740  -6.774   4.911  1.00  0.00           H  
+ATOM     54  H   HIS A 704      10.166  -5.080   1.687  1.00  0.00           H  
+CONECT   39   41
+CONECT   41   39
+ENDMDL
+END   
