@@ -33,7 +33,7 @@ rawPDBToModelConversionSingleChainSpec = describe "Cobot Model from raw single c
   it "Should have correct number of chains" $ pdbChainCount `shouldBe` 1
   it "Should restore bonds correctly" $ pdbBondCount `shouldBe` maeBondCount
 
-
+-- TODO: validate local bonds in the same manner
 bondsRestoringTripeptideSpec :: SpecWith ()
 bondsRestoringTripeptideSpec = describe "Bonds should be restored correctly in tripeptides" $
   sequence_ $ checkTripeptide <$> tripeptides
@@ -72,10 +72,6 @@ bondsRestoringBiggerMoleculesSpec = describe "Bonds should be restored correctly
       let _bondSetMae = bondSetMae modelFromMae
       let diffMaePDB = S.difference _bondSetMae _bondSetPDB
       let diffPDBMae = S.difference _bondSetPDB _bondSetMae
-
-      runIO $ print ""
-      runIO $ print diffPDBMae
-      runIO $ print diffMaePDB
 
       it (moleculeName ++ " difference in Mae and PDB bond sets") $ S.size diffMaePDB `shouldBe` 0
       it (moleculeName ++ " difference in PDB and Mae bond sets") $ S.size diffPDBMae `shouldBe` 0
