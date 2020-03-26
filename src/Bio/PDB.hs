@@ -6,7 +6,7 @@ module Bio.PDB
 
 import qualified Bio.PDB.Type           as PDB
 import           Bio.PDB.Reader         (fromFilePDB, fromTextPDB, PDBWarnings)
-import           Bio.PDB.BondRestoring  (restoreModelBonds)
+import           Bio.PDB.BondRestoring  (restoreModelGlobalBonds)
 import           Bio.Structure
 
 import           Control.Arrow          ((&&&))
@@ -18,13 +18,12 @@ import           Data.Text.IO           as TIO (readFile)
 import qualified Data.Vector            as V
 import           Linear.V3              (V3 (..))
 
--- TODO: bonds recovering must have been done here
--- TODO: write tests for this conversion
+-- TODO: form local bonds as well
 instance StructureModels PDB.PDB where
     modelsOf PDB.PDB {..} = fmap mkModel models
       where
         mkModel :: PDB.Model -> Model
-        mkModel model = Model (fmap mkChain model) (restoreModelBonds model)
+        mkModel model = Model (fmap mkChain model) (restoreModelGlobalBonds model)
 
         mkChain :: PDB.Chain -> Chain
         mkChain = uncurry Chain . (mkChainName &&& mkChainResidues)

@@ -54,7 +54,8 @@ main = do
          repeatedStringsSpecP
          emptyRemarkSpecP
          emptyModelSpecP
-         rawPDBToModelConversionSpec
-         bondsRestoringSpec
+         rawPDBToModelConversionSingleChainSpec
+         bondsRestoringTripeptideSpec
+         bondsRestoringBiggerMoleculesSpec
          -- Structure
          structureSpec

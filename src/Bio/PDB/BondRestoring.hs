@@ -2,12 +2,12 @@
 {-# LANGUAGE TupleSections #-}
 
 module Bio.PDB.BondRestoring
-  ( restoreBonds
-  , restoreModelBonds
+  ( restoreGlobalBonds
+  , restoreModelGlobalBonds
   ) where
 
 import qualified Bio.PDB.Type as PDB (Atom(..), PDB (..))
-import           Bio.Structure (Bond(..), GlobalID(..))
+import           Bio.Structure (Bond (..), GlobalID (..), LocalID (..))
 
 import qualified Data.Vector as V
 import           Data.List (groupBy, sortOn, find)
@@ -21,17 +21,29 @@ import           Linear.V3                        (V3(..))
 
 import           Control.Monad                    (guard)
 
-restoreBonds :: PDB.PDB -> V.Vector (V.Vector (Bond GlobalID))
-restoreBonds PDB.PDB{..} = restoreModelBonds <$> models
+restoreGlobalBonds :: PDB.PDB -> V.Vector (V.Vector (Bond GlobalID))
+restoreGlobalBonds PDB.PDB{..} = restoreModelGlobalBonds <$> models
 
-restoreModelBonds :: V.Vector (V.Vector PDB.Atom) -> V.Vector (Bond GlobalID)
-restoreModelBonds chains = V.fromList $ interResidueBonds ++ peptideBonds ++ disulfideBonds
+restoreModelLocalBonds :: V.Vector (V.Vector PDB.Atom) -> Map Text [Bond LocalID]
+restoreModelLocalBonds chains = undefined
+  where
+    interResidueGlobalBonds :: V.Vector [Bond GlobalID]
+    interResidueGlobalBonds = fmap restoreChainIntraResidueBonds chainAtomsGroupedByResidue
+    chainAtomsGroupedByResidue :: V.Vector [[PDB.Atom]]
+    chainAtomsGroupedByResidue = fmap groupChainAtomsByResidue chains
+    -- convertGlobalToLocal :: 
+
+restoreModelGlobalBonds :: V.Vector (V.Vector PDB.Atom) -> V.Vector (Bond GlobalID)
+restoreModelGlobalBonds chains = V.fromList $ intraResidueBonds ++ peptideBonds ++ disulfideBonds
   where
     chainAtomsGroupedByResidue :: V.Vector [[PDB.Atom]]
-    chainAtomsGroupedByResidue = groupChainAtomsByResidue <$> chains
+    chainAtomsGroupedByResidue = fmap groupChainAtomsByResidue chains
     
-    interResidueBonds = concatMap restoreChainInterResidueBonds chainAtomsGroupedByResidue
+    intraResidueBonds :: [Bond GlobalID]
+    intraResidueBonds = concatMap restoreChainIntraResidueBonds chainAtomsGroupedByResidue
+    peptideBonds :: [Bond GlobalID]
     peptideBonds = concatMap restoreChainPeptideBonds chainAtomsGroupedByResidue
+    disulfideBonds :: [Bond GlobalID]
     disulfideBonds = restoreDisulfideBonds . concat $ V.toList chainAtomsGroupedByResidue
 
 restoreDisulfideBonds :: [[PDB.Atom]] -> [Bond GlobalID]
@@ -42,7 +54,6 @@ restoreDisulfideBonds atomsGroupedByResidue = do
   guard $ distance (coords atom1) (coords atom2) < sulfidicBondMaxLength
   pure $ Bond (GlobalID $ PDB.atomSerial atom1) (GlobalID $ PDB.atomSerial atom2) 1
   where
-    bonds = []
     cystineSulfur :: [PDB.Atom]
     cystineSulfur = filter (("SG" ==) . T.strip . PDB.atomName) $ concat cystines
     cystines :: [[PDB.Atom]]
@@ -76,8 +87,8 @@ restoreChainPeptideBonds atomsGroupedByResidue = restoreChainPeptideBonds' atoms
     chainId (PDB.Atom{..}:_) = show atomChainID
     
 
-restoreChainInterResidueBonds :: [[PDB.Atom]] -> [Bond GlobalID]
-restoreChainInterResidueBonds = concatMap restoreIntraResidueBonds
+restoreChainIntraResidueBonds :: [[PDB.Atom]] -> [Bond GlobalID]
+restoreChainIntraResidueBonds = concatMap restoreIntraResidueBonds
 
 restoreIntraResidueBonds :: [PDB.Atom] -> [Bond GlobalID]
 restoreIntraResidueBonds residueAtoms = catMaybes $ constructBond <$> residueBonds
@@ -98,7 +109,7 @@ intraResidueBonds "ACE" = [("C", "O"), ("C", "CH3")]
 intraResidueBonds residueName = backboneBonds ++ caCbBonds residueName ++ sideChainBonds residueName
 
 backboneBonds :: [(Text, Text)]
-backboneBonds = [("N", "CA"), ("CA", "C"), ("C", "O"), ("N", "H")] ++ [("C","OXT")] ++ bwhMany [("N", ["H1", "H2", "H3"])]
+backboneBonds = [("N", "CA"), ("CA", "C"), ("C", "O"), ("N", "H")] ++ [("C","OXT"), ("C","HXT")] ++ bwhMany [("N", ["H1", "H2", "H3"])]
 
 caCbBonds :: Text -> [(Text, Text)]
 caCbBonds aminoacid = case aminoacid of
