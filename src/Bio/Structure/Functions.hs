@@ -1,15 +1,35 @@
 module Bio.Structure.Functions
   ( filterAtomsOfModel
+  , chain, globalBond
+  , residue
+  , atom, localBond
   ) where
 
 import           Bio.Structure   (Atom (..), Bond (..), Chain (..),
                                   GlobalID (..), LocalID (..), Model (..),
-                                  Residue (..))
+                                  Residue (..), atoms, chains, globalBonds,
+                                  localBonds, residues)
+import           Control.Lens    (Traversal', each)
 import qualified Data.Map.Strict as M (fromList, (!))
 import           Data.Set        (Set)
 import qualified Data.Set        as S (fromList, notMember, unions)
 import           Data.Vector     (Vector)
 import qualified Data.Vector     as V (filter, fromList, length, toList, unzip)
+
+chain :: Traversal' Model Chain
+chain = chains . each
+
+globalBond :: Traversal' Model (Bond GlobalID)
+globalBond = globalBonds . each
+
+residue :: Traversal' Chain Residue
+residue = residues . each
+
+atom :: Traversal' Residue Atom
+atom = atoms . each
+
+localBond :: Traversal' Residue (Bond LocalID)
+localBond = localBonds . each
 
 -- | Takes predicate on 'Atom's of 'Model' and returns new 'Model' containing only atoms
 --   satisfying given predicate.

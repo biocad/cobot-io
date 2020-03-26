@@ -1,5 +1,7 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric  #-}
+{-# LANGUAGE DeriveAnyClass  #-}
+{-# LANGUAGE DeriveGeneric   #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Bio.Structure
   ( SecondaryStructure (..)
   , Atom (..), Bond (..)
@@ -7,9 +9,13 @@ module Bio.Structure
   , StructureModels (..), StructureSerializable (..)
   , LocalID (..)
   , GlobalID (..)
+  , atoms, localBonds
+  , residues
+  , chains, globalBonds
   ) where
 
 import           Control.DeepSeq (NFData (..))
+import           Control.Lens    (makeLensesFor)
 import           Data.Text       (Text)
 import           Data.Vector     (Vector)
 import           GHC.Generics    (Generic)
@@ -78,6 +84,8 @@ data Residue = Residue { resName         :: Text                  -- ^ residue n
                        }
   deriving (Show, Eq, Generic, NFData)
 
+$(makeLensesFor [("resAtoms", "atoms"), ("resBonds", "localBonds")] ''Residue)
+
 -- | Chain organizes linear structure of residues
 --
 data Chain = Chain { chainName     :: Text              -- ^ name of a chain
@@ -85,12 +93,16 @@ data Chain = Chain { chainName     :: Text              -- ^ name of a chain
                    }
   deriving (Show, Eq, Generic, NFData)
 
+$(makeLensesFor [("chainResidues", "residues")] ''Chain)
+
 -- | Model represents a single experiment of structure determination
 --
 data Model = Model { modelChains :: Vector Chain           -- ^ chains in the model
                    , modelBonds  :: Vector (Bond GlobalID) -- ^ bonds with global identifiers (field `atomId` in 'Atom')
                    }
   deriving (Show, Eq, Generic, NFData)
+
+$(makeLensesFor [("modelChains", "chains"), ("modelBonds", "globalBonds")] ''Model)
 
 -- | Convert any format-specific data to an intermediate representation of structure
 class StructureModels a where
