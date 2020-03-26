@@ -48,6 +48,9 @@ data Atom = Atom { atomId       :: GlobalID -- ^ global identifier
                  }
   deriving (Show, Eq, Generic)
 
+instance Ord Atom where
+  a1 <= a2 = atomId a1 <= atomId a2
+
 instance NFData Atom
 
 -- | Generic chemical bond

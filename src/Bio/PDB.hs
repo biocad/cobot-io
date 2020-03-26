@@ -6,7 +6,7 @@ module Bio.PDB
 
 import qualified Bio.PDB.Type           as PDB
 import           Bio.PDB.Reader         (fromFilePDB, fromTextPDB, PDBWarnings)
-import           Bio.PDB.BondRestoring  (restoreModelGlobalBonds)
+import           Bio.PDB.BondRestoring  (restoreModelGlobalBonds, restoreChainLocalBonds, residueID)
 import           Bio.Structure
 
 import           Control.Arrow          ((&&&))
@@ -15,10 +15,11 @@ import           Data.Coerce            (coerce)
 import           Data.Foldable          (Foldable (..))
 import           Data.Text              as T (Text, singleton, unpack, pack, strip)
 import           Data.Text.IO           as TIO (readFile)
+import           Data.Map               (Map)
+import qualified Data.Map               as M ((!))
 import qualified Data.Vector            as V
 import           Linear.V3              (V3 (..))
 
--- TODO: form local bonds as well
 instance StructureModels PDB.PDB where
     modelsOf PDB.PDB {..} = fmap mkModel models
       where
@@ -32,7 +33,7 @@ instance StructureModels PDB.PDB where
         mkChainName = T.singleton . PDB.atomChainID . safeFirstAtom
 
         mkChainResidues :: PDB.Chain -> V.Vector Residue
-        mkChainResidues = V.fromList . fmap mkResidue . flip groupByResidue [] . pure . toList
+        mkChainResidues chain = V.fromList . fmap (mkResidue (restoreChainLocalBonds chain)) . flip groupByResidue [] . pure $ toList chain
 
         -- can be rewritten with sortOn and groupBy
         groupByResidue :: [[PDB.Atom]] -> [PDB.Atom] -> [[PDB.Atom]]
@@ -47,16 +48,15 @@ instance StructureModels PDB.PDB where
         safeFirstAtom arr | V.length arr > 0 = arr V.! 0
                           | otherwise        = error "Could not pick first atom"
 
-
-        mkResidue :: [PDB.Atom] -> Residue
-        mkResidue []    = error "Cound not make residue from empty list"
-        mkResidue atoms = Residue (T.strip $ PDB.atomResName firstResidueAtom)
-                                  (PDB.atomResSeq firstResidueAtom)
-                                  (PDB.atomICode firstResidueAtom)
-                                  (V.fromList $ mkAtom <$> atoms)
-                                  V.empty   -- now we do not read bonds
-                                  Undefined -- now we do not read secondary structure
-                                  ""        -- chemical component type?!
+        mkResidue :: Map Text (V.Vector (Bond LocalID)) -> [PDB.Atom] -> Residue
+        mkResidue _ []    = error "Cound not make residue from empty list"
+        mkResidue localBondsMap atoms = Residue (T.strip $ PDB.atomResName firstResidueAtom)
+                                                (PDB.atomResSeq firstResidueAtom)
+                                                (PDB.atomICode firstResidueAtom)
+                                                (V.fromList $ mkAtom <$> atoms)
+                                                (localBondsMap M.! (residueID firstResidueAtom))
+                                                Undefined -- now we do not read secondary structure
+                                                ""        -- chemical component type?!
           where
             firstResidueAtom = head atoms
 
