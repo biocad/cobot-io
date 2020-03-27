@@ -26,9 +26,9 @@ structureSpec = describe "Structure spec." $ do
     m <- runIO $ V.toList . modelsOf <$> fromFile "test/MAE/Capri.mae" >>= \[x] -> pure x
 
     it "atoms filtering works correctly. only N, CA, C"  $ checkFiltering m $ (`elem` ["N", "CA", "C"]) . atomName
-    -- it "atoms filtering works correctly. only CA"        $ checkFiltering m $ (== "CA") . atomName
-    -- it "atoms filtering works correctly. no atoms"       $ checkFiltering m $ const False
-    -- it "atoms filtering works correctly. all atoms"      $ checkFiltering m $ const True
+    it "atoms filtering works correctly. only CA"        $ checkFiltering m $ (== "CA") . atomName
+    it "atoms filtering works correctly. no atoms"       $ checkFiltering m $ const False
+    it "atoms filtering works correctly. all atoms"      $ checkFiltering m $ const True
   where
     checkFiltering :: Model -> (Atom -> Bool) -> Expectation
     checkFiltering m p = do
