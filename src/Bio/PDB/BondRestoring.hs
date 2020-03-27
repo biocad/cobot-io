@@ -18,7 +18,7 @@ import           Data.Text       (Text)
 import qualified Data.Text as T  (strip, pack, unpack)
 import           Data.Map.Strict (Map, (!?), (!))
 import qualified Data.Map.Strict as M (fromList)
-import           Data.Maybe (maybe, catMaybes)
+import           Data.Maybe (maybe, catMaybes, fromMaybe)
 
 import           Linear.Metric                    (distance)
 import           Linear.V3                        (V3(..))
@@ -42,20 +42,22 @@ restoreChainLocalBonds' chainAtoms = residueIDToLocalBonds
   where
     residueIDToLocalBonds :: [(Text, V.Vector (Bond LocalID))]
     residueIDToLocalBonds = do
-      (residueAtoms, residueBonds) <- zip chainAtomsGroupedByResidue interResidueGlobalBonds
+      (residueAtoms, residueBonds) <- zip chainAtomsGroupedByResidue intraResidueGlobalBonds
       let localBonds = V.fromList $ convertGlobalToLocal residueAtoms residueBonds
       let _residueID = residueID $ head residueAtoms
       pure (_residueID, localBonds)
-    interResidueGlobalBonds :: [[Bond GlobalID]]
-    interResidueGlobalBonds = fmap restoreIntraResidueBonds chainAtomsGroupedByResidue
+    intraResidueGlobalBonds :: [[Bond GlobalID]]
+    intraResidueGlobalBonds = fmap restoreIntraResidueBonds chainAtomsGroupedByResidue
     chainAtomsGroupedByResidue :: [[PDB.Atom]]
     chainAtomsGroupedByResidue = groupChainAtomsByResidue chainAtoms
     convertGlobalToLocal :: [PDB.Atom] -> [Bond GlobalID] -> [Bond LocalID]
-    convertGlobalToLocal residueAtoms = map convertGlobalToLocal
+    convertGlobalToLocal residueAtoms = map (processConversionMaybe . convertGlobalToLocal)
       where
-        convertGlobalToLocal :: Bond GlobalID -> Bond LocalID
+        processConversionMaybe :: Maybe (Bond LocalID) -> Bond LocalID
+        processConversionMaybe = fromMaybe (error "WTF")
+        convertGlobalToLocal :: Bond GlobalID -> Maybe (Bond LocalID)
         convertGlobalToLocal (Bond (GlobalID from) (GlobalID to) order) = 
-          Bond (LocalID (globalToLocalIdxMap ! from)) (LocalID (globalToLocalIdxMap ! to)) order
+          Bond <$> (LocalID <$> globalToLocalIdxMap !? from) <*> (LocalID <$> globalToLocalIdxMap !? to) <*> pure order
         globalToLocalIdxMap :: Map Int Int
         globalToLocalIdxMap = M.fromList $ zip sortedGlobalIndices [0..]
         sortedGlobalIndices :: [Int]

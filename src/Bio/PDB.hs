@@ -18,6 +18,8 @@ import           Data.Text.IO           as TIO (readFile)
 import           Data.Map               (Map)
 import qualified Data.Map               as M ((!))
 import qualified Data.Vector            as V
+import           Data.Maybe             (fromMaybe)
+import           Text.Read              (readMaybe)
 import           Linear.V3              (V3 (..))
 
 instance StructureModels PDB.PDB where
@@ -47,26 +49,25 @@ instance StructureModels PDB.PDB where
         safeFirstAtom :: V.Vector PDB.Atom -> PDB.Atom
         safeFirstAtom arr | V.length arr > 0 = arr V.! 0
                           | otherwise        = error "Could not pick first atom"
-
+        
         mkResidue :: Map Text (V.Vector (Bond LocalID)) -> [PDB.Atom] -> Residue
         mkResidue _ []    = error "Cound not make residue from empty list"
         mkResidue localBondsMap atoms = Residue (T.strip $ PDB.atomResName firstResidueAtom)
                                                 (PDB.atomResSeq firstResidueAtom)
                                                 (PDB.atomICode firstResidueAtom)
                                                 (V.fromList $ mkAtom <$> atoms)
-                                                (localBondsMap M.! (residueID firstResidueAtom))
+                                                (localBondsMap M.! residueID firstResidueAtom)
                                                 Undefined -- now we do not read secondary structure
                                                 ""        -- chemical component type?!
           where
             firstResidueAtom = head atoms
-
-
+            
         mkAtom :: PDB.Atom -> Atom
         mkAtom PDB.Atom{..} = Atom (coerce atomSerial)
                                    (T.strip atomName)
                                    atomElement
                                    (V3 atomX atomY atomZ)
-                                   (read $ T.unpack atomCharge)
+                                   (fromMaybe 0 . readMaybe $ T.unpack atomCharge)
                                    atomTempFactor
                                    atomOccupancy
 
