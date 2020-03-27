@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.2.10] - 2020-03-27
+### Added
+- Lenses for `Structure`.
+
 ## [0.1.2.9] - 2020-03-12
 ### Added
 - Function `filterAtomsOfModel` to filter atoms of model by the given predicate.

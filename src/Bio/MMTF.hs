@@ -25,7 +25,7 @@ import           Data.Vector            (Vector, empty, toList, (!))
 import           Linear.V3              (V3 (..))
 import           Network.HTTP.Simple    (getResponseBody, httpLBS)
 #if !MIN_VERSION_base(4,13,0)
-import           Control.Monad.Fail     (MonadFail(..))
+import           Control.Monad.Fail     (MonadFail (..))
 import           Prelude                hiding (fail)
 #endif
 
@@ -70,9 +70,9 @@ instance StructureModels MMTF where
                              in  (end, mkAtom <$> zip4 cl nl el ics)
 
         mkResidue :: (GroupType, SecondaryStructure, [Atom]) -> Residue
-        mkResidue (gt, ss, atoms) = Residue (gtGroupName gt) (l2v atoms)
-                                            (mkBonds (gtBondAtomList gt) (gtBondOrderList gt))
-                                             ss (gtChemCompType gt)
+        mkResidue (gt, ss, atoms') = Residue (gtGroupName gt) (l2v atoms')
+                                             (mkBonds (gtBondAtomList gt) (gtBondOrderList gt))
+                                              ss (gtChemCompType gt)
 
         mkBonds :: Vector (Int32, Int32) -> Vector Int32 -> Vector (Bond LocalID)
         mkBonds bal bol = let ball = bimap (LocalID . fromIntegral) (LocalID . fromIntegral) <$> toList bal

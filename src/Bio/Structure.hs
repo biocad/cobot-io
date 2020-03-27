@@ -84,7 +84,7 @@ data Residue = Residue { resName         :: Text                  -- ^ residue n
                        }
   deriving (Show, Eq, Generic, NFData)
 
-$(makeLensesFor [("resAtoms", "atoms"), ("resBonds", "localBonds")] ''Residue)
+makeLensesFor [("resAtoms", "atoms"), ("resBonds", "localBonds")] ''Residue
 
 -- | Chain organizes linear structure of residues
 --
@@ -93,7 +93,7 @@ data Chain = Chain { chainName     :: Text              -- ^ name of a chain
                    }
   deriving (Show, Eq, Generic, NFData)
 
-$(makeLensesFor [("chainResidues", "residues")] ''Chain)
+makeLensesFor [("chainResidues", "residues")] ''Chain
 
 -- | Model represents a single experiment of structure determination
 --
@@ -102,7 +102,7 @@ data Model = Model { modelChains :: Vector Chain           -- ^ chains in the mo
                    }
   deriving (Show, Eq, Generic, NFData)
 
-$(makeLensesFor [("modelChains", "chains"), ("modelBonds", "globalBonds")] ''Model)
+makeLensesFor [("modelChains", "chains"), ("modelBonds", "globalBonds")] ''Model
 
 -- | Convert any format-specific data to an intermediate representation of structure
 class StructureModels a where
