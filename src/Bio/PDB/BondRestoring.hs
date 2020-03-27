@@ -10,6 +10,7 @@ module Bio.PDB.BondRestoring
   ) where
 
 import qualified Bio.PDB.Type as PDB (Atom(..), PDB (..))
+import           Bio.PDB.Functions (groupChainByResidue)
 import           Bio.Structure (Bond (..), GlobalID (..), LocalID (..))
 
 import qualified Data.Vector as V (Vector, zip, fromList, toList)
@@ -49,15 +50,13 @@ restoreChainLocalBonds' chainAtoms = residueIDToLocalBonds
     intraResidueGlobalBonds :: [[Bond GlobalID]]
     intraResidueGlobalBonds = fmap restoreIntraResidueBonds chainAtomsGroupedByResidue
     chainAtomsGroupedByResidue :: [[PDB.Atom]]
-    chainAtomsGroupedByResidue = groupChainAtomsByResidue chainAtoms
+    chainAtomsGroupedByResidue = groupChainByResidue chainAtoms
     convertGlobalToLocal :: [PDB.Atom] -> [Bond GlobalID] -> [Bond LocalID]
-    convertGlobalToLocal residueAtoms = map (processConversionMaybe . convertGlobalToLocal)
+    convertGlobalToLocal residueAtoms = map convertGlobalToLocal
       where
-        processConversionMaybe :: Maybe (Bond LocalID) -> Bond LocalID
-        processConversionMaybe = fromMaybe (error "WTF")
-        convertGlobalToLocal :: Bond GlobalID -> Maybe (Bond LocalID)
+        convertGlobalToLocal :: Bond GlobalID -> Bond LocalID
         convertGlobalToLocal (Bond (GlobalID from) (GlobalID to) order) = 
-          Bond <$> (LocalID <$> globalToLocalIdxMap !? from) <*> (LocalID <$> globalToLocalIdxMap !? to) <*> pure order
+          Bond (LocalID $ globalToLocalIdxMap ! from) (LocalID $ globalToLocalIdxMap ! to) order
         globalToLocalIdxMap :: Map Int Int
         globalToLocalIdxMap = M.fromList $ zip sortedGlobalIndices [0..]
         sortedGlobalIndices :: [Int]
@@ -67,7 +66,7 @@ restoreModelGlobalBonds :: V.Vector (V.Vector PDB.Atom) -> V.Vector (Bond Global
 restoreModelGlobalBonds chains = V.fromList $ intraResidueBonds ++ peptideBonds ++ disulfideBonds
   where
     chainAtomsGroupedByResidue :: V.Vector [[PDB.Atom]]
-    chainAtomsGroupedByResidue = fmap groupChainAtomsByResidue chains
+    chainAtomsGroupedByResidue = fmap groupChainByResidue chains
     
     intraResidueBonds :: [Bond GlobalID]
     intraResidueBonds = concatMap restoreChainIntraResidueBonds chainAtomsGroupedByResidue
@@ -176,14 +175,3 @@ bwh = heavyAtomBondsWithHydrogens
 
 heavyAtomBondsWithHydrogens :: (Text, [Text]) -> [(Text, Text)]
 heavyAtomBondsWithHydrogens (heavyAtomName, hydrogenNames) = (heavyAtomName,) <$> hydrogenNames
-
-
-groupChainAtomsByResidue :: V.Vector PDB.Atom -> [[PDB.Atom]]
-groupChainAtomsByResidue = sortOn (sortOnResidue . head) . groupBy atomsFromSameResidue . V.toList
-  where 
-    atomsFromSameResidue :: PDB.Atom -> PDB.Atom -> Bool
-    atomsFromSameResidue atom1 atom2 = PDB.atomResSeq atom1 == PDB.atomResSeq atom2 && PDB.atomICode atom1 == PDB.atomICode atom2
-    sortOnResidue :: PDB.Atom -> Int
-    sortOnResidue PDB.Atom{..} = atomSerial * 100 + (insertionCodeSortingCorrections ! atomICode)
-    insertionCodeSortingCorrections :: Map Char Int
-    insertionCodeSortingCorrections = M.fromList $ zip (' ':['A'..'Z']) [0..]

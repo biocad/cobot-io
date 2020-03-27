@@ -32,16 +32,12 @@ rawPDBToModelConversionSingleChainSpec = describe "Cobot Model from raw single c
   let (pdbBondCount, _, pdbChainCount, pdbAtomCount) = getStats modelFromPDB
   let (maeBondCount, _, _, _) = getStats modelFromMae
 
-  runIO $ print "1PPE"
-  runIO $ print pdbAtomCount
-
-  -- runIO $ print modelFromPDB
-
   it "Should have correct number of atoms" $ pdbAtomCount `shouldBe` 436
   it "Should have correct number of chains" $ pdbChainCount `shouldBe` 1
   it "Should restore bonds correctly" $ pdbBondCount `shouldBe` maeBondCount
 
--- TODO: check local bonds on tripeptides as well
+-- tripeptides are not checked as in checkBiggerMolecule 
+-- because there are inconsistencies in atom numbers between pdb and mae
 bondsRestoringTripeptideSpec :: SpecWith ()
 bondsRestoringTripeptideSpec = describe "Bonds should be restored correctly in tripeptides" $
   sequence_ $ checkTripeptide <$> tripeptides
@@ -61,15 +57,15 @@ bondsRestoringTripeptideSpec = describe "Bonds should be restored correctly in t
 
 bondsRestoringBiggerMoleculesSpec :: SpecWith ()
 bondsRestoringBiggerMoleculesSpec = describe "Bonds should be restored correctly in bigger molecules" $ do
-  -- checkBiggerMolecule "3mxw_ab_b"
-  -- checkBiggerMolecule "1vfb_ab_b"
+  checkBiggerMolecule "3mxw_ab_b"
+  checkBiggerMolecule "1vfb_ab_b"
   checkBiggerMolecule "4dn4_ag_b"
   where
     checkBiggerMolecule moleculeName = do
       modelFromPDB <- runIO . firstPDBModel $ "test/PDB/BondsRestoring/" ++ moleculeName ++ ".pdb"
       modelFromMae <- runIO . firstMaeModel $ "test/PDB/BondsRestoring/" ++ moleculeName ++ ".mae"
-      let (pdbGlobalBondCount, pdbChainCount, pdbAtomCount, pdbLocalBondCount) = getStats modelFromPDB
-      let (maeGlobalBondCount, _, _, maeLocalBondCount) = getStats modelFromMae
+      let (pdbGlobalBondCount, pdbLocalBondCount, pdbChainCount, pdbAtomCount) = getStats modelFromPDB
+      let (maeGlobalBondCount, maeLocalBondCount, maeChainCount, maeAtomCount) = getStats modelFromMae
 
       it (moleculeName ++ " equal global bond count in Mae and PDB") $ pdbGlobalBondCount `shouldBe` maeGlobalBondCount
       it (moleculeName ++ " equal local bond count in Mae and PDB") $ pdbLocalBondCount `shouldBe` maeLocalBondCount
@@ -84,22 +80,10 @@ bondsRestoringBiggerMoleculesSpec = describe "Bonds should be restored correctly
       it (moleculeName ++ " difference in Mae and PDB global bond sets") $ S.size diffMaePDBGlobal `shouldBe` 0
       it (moleculeName ++ " difference in PDB and Mae global bond sets") $ S.size diffPDBMaeGlobal `shouldBe` 0
 
-      -- TODO: sort out what happens here
       let _localBondSetPDB = localBondSet modelFromPDB
       let _localBondSetMae = localBondSet modelFromMae
       let diffMaePDBLocal = S.difference _localBondSetMae _localBondSetPDB
       let diffPDBMaeLocal = S.difference _localBondSetPDB _localBondSetMae
-
-      runIO $ print ""
-      -- runIO $ print modelFromPDB
-      runIO $ print "PDB atom count"
-      runIO $ print pdbAtomCount
-      runIO . print $ S.size _localBondSetPDB
-      -- runIO . print $ S.size _localBondSetMae
-      runIO $ ololo modelFromPDB
-      runIO $ print _localBondSetPDB
-      -- runIO . print $ S.take 5 diffMaePDBLocal
-      -- runIO . print $ S.take 5 diffPDBMaeLocal
 
       it (moleculeName ++ " difference in Mae and PDB local bond sets") $ S.size diffMaePDBLocal `shouldBe` 0
       it (moleculeName ++ " difference in PDB and Mae local bond sets") $ S.size diffPDBMaeLocal `shouldBe` 0
@@ -165,11 +149,10 @@ firstPDBModel :: (MonadIO m) => FilePath -> m Model
 firstPDBModel filepath = do
   eitherPDB <- modelsFromPDBFile filepath
   let (_, models) = fromRight undefined eitherPDB
-  -- liftIO . ef $ V.head models
-  pure $ V.head models
+  liftIO . ef $ V.head models
 
 firstMaeModel :: (MonadIO m) => FilePath -> m Model
 firstMaeModel filepath = do
   eitherMae <- modelsFromMaeFile filepath
-  -- liftIO . ef . V.head $ fromRight undefined eitherMae
+  -- `evaluate . force` fails for some reason
   pure . V.head $ fromRight undefined eitherMae
