@@ -9,50 +9,51 @@ module Bio.PDB.BondRestoring
   , residueID
   ) where
 
-import qualified Bio.PDB.Type as PDB (Atom(..), PDB (..))
-import           Bio.PDB.Functions (groupChainByResidue)
-import           Bio.Structure (Bond (..), GlobalID (..), LocalID (..))
+import qualified Bio.PDB.Type as PDB  (Atom(..), PDB (..))
+import           Bio.PDB.Functions    (groupChainByResidue)
+import           Bio.Structure        (Bond (..), GlobalID (..), LocalID (..))
 
-import qualified Data.Vector as V (Vector, zip, fromList, toList)
-import           Data.List (groupBy, sortOn, find, sort)
-import           Data.Text       (Text)
-import qualified Data.Text as T  (strip, pack, unpack)
-import           Data.Map.Strict (Map, (!?), (!))
+import           Data.Vector          (Vector)
+import qualified Data.Vector as V     (fromList, toList)
+import           Data.List            (find, sort)
+import           Data.Text            (Text)
+import qualified Data.Text as T       (strip, pack, unpack)
+import           Data.Map.Strict      (Map, (!?), (!))
 import qualified Data.Map.Strict as M (fromList)
-import           Data.Maybe (maybe, catMaybes, fromMaybe)
+import           Data.Maybe           (catMaybes)
 
-import           Linear.Metric                    (distance)
-import           Linear.V3                        (V3(..))
+import           Linear.Metric        (distance)
+import           Linear.V3            (V3(..))
 
-import           Control.Monad                    (guard)
+import           Control.Monad        (guard)
 
 residueID :: PDB.Atom -> Text
 residueID PDB.Atom{..} = T.pack (show atomChainID) <> T.pack (show atomResSeq) <> T.pack (show atomICode)
 
-restoreGlobalBonds :: PDB.PDB -> V.Vector (V.Vector (Bond GlobalID))
+restoreGlobalBonds :: PDB.PDB -> Vector (Vector (Bond GlobalID))
 restoreGlobalBonds PDB.PDB{..} = restoreModelGlobalBonds <$> models
 
-restoreModelLocalBonds :: V.Vector (V.Vector PDB.Atom) -> Map Text (V.Vector (Bond LocalID))
+restoreModelLocalBonds :: Vector (Vector PDB.Atom) -> Map Text (Vector (Bond LocalID))
 restoreModelLocalBonds = M.fromList . concatMap restoreChainLocalBonds'
 
-restoreChainLocalBonds :: V.Vector PDB.Atom -> Map Text (V.Vector (Bond LocalID))
+restoreChainLocalBonds :: Vector PDB.Atom -> Map Text (Vector (Bond LocalID))
 restoreChainLocalBonds = M.fromList . restoreChainLocalBonds'
 
-restoreChainLocalBonds' :: V.Vector PDB.Atom -> [(Text, V.Vector (Bond LocalID))]
+restoreChainLocalBonds' :: Vector PDB.Atom -> [(Text, Vector (Bond LocalID))]
 restoreChainLocalBonds' chainAtoms = residueIDToLocalBonds
   where
-    residueIDToLocalBonds :: [(Text, V.Vector (Bond LocalID))]
+    residueIDToLocalBonds :: [(Text, Vector (Bond LocalID))]
     residueIDToLocalBonds = do
       (residueAtoms, residueBonds) <- zip chainAtomsGroupedByResidue intraResidueGlobalBonds
-      let localBonds = V.fromList $ convertGlobalToLocal residueAtoms residueBonds
+      let localBonds = V.fromList $ convertGlobalsToLocals residueAtoms residueBonds
       let _residueID = residueID $ head residueAtoms
       pure (_residueID, localBonds)
     intraResidueGlobalBonds :: [[Bond GlobalID]]
     intraResidueGlobalBonds = fmap restoreIntraResidueBonds chainAtomsGroupedByResidue
     chainAtomsGroupedByResidue :: [[PDB.Atom]]
     chainAtomsGroupedByResidue = groupChainByResidue chainAtoms
-    convertGlobalToLocal :: [PDB.Atom] -> [Bond GlobalID] -> [Bond LocalID]
-    convertGlobalToLocal residueAtoms = map convertGlobalToLocal
+    convertGlobalsToLocals :: [PDB.Atom] -> [Bond GlobalID] -> [Bond LocalID]
+    convertGlobalsToLocals residueAtoms = map convertGlobalToLocal
       where
         convertGlobalToLocal :: Bond GlobalID -> Bond LocalID
         convertGlobalToLocal (Bond (GlobalID from) (GlobalID to) order) = 
@@ -62,14 +63,14 @@ restoreChainLocalBonds' chainAtoms = residueIDToLocalBonds
         sortedGlobalIndices :: [Int]
         sortedGlobalIndices = map PDB.atomSerial $ sort residueAtoms
 
-restoreModelGlobalBonds :: V.Vector (V.Vector PDB.Atom) -> V.Vector (Bond GlobalID)
-restoreModelGlobalBonds chains = V.fromList $ intraResidueBonds ++ peptideBonds ++ disulfideBonds
+restoreModelGlobalBonds :: Vector (Vector PDB.Atom) -> Vector (Bond GlobalID)
+restoreModelGlobalBonds chains = V.fromList $ _intraResidueBonds ++ peptideBonds ++ disulfideBonds
   where
-    chainAtomsGroupedByResidue :: V.Vector [[PDB.Atom]]
+    chainAtomsGroupedByResidue :: Vector [[PDB.Atom]]
     chainAtomsGroupedByResidue = fmap groupChainByResidue chains
     
-    intraResidueBonds :: [Bond GlobalID]
-    intraResidueBonds = concatMap restoreChainIntraResidueBonds chainAtomsGroupedByResidue
+    _intraResidueBonds :: [Bond GlobalID]
+    _intraResidueBonds = concatMap restoreChainIntraResidueBonds chainAtomsGroupedByResidue
     peptideBonds :: [Bond GlobalID]
     peptideBonds = concatMap restoreChainPeptideBonds chainAtomsGroupedByResidue
     disulfideBonds :: [Bond GlobalID]
@@ -111,8 +112,10 @@ restoreChainPeptideBonds atomsGroupedByResidue = restoreChainPeptideBonds' atoms
       Just PDB.Atom{..} -> atomSerial
       Nothing           -> error ("Atom with name " ++ T.unpack atomNameToFind ++ " wasn't found in residue " ++ residueId atoms ++ ", chain: " ++ chainId atoms)
     residueId :: [PDB.Atom] -> String
+    residueId [] = error "cobot-io: it's impossible to form a residue ID on a residue with no atoms"
     residueId (PDB.Atom{..}:_) = T.unpack atomResName ++ show atomResSeq ++ show atomICode
     chainId :: [PDB.Atom] -> String
+    chainId [] = error "cobot-io: it's impossible to get a chain ID on a chain with no atoms"
     chainId (PDB.Atom{..}:_) = show atomChainID
     
 
@@ -166,6 +169,7 @@ sideChainBonds "THR" = [("CB", "OG1"), ("CB", "CG2")] ++ bwhMany [("CB", ["HB"])
 sideChainBonds "TRP" = [("CB", "CG") , ("CG", "CD1"), ("CD1", "NE1"), ("NE1", "CE2"), ("CE2", "CD2"), ("CD2", "CG") , ("CD2", "CE3"), ("CE3", "CZ3"), ("CZ3", "CH2"), ("CH2", "CZ2"), ("CZ2", "CE2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CD1", ["HD1"]), ("NE1", ["HE1"]), ("CE3", ["HE3"]), ("CZ3", ["HZ3"]), ("CH2", ["HH2"]), ("CZ2", ["HZ2"])]
 sideChainBonds "TYR" = [("CB", "CG") , ("CG", "CD1"), ("CD1", "CE1"), ("CE1", "CZ") , ("CZ", "CE2") , ("CE2", "CD2"), ("CD2", "CG") , ("CZ", "OH")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CD1", ["HD1"]), ("CE1", ["HE1"]), ("CE2", ["HE2"]), ("CD2", ["HD2"]), ("OH", ["HH"])]
 sideChainBonds "VAL" = [("CB", "CG1"), ("CB", "CG2")] ++ bwhMany [("CB", ["HB"]), ("CG1", ["HG11", "HG12", "HG13"]), ("CG2", ["HG21", "HG22", "HG23"])]
+sideChainBonds unknownResidue = error . T.unpack $ "cobot-io: we don't know what to do with residue " <> unknownResidue
 
 bwhMany :: [(Text, [Text])] -> [(Text, Text)]
 bwhMany = concatMap bwh

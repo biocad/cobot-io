@@ -33,7 +33,6 @@ import           Data.Maybe             (catMaybes, fromJust)
 import           Data.Text              (Text)
 import qualified Data.Text              as T (head, init, last, null, pack,
                                               strip, tail)
-import           Data.Text.Read         (decimal)
 import qualified Data.Text.IO           as TIO (readFile)
 import           Data.Vector            (Vector)
 import qualified Data.Vector            as V (fromList)

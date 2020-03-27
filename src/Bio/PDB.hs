@@ -5,20 +5,18 @@ module Bio.PDB
   ) where
 
 import qualified Bio.PDB.Type           as PDB
-import           Bio.PDB.Reader         (fromFilePDB, fromTextPDB, PDBWarnings)
+import           Bio.PDB.Reader         (fromTextPDB, PDBWarnings)
 import           Bio.PDB.BondRestoring  (restoreModelGlobalBonds, restoreChainLocalBonds, residueID)
 import           Bio.PDB.Functions      (groupChainByResidue)
 import           Bio.Structure
 
 import           Control.Arrow          ((&&&))
 import           Control.Monad.IO.Class (MonadIO, liftIO)
-import           Data.List              (groupBy, sortOn)
 import           Data.Coerce            (coerce)
-import           Data.Foldable          (Foldable (..))
-import           Data.Text              as T (Text, singleton, unpack, pack, strip)
+import           Data.Text              as T (Text, singleton, unpack, strip)
 import           Data.Text.IO           as TIO (readFile)
 import           Data.Map               (Map)
-import qualified Data.Map               as M ((!), fromList)
+import qualified Data.Map               as M ((!))
 import qualified Data.Vector            as V
 import           Data.Maybe             (fromMaybe)
 import           Text.Read              (readMaybe)

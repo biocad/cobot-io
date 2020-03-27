@@ -9,7 +9,7 @@ module Bio.MAE.Type
 import           Data.Map.Strict (Map)
 import           Data.Maybe      (fromJust)
 import           Data.Text       (Text)
-import qualified Data.Text       as T (head, strip, null, last, init, tail)
+import qualified Data.Text       as T (head, null, last, init, tail)
 
 data Mae = Mae { version :: Text
                , blocks  :: [Block]

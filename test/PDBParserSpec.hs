@@ -4,11 +4,10 @@ module PDBParserSpec where
 
 import           Bio.PDB.Reader  (fromTextPDB)
 import           Bio.PDB.Type    (Atom (..), FieldType (..), PDB (..))
-import           Data.Either     (fromRight)
 import qualified Data.Map.Strict (empty, fromList, singleton)
 import           Data.Text       as T (Text, intercalate, length, lines, pack,
                                        replicate, take)
-import qualified Data.Vector     as V (empty, fromList, toList, singleton, concat)
+import qualified Data.Vector     as V (empty, fromList, singleton)
 import           Test.Hspec
 
 oneModelSpecP :: Spec

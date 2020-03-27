@@ -3,26 +3,26 @@
 
 module PDBSpec where
 
-import           Bio.PDB       (modelsFromPDBFile)
-import qualified Bio.PDB.Type as PDB (Atom (..), FieldType (..), PDB (..), Model (..))
-import           Bio.MAE       (modelsFromMaeFile)
-import           Bio.PDB.Reader (fromFilePDB)
-import           Bio.Structure (Model (..), Chain(..), Residue(..), Atom(..), Bond(..), GlobalID(..), LocalID(..))
+import           Bio.PDB                (modelsFromPDBFile)
+import           Bio.MAE                (modelsFromMaeFile)
+import           Bio.Structure          ( Model(..), Chain(..), Residue(..)
+                                        , Atom(..), Bond(..), GlobalID(..), LocalID(..))
 
 import           Control.Monad.IO.Class (MonadIO, liftIO)
-import           Control.Exception (evaluate)
-import           Control.DeepSeq (force, NFData)
+import           Control.Exception      (evaluate)
+import           Control.DeepSeq        (force, NFData)
 
-import           Data.Either (fromRight)
-import           Data.Vector (Vector)
-import qualified Data.Vector as V (head, length, toList, concatMap, fromList)
-import           Data.List (groupBy, sortOn, find)
-import           Data.Text (Text)
-import qualified Data.Text as T
-import           Data.Map.Strict (Map, (!))
-import qualified Data.Map.Strict as M (fromList)
-import           Data.Set (Set)
-import qualified Data.Set as S
+import           Data.Either            (fromRight)
+import           Data.Vector            (Vector)
+import qualified Data.Vector as V       (head, length, toList, concatMap)
+import           Data.List              (find)
+import           Data.Text              (Text)
+import qualified Data.Text as T         (pack)
+import           Data.Map.Strict        (Map, (!))
+import qualified Data.Map.Strict as M   (fromList)
+import           Data.Set               (Set)
+import qualified Data.Set as S          (fromList, size, difference)
+
 import           Test.Hspec
 
 rawPDBToModelConversionSingleChainSpec :: SpecWith ()
@@ -64,8 +64,8 @@ bondsRestoringBiggerMoleculesSpec = describe "Bonds should be restored correctly
     checkBiggerMolecule moleculeName = do
       modelFromPDB <- runIO . firstPDBModel $ "test/PDB/BondsRestoring/" ++ moleculeName ++ ".pdb"
       modelFromMae <- runIO . firstMaeModel $ "test/PDB/BondsRestoring/" ++ moleculeName ++ ".mae"
-      let (pdbGlobalBondCount, pdbLocalBondCount, pdbChainCount, pdbAtomCount) = getStats modelFromPDB
-      let (maeGlobalBondCount, maeLocalBondCount, maeChainCount, maeAtomCount) = getStats modelFromMae
+      let (pdbGlobalBondCount, pdbLocalBondCount, _, _) = getStats modelFromPDB
+      let (maeGlobalBondCount, maeLocalBondCount, _, _) = getStats modelFromMae
 
       it (moleculeName ++ " equal global bond count in Mae and PDB") $ pdbGlobalBondCount `shouldBe` maeGlobalBondCount
       it (moleculeName ++ " equal local bond count in Mae and PDB") $ pdbLocalBondCount `shouldBe` maeLocalBondCount
@@ -87,13 +87,6 @@ bondsRestoringBiggerMoleculesSpec = describe "Bonds should be restored correctly
 
       it (moleculeName ++ " difference in Mae and PDB local bond sets") $ S.size diffMaePDBLocal `shouldBe` 0
       it (moleculeName ++ " difference in PDB and Mae local bond sets") $ S.size diffPDBMaeLocal `shouldBe` 0
-
-    ololo :: Model -> IO ()
-    ololo Model{..} = do 
-      let residuesCount = V.length $ V.concatMap chainResidues modelChains
-      print $ "Residue count: " ++ show residuesCount
-      let resNumbers = resNumber <$> V.concatMap chainResidues modelChains
-      print resNumbers
 
     localBondSet :: Model -> Set (Text, Int, Int, Int) -- (ChainID, ResidueNumber, LocalFrom, LocalTo)
     localBondSet Model{..} = S.fromList $ do
@@ -126,12 +119,12 @@ bondsRestoringBiggerMoleculesSpec = describe "Bonds should be restored correctly
     bondSet :: (a -> Int) -> Map Int (Text, Atom) -> (Int -> Int) -> Vector (Bond a) -> Set (Text,Text)
     bondSet getID atomMap atomIdMap bonds = S.fromList $ do
       Bond{..} <- V.toList bonds
-      let atomFromId = atomId $ atomMap ! getID bondStart
-      let atomToId = atomId $ atomMap ! getID bondEnd
+      let atomFromId = formAtomId $ atomMap ! getID bondStart
+      let atomToId = formAtomId $ atomMap ! getID bondEnd
       [(atomFromId, atomToId), (atomToId, atomFromId)]
       where
-        atomId :: (Text, Atom) -> Text
-        atomId (chainId, Atom{..}) = chainId <> "_" <> atomName <> "_" <> T.pack (show . atomIdMap $ getGlobalID atomId)
+        formAtomId :: (Text, Atom) -> Text
+        formAtomId (chainId, Atom{..}) = chainId <> "_" <> atomName <> "_" <> T.pack (show . atomIdMap $ getGlobalID atomId)
 
 
 getStats :: Model -> (Int, Int, Int, Int)
