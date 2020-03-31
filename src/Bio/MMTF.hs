@@ -41,6 +41,7 @@ fetch pdbid = do let url = fromString $ "https://mmtf.rcsb.org/v1.0/full/" <> pd
                  decode (getResponseBody resp)
 
 instance StructureModels MMTF where
+    -- TODO: add global bonds
     modelsOf m = l2v (flip Model empty . l2v <$> zipWith (zipWith Chain) chainNames chainResis)
       where
         chainsCnts = fromIntegral <$> toList (chainsPerModel (model m))
@@ -88,13 +89,14 @@ instance StructureModels MMTF where
                                      z = zCoordList (atom m)
                                      o = occupancyList (atom m)
                                      b = bFactorList (atom m)
-                                 in  Atom (GlobalID $ fromIntegral (i ! idx))
-                                           n
-                                           e
-                                           (V3 (x ! idx) (y ! idx) (z ! idx))
-                                           fc
-                                           (b ! idx)
-                                           (o ! idx)
+                                 in  Atom (GlobalID idx)
+                                          (fromIntegral $ i ! idx)
+                                          n
+                                          e
+                                          (V3 (x ! idx) (y ! idx) (z ! idx))
+                                          fc
+                                          (b ! idx)
+                                          (o ! idx)
 
         cutter :: [Int] -> [a] -> [[a]]
         cutter []     []    = []

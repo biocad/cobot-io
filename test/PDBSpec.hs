@@ -44,7 +44,7 @@ bondsRestoringTripeptideSpec = describe "Bonds should be restored correctly in t
     where
       tripeptides :: [String]
       tripeptides = ["ALA_3", "ARG_3", "ASN_3", "ASP_3", "CYS_3", "GLN_3", "GLU_3", "GLY_3", "HID_3", "HIE_3", "HIP_3", 
-                    "ILE_3", "LEU_3", "LYS_3", "MET_3", "PHE_3", "PRO_3", "SER_3", "THR_3", "TRP_3", "TYR_3", "VAL_3"]
+                     "ILE_3", "LEU_3", "LYS_3", "MET_3", "PHE_3", "PRO_3", "SER_3", "THR_3", "TRP_3", "TYR_3", "VAL_3"]
       checkTripeptide :: String -> SpecWith (Arg Expectation)
       checkTripeptide tripeptideName = do
         modelFromMae <- runIO . firstMaeModel $ "test/PDB/BondsRestoring/" ++ tripeptideName ++ ".mae"
@@ -72,8 +72,8 @@ bondsRestoringBiggerMoleculesSpec = describe "Bonds should be restored correctly
 
       it (moleculeName ++ " no dublicate bonds") $ length (doubleBonds modelFromPDB) `shouldBe` 0
 
-      let _globalBondSetPDB = globalBondSetPDB modelFromPDB
-      let _globalBondSetMae = globalBondSetMae modelFromMae
+      let _globalBondSetPDB = globalBondSet modelFromPDB
+      let _globalBondSetMae = globalBondSet modelFromMae
       let diffMaePDBGlobal = S.difference _globalBondSetMae _globalBondSetPDB
       let diffPDBMaeGlobal = S.difference _globalBondSetPDB _globalBondSetMae
 
@@ -105,10 +105,8 @@ bondsRestoringBiggerMoleculesSpec = describe "Bonds should be restored correctly
         bondsEqual :: Bond GlobalID -> Bond GlobalID -> Bool
         bondsEqual b1 b2 = bondStart b1 == bondStart b2 && bondEnd b1 == bondEnd b2
 
-    globalBondSetMae :: Model -> Set (Text,Text)
-    globalBondSetMae Model{..} = bondSet getGlobalID (chainsAtomMap modelChains) (+1) modelBonds
-    globalBondSetPDB :: Model -> Set (Text,Text)
-    globalBondSetPDB Model{..} = bondSet getGlobalID (chainsAtomMap modelChains) id modelBonds
+    globalBondSet :: Model -> Set (Text,Text)
+    globalBondSet Model{..} = bondSet getGlobalID (chainsAtomMap modelChains) modelBonds
 
     chainsAtomMap :: Vector Chain -> Map Int (Text, Atom)
     chainsAtomMap chains = M.fromList $ concatMap chainAtomPreMap chains
@@ -116,15 +114,15 @@ bondsRestoringBiggerMoleculesSpec = describe "Bonds should be restored correctly
     chainAtomPreMap :: Chain -> [(Int, (Text, Atom))]
     chainAtomPreMap Chain{..} = V.toList . fmap (\a -> (getGlobalID $ atomId a, (chainName, a))) $ V.concatMap resAtoms chainResidues
 
-    bondSet :: (a -> Int) -> Map Int (Text, Atom) -> (Int -> Int) -> Vector (Bond a) -> Set (Text,Text)
-    bondSet getID atomMap atomIdMap bonds = S.fromList $ do
+    bondSet :: (a -> Int) -> Map Int (Text, Atom) -> Vector (Bond a) -> Set (Text,Text)
+    bondSet getID atomMap bonds = S.fromList $ do
       Bond{..} <- V.toList bonds
       let atomFromId = formAtomId $ atomMap ! getID bondStart
       let atomToId = formAtomId $ atomMap ! getID bondEnd
       [(atomFromId, atomToId), (atomToId, atomFromId)]
       where
         formAtomId :: (Text, Atom) -> Text
-        formAtomId (chainId, Atom{..}) = chainId <> "_" <> atomName <> "_" <> T.pack (show . atomIdMap $ getGlobalID atomId)
+        formAtomId (chainId, Atom{..}) = chainId <> "_" <> atomName <> "_" <> T.pack (show $ getGlobalID atomId)
 
 
 getStats :: Model -> (Int, Int, Int, Int)

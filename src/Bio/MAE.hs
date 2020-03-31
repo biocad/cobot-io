@@ -159,6 +159,7 @@ instance StructureModels Mae where
 
               indexToAtom :: Int -> Atom
               indexToAtom i = Atom (GlobalID i)
+                                   (i + 1)
                                    (stripQuotes $ getFromContentsI "s_m_pdb_atom_name")
                                    (elIndToElement M.! getFromContentsI "i_m_atomic_number")
                                    coords

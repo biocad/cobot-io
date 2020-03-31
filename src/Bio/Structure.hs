@@ -44,13 +44,14 @@ newtype LocalID  = LocalID { getLocalID :: Int }
 
 -- | Generic atom representation
 --
-data Atom = Atom { atomId       :: GlobalID -- ^ global identifier
-                 , atomName     :: Text     -- ^ IUPAC atom name
-                 , atomElement  :: Text     -- ^ atom chemical element
-                 , atomCoords   :: V3 Float -- ^ 3D coordinates of atom
-                 , formalCharge :: Int      -- ^ Formal charge of atom
-                 , bFactor      :: Float    -- ^ B-factor of atom
-                 , occupancy    :: Float    -- ^ the amount of each conformation that is observed in the crystal
+data Atom = Atom { atomId         :: GlobalID -- ^ global identifier, 0-based
+                 , atomInputIndex :: Int      -- ^ atom index from input file
+                 , atomName       :: Text     -- ^ IUPAC atom name
+                 , atomElement    :: Text     -- ^ atom chemical element
+                 , atomCoords     :: V3 Float -- ^ 3D coordinates of atom
+                 , formalCharge   :: Int      -- ^ Formal charge of atom
+                 , bFactor        :: Float    -- ^ B-factor of atom
+                 , occupancy      :: Float    -- ^ the amount of each conformation that is observed in the crystal
                  }
   deriving (Show, Eq, Generic)
 
