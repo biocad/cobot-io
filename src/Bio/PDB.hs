@@ -53,12 +53,12 @@ instance StructureModels PDB.PDB where
             mkResidue :: Map Text (V.Vector (Bond LocalID)) -> [PDB.Atom] -> Residue
             mkResidue _ []    = error "Cound not make residue from empty list"
             mkResidue localBondsMap atoms' = Residue (T.strip $ PDB.atomResName firstResidueAtom)
-                                                    (PDB.atomResSeq firstResidueAtom)
-                                                    (PDB.atomICode firstResidueAtom)
-                                                    (V.fromList $ mkAtom <$> atoms')
-                                                    (localBondsMap M.! residueID firstResidueAtom)
-                                                    Undefined -- now we do not read secondary structure
-                                                    ""        -- chemical component type?!
+                                                     (PDB.atomResSeq firstResidueAtom)
+                                                     (PDB.atomICode firstResidueAtom)
+                                                     (V.fromList $ mkAtom <$> atoms')
+                                                     (localBondsMap M.! residueID firstResidueAtom)
+                                                     Undefined -- now we do not read secondary structure
+                                                     ""        -- chemical component type?!
               where
                 firstResidueAtom = head atoms'
 
