@@ -13,6 +13,7 @@ import           StructureSpec
 import           System.IO
 import           Test.Hspec
 import           UniprotSpec
+import           PDBParserSpec
 
 main :: IO ()
 main = do
@@ -53,5 +54,8 @@ main = do
          repeatedStringsSpecP
          emptyRemarkSpecP
          emptyModelSpecP
+         rawPDBToModelConversionSingleChainSpec
+         bondsRestoringTripeptideSpec
+         bondsRestoringBiggerMoleculesSpec
          -- Structure
          structureSpec

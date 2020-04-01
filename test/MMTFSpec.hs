@@ -2,8 +2,9 @@ module MMTFSpec where
 
 import           Bio.MMTF
 import           Bio.MMTF.Decode.Codec
-import           Data.Int              (Int8)
-import           Data.Vector           ((!))
+import           Data.Int               (Int8)
+import           Data.Vector            ((!))
+import           Data.ByteString.Lazy as BS (readFile)
 import           Test.Hspec
 
 mmtfCodecSpec :: Spec
@@ -26,11 +27,10 @@ mmtfParserSpec :: Spec
 mmtfParserSpec =
   describe "MMTF parser" $
   it "should parse 1FSD" $ do
-    m <- fetch "1FSD"
+    m <- BS.readFile "test/MMTF/1FSD.dms" >>= decode
     (structureId . structure) m `shouldBe` "1FSD"
     (numModels . structure) m `shouldBe` 41
     (length . bFactorList . atom) m `shouldBe` 20664
     ((! 0) . experimentalMethods . structure) m `shouldBe` "SOLUTION NMR"
     ((! 0) . xCoordList . atom) m `shouldBe` (-12.847)
     ((! 20663) . xCoordList . atom) m `shouldBe` 5.672
-

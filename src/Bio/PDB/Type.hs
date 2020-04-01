@@ -92,3 +92,6 @@ data Atom = Atom { atomSerial     :: Int     -- ^ Atom serial number.
                  , atomCharge     :: Text    -- ^ Charge on the atom.
                  }
   deriving (Show, Eq, Generic, NFData)
+
+instance Ord Atom where
+  a1 <= a2 = atomSerial a1 <= atomSerial a2

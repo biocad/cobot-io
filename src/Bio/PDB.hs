@@ -1,61 +1,82 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Bio.PDB
-  (
+  ( modelsFromPDBText
+  , modelsFromPDBFile
   ) where
 
-import qualified Bio.PDB.Type  as PDB
+import qualified Bio.PDB.Type           as PDB
+import           Bio.PDB.Reader         (fromTextPDB, PDBWarnings)
+import           Bio.PDB.BondRestoring  (restoreModelGlobalBonds, restoreChainLocalBonds, residueID)
+import           Bio.PDB.Functions      (groupChainByResidue)
 import           Bio.Structure
 
-import           Control.Arrow ((&&&))
-import           Data.Coerce   (coerce)
-import           Data.Foldable (Foldable (..))
-import           Data.Text     as T (Text, singleton, unpack)
-import qualified Data.Vector   as V
-import           Linear.V3     (V3 (..))
+import           Control.Arrow          ((&&&))
+import           Control.Monad.IO.Class (MonadIO, liftIO)
+
+import           Data.Text              as T (Text, singleton, unpack, strip)
+import           Data.Text.IO           as TIO (readFile)
+import           Data.Map               (Map)
+import qualified Data.Map               as M ((!), fromList)
+import qualified Data.Vector            as V
+import           Data.List              (sort)
+import           Data.Maybe             (fromMaybe)
+
+import           Text.Read              (readMaybe)
+
+import           Linear.V3              (V3 (..))
 
 instance StructureModels PDB.PDB where
     modelsOf PDB.PDB {..} = fmap mkModel models
       where
         mkModel :: PDB.Model -> Model
-        mkModel = flip Model V.empty . fmap mkChain
+        mkModel model = Model (fmap mkChain model) (restoreModelGlobalBonds atomSerialToNilBasedIndex model)
+          where
+            atomSerialToNilBasedIndex :: Map Int Int
+            atomSerialToNilBasedIndex = M.fromList $ allModelAtomSerials `zip` [0..]
 
-        mkChain :: PDB.Chain -> Chain
-        mkChain = uncurry Chain . (mkChainName &&& mkChainResidues)
+            allModelAtomSerials :: [Int]
+            allModelAtomSerials = sort . V.toList . fmap PDB.atomSerial . V.concat $ V.toList model
 
-        mkChainName :: PDB.Chain -> Text
-        mkChainName = T.singleton . PDB.atomChainID . safeFirstAtom
+            mkChain :: PDB.Chain -> Chain
+            mkChain = uncurry Chain . (mkChainName &&& mkChainResidues)
 
-        mkChainResidues :: PDB.Chain -> V.Vector Residue
-        mkChainResidues = V.fromList . fmap mkResidue . flip groupByResidue [] . pure . toList
+            mkChainName :: PDB.Chain -> Text
+            mkChainName = T.singleton . PDB.atomChainID . safeFirstAtom
 
-        -- can be rewritten with sortOn and groupBy
-        groupByResidue :: [[PDB.Atom]] -> [PDB.Atom] -> [[PDB.Atom]]
-        groupByResidue res []       = res
-        groupByResidue [] (x : xs)  = groupByResidue [[x]] xs
-        groupByResidue res@(lastList : resultTail) (x : xs)
-          | (PDB.atomResSeq x, PDB.atomICode x) == (PDB.atomResSeq (head lastList), PDB.atomICode (head lastList))
-                                              = groupByResidue ((x : lastList) : resultTail) xs
-          | otherwise                         = groupByResidue ([x] : res) xs
+            mkChainResidues :: PDB.Chain -> V.Vector Residue
+            mkChainResidues chain = V.fromList . fmap (mkResidue (restoreChainLocalBonds chain)) $ groupChainByResidue chain
 
-        safeFirstAtom :: V.Vector PDB.Atom -> PDB.Atom
-        safeFirstAtom arr | V.length arr > 0 = arr V.! 0
-                          | otherwise        = error "Could not pick first atom"
+            safeFirstAtom :: V.Vector PDB.Atom -> PDB.Atom
+            safeFirstAtom arr | V.length arr > 0 = arr V.! 0
+                              | otherwise        = error "Could not pick first atom"
+            
+            mkResidue :: Map Text (V.Vector (Bond LocalID)) -> [PDB.Atom] -> Residue
+            mkResidue _ []    = error "Cound not make residue from empty list"
+            mkResidue localBondsMap atoms' = Residue (T.strip $ PDB.atomResName firstResidueAtom)
+                                                     (PDB.atomResSeq firstResidueAtom)
+                                                     (PDB.atomICode firstResidueAtom)
+                                                     (V.fromList $ mkAtom <$> atoms')
+                                                     (localBondsMap M.! residueID firstResidueAtom)
+                                                     Undefined -- now we do not read secondary structure
+                                                     ""        -- chemical component type?!
+              where
+                firstResidueAtom = head atoms'
 
+            mkAtom :: PDB.Atom -> Atom
+            mkAtom PDB.Atom{..} = Atom (GlobalID $ atomSerialToNilBasedIndex M.! atomSerial)
+                                       atomSerial
+                                       (T.strip atomName)
+                                       atomElement
+                                       (V3 atomX atomY atomZ)
+                                       (fromMaybe 0 . readMaybe $ T.unpack atomCharge)
+                                       atomTempFactor
+                                       atomOccupancy
 
-        mkResidue :: [PDB.Atom] -> Residue
-        mkResidue []     = error "Cound not make residue from empty list"
-        mkResidue atoms' = Residue (PDB.atomResName . head $ atoms')
-                                   (V.fromList $ mkAtom <$> atoms')
-                                   V.empty   -- now we do not read bonds
-                                   Undefined -- now we do not read secondary structure
-                                   ""        -- chemical component type?!
+modelsFromPDBFile :: (MonadIO m) => FilePath -> m (Either Text ([PDBWarnings], V.Vector Model))
+modelsFromPDBFile = liftIO . fmap modelsFromPDBText . TIO.readFile
 
-
-        mkAtom :: PDB.Atom -> Atom
-        mkAtom PDB.Atom{..} = Atom (coerce atomSerial)
-                                   atomName
-                                   atomElement
-                                   (V3 atomX atomY atomZ)
-                                   (read $ T.unpack atomCharge)
-                                   atomTempFactor
-                                   atomOccupancy
+modelsFromPDBText :: Text -> Either Text ([PDBWarnings], V.Vector Model)
+modelsFromPDBText pdbText = do
+  (warnings, parsedPDB) <- fromTextPDB pdbText
+  let models = modelsOf parsedPDB
+  pure (warnings, models)

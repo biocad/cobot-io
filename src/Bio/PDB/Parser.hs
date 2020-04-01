@@ -64,8 +64,13 @@ takeText = Data.Attoparsec.Text.takeWhile $ not . isEndOfLine
 
 atomP :: Parser CoordLike
 atomP = let atom = Atom <$>
-                    (string "ATOM " *>                                       -- (1 -  6) # we increased atomSerial field for one symbol
-                    (read <$> count 6 notEndLineChar) <* space)              -- (7 - 11)  atomSerial
+                    (
+                      (string "ATOM " *>                                     -- (1 -  5)  ATOM -- we extended atomSerial length to the left for one symbol
+                      (read <$> count 6 notEndLineChar) <* space)            -- (6 - 11)  atomSerial
+                        <|>                                                  -- or
+                      (string "HETATM" *>                                    -- (1 -  6)  HETATM
+                      (read <$> count 5 notEndLineChar) <* space)            -- (7 - 11)  atomSerial
+                    )
                     <*> (T.pack <$> count 4 notEndLineChar)                  -- (13 - 16) atomName
                     <*> notEndLineChar                                       -- (17)      atomAltLoc
                     <*> (T.pack <$> count 3 notEndLineChar) <* space         -- (18 - 20) atomResName
@@ -84,7 +89,7 @@ atomP = let atom = Atom <$>
 
 coordNotAtomP :: Parser CoordLike
 coordNotAtomP = do
-    _ <- string "HETATM" <|> string "TER " <|> string "ANISOU" <|> string "CONECT"
+    _ <- string "TER " <|> string "ANISOU" <|> string "CONECT"
     skipWhile $ not . isEndOfLine
     endOfLine
     return CoordNotAtomLine

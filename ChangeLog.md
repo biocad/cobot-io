@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.1.3.0] - 2020-03-27
+### Added
+- Residue index in `Structure`.
+- Atom input index in `Structure`.
+- Bond restoring for PDB.
+- Tests for PDB -> Model conversion.
+### Changed
+- GlobalID now 0-based in mae, PDB, and MMTF.
+### Fixed
+- A lot of things.
+
 ## [0.1.2.10] - 2020-03-27
 ### Added
 - Lenses for `Structure`.

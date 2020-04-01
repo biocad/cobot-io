@@ -1,5 +1,5 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE AllowAmbiguousTypes  #-}
+{-# LANGUAGE CPP                  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Bio.MAE
@@ -8,13 +8,15 @@ module Bio.MAE
   , Table (..)
   , fromFile
   , fromText
+  , modelsFromMaeText
+  , modelsFromMaeFile
   , maeP
   ) where
 
 import           Bio.MAE.Parser
 import           Bio.MAE.Type           (Block (..), FromMaeValue (..),
                                          Mae (..), MaeValue (..), Table (..))
-import           Bio.Structure          (Atom (..), Bond (..), Chain (..),
+import           Bio.Structure          (Atom (..), Bond (..), Chain (..), Model (..),
                                          GlobalID (..), LocalID (..),
                                          Model (..), Residue (..),
                                          SecondaryStructure (..),
@@ -49,6 +51,12 @@ fromFile f = liftIO (TIO.readFile f) >>= either fail pure . parseOnly maeP
 --
 fromText :: Text -> Either Text Mae
 fromText = first T.pack . parseOnly maeP
+
+modelsFromMaeFile :: (MonadIO m) => FilePath -> m (Either Text (Vector Model))
+modelsFromMaeFile = liftIO . fmap modelsFromMaeText . TIO.readFile
+
+modelsFromMaeText :: Text -> Either Text (Vector Model)
+modelsFromMaeText maeText = modelsOf <$> fromText maeText
 
 instance StructureModels Mae where
   modelsOf Mae{..} = V.fromList $ fmap blockToModel blocks
@@ -117,18 +125,23 @@ instance StructureModels Mae where
                   groupedByResidues = toGroupsOn by group
                   residues          = V.fromList $ fmap groupToResidue groupedByResidues
 
-                  by :: Int -> (Int, Text)
-                  by i = (unsafeGetFromContents "i_m_residue_number" i, getFromContents defaultChainName "s_m_insertion_code" i)
+                  by :: Int -> (Int, Char)
+                  by i = (unsafeGetFromContents "i_m_residue_number" i, getFromContents defaultInsertionCode "s_m_insertion_code" i)
 
               defaultChainName :: Text
               defaultChainName = "A"
 
+              defaultInsertionCode :: Char
+              defaultInsertionCode = ' '
+
               groupToResidue :: [Int] -> Residue
               groupToResidue []            = error "Group that is result of List.groupBy can't be empty."
-              groupToResidue group@(h : _) = Residue name atoms (V.fromList localBonds) secondary chemCompType
+              groupToResidue group@(h : _) = Residue name residueNumber insertionCode atoms (V.fromList localBonds) secondary chemCompType
                 where
-                  name  = stripQuotes $ unsafeGetFromContents "s_m_pdb_residue_name" h
-                  atoms = V.fromList $ fmap indexToAtom group
+                  name          = stripQuotes $ unsafeGetFromContents "s_m_pdb_residue_name" h
+                  residueNumber = unsafeGetFromContents "i_m_residue_number" h
+                  insertionCode = unsafeGetFromContents "s_m_insertion_code" h
+                  atoms         = V.fromList $ fmap indexToAtom group
 
                   localInds     = [0 .. length group - 1]
                   globalToLocal = M.fromList $ zip group localInds
@@ -146,6 +159,7 @@ instance StructureModels Mae where
 
               indexToAtom :: Int -> Atom
               indexToAtom i = Atom (GlobalID i)
+                                   (i + 1)
                                    (stripQuotes $ getFromContentsI "s_m_pdb_atom_name")
                                    (elIndToElement M.! getFromContentsI "i_m_atomic_number")
                                    coords
