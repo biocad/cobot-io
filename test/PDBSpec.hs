@@ -145,5 +145,4 @@ firstPDBModel filepath = do
 firstMaeModel :: (MonadIO m) => FilePath -> m Model
 firstMaeModel filepath = do
   eitherMae <- modelsFromMaeFile filepath
-  -- `evaluate . force` fails for some reason
-  pure . V.head $ fromRight undefined eitherMae
+  liftIO . ef . V.head $ fromRight undefined eitherMae
