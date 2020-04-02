@@ -140,7 +140,7 @@ instance StructureModels Mae where
                 where
                   name          = stripQuotes $ unsafeGetFromContents "s_m_pdb_residue_name" h
                   residueNumber = unsafeGetFromContents "i_m_residue_number" h
-                  insertionCode = unsafeGetFromContents "s_m_insertion_code" h
+                  insertionCode = getFromContents defaultInsertionCode "s_m_insertion_code" h
                   atoms         = V.fromList $ fmap indexToAtom group
 
                   localInds     = [0 .. length group - 1]

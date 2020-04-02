@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.1] - 2020-04-02
+### Fixed
+- Reading of insertion code for residues in MAE.
+
 ## [0.1.3.0] - 2020-03-27
 ### Added
 - Residue index in `Structure`.
