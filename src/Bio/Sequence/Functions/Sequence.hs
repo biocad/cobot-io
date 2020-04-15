@@ -18,7 +18,6 @@ import           Bio.Sequence.Class     (ContainsNoMarking, IsSequence (..),
 import           Bio.Sequence.Utilities (Range, checkRange, unsafeEither)
 import           Control.Lens
 import           Control.Monad.Except   (MonadError, throwError)
-import           Data.Bifunctor         (bimap)
 import qualified Data.Foldable          as F (length, null, toList)
 import qualified Data.List              as L (drop, take)
 import           Data.Maybe             (fromMaybe)
