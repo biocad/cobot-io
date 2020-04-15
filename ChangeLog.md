@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.1.3.2] - 2020-04-15
+### Changed
+- Resolver version up.
+- Moving from `less-wrong` to `biocad`.
+
 ## [0.1.3.1] - 2020-04-02
 ### Fixed
 - Reading of insertion code for residues in MAE.
