@@ -45,7 +45,6 @@ module Bio.Sequence.Class
 import           Bio.Sequence.Utilities (Range, checkRange, unsafeEither)
 import           Control.Lens
 import           Control.Monad.Except   (MonadError, throwError)
-import           Data.Bifunctor         (bimap)
 import           Data.Kind              (Constraint)
 import qualified Data.List              as L (length, null)
 import           Data.Text              (Text)

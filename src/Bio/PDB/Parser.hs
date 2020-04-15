@@ -16,7 +16,6 @@ import           Data.Attoparsec.Text (Parser, choice, count, endOfInput,
 import qualified Data.List            as L (groupBy)
 import           Data.Map.Strict      (Map, fromListWithKey)
 import           Data.Maybe           (catMaybes)
-import           Data.Monoid          ((<>))
 import           Data.Text            as T (Text, concat, pack, stripEnd)
 import qualified Data.Vector          as V (Vector, concat, fromList, singleton)
 import           GHC.Generics         ()

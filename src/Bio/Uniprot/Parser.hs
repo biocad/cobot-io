@@ -16,7 +16,6 @@ import           Data.Attoparsec.Text
 import           Data.Bifunctor       (second)
 import           Data.Char            (isSpace)
 import           Data.Functor         (($>))
-import           Data.Monoid          ((<>))
 import           Data.Text            (Text, append, isPrefixOf, null, pack,
                                        splitOn, unpack)
 
