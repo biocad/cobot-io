@@ -1,6 +1,8 @@
 module Bio.ABI.Clean
   ( Cleanable (..)
+
   , Thresholds (..)
+  , defaultThresholds
   ) where
 
 import           Bio.Sequence            (mean, meanInRange)
@@ -18,22 +20,25 @@ class Cleanable a where
   cleanWith :: Thresholds -> a -> Maybe a
 
 -- | Thresholds to clean the data.
+--
 -- ABI file contains sequence with quality.
 -- By design of sanger sequencing method start and end of the sequence have bad quality.
 -- Moreover, internal part of the sequence can also has bad quality.
 -- To clean the data we make 2 steps.
 --
 -- Step 1. Clean edges:
+--
 --   * take frame with @frameSize@ and go through the sequence;
 --   * on each step evaluate mean value;
---   * if mean value less than @edgeThreshold@, go further;
---   * if mean value more than @edgeThreshold@, stop and cut the sequence from END of this frame;
+--   * if mean value less than 'edgeThreshold', go further;
+--   * if mean value more than 'edgeThreshold' stop and cut the sequence from END of this frame;
 --   * repeat this algorithm for the right edge.
 --
 -- Step 2. Evaluate quality:
+--
 --   * for cropped sequence evaluate mean value;
---   * if mean value less then @innerThreshold@, sequence is bad;
---   * if mean value more then @innerThreshold@, sequence is acceptable.
+--   * if mean value less then 'innerThreshold', sequence is bad;
+--   * if mean value more then 'innerThreshold', sequence is acceptable.
 --
 -- Logic of this algorithm and 'defaultThresholds' were obtained by taking experiments with read ABI files.
 --
@@ -54,10 +59,10 @@ instance Cleanable BasecalledSequence where
                           then fromBoth
                           else Nothing
     where
-      fromLeft = cutEdge defaultThresholds input
+      fromLeft = cutEdge thr input
       fromBoth =  fmap S.reverse
                .  join
-               $  cutEdge defaultThresholds
+               $  cutEdge thr
                .  S.reverse
               <$> fromLeft
 

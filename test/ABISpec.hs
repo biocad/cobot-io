@@ -1,12 +1,17 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module ABISpec where
 
-import           Bio.ABI                 (Cleanable (..))
-import           Bio.Sequence            (SequenceDecodable (..))
-import qualified Bio.Sequence            as S (getWeights, length, toList)
-import           Bio.Sequence.Basecalled (BasecalledSequence)
 import           Data.ByteString.Lazy    as BSL (readFile)
 import           Data.Text               (Text)
 import           Test.Hspec
+
+import           Bio.ABI                 (Cleanable (..))
+import           Bio.ABI.Decode          (decodeRawSequence)
+import           Bio.Sequence            (SequenceDecodable (..))
+import qualified Bio.Sequence            as S (getWeights, length, toList)
+import           Bio.Sequence.Basecalled (BasecalledSequence,
+                                          BasecalledSequenceWithRawData (..))
 
 abiExtractSpec :: Spec
 abiExtractSpec =
@@ -21,6 +26,13 @@ abiExtractSpec =
       datM <- readData "test/ABI/not_ab1.txt"
       datM `shouldBe` Left "Error reading root: not enough bytes"
 
+    it "decode with raw data" $ do
+      Right BasecalledSequenceWithRawData{..} <- decodeRawSequence <$> BSL.readFile "test/ABI/test.ab1"
+      S.length bsSequence `shouldBe` length bsPeakLocations
+      length bsRawG `shouldSatisfy` (>0)
+      length bsRawA `shouldSatisfy` (>0)
+      length bsRawT `shouldSatisfy` (>0)
+      length bsRawC `shouldSatisfy` (>0)
 
 abiCleanSpec :: Spec
 abiCleanSpec =
