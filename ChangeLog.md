@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.1.3.3] - 2020-05-07
+### Added
+- Type and decoder for `ab1` with raw channel data and peak locations.
+### Fixed
+- Use supplied thresholds instead of default ones in the implementation of `cleanWith`;
+- Do not run `IO` in `hspec` `Spec` monad, use `beforeAll`.
+
 ## [0.1.3.2] - 2020-04-15
 ### Changed
 - Resolver version up.
