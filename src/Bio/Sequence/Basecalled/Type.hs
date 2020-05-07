@@ -5,7 +5,7 @@ module Bio.Sequence.Basecalled.Type
 
 import           Bio.Sequence (IsSequence (..), WeightedSequence)
 import           Data.Coerce  (coerce)
-import           Data.Int     (Int16 (..))
+import           Data.Int     (Int16)
 import           Data.Vector  (Vector)
 
 newtype BasecalledSequence = BasecalledSequence (WeightedSequence Double Char)
