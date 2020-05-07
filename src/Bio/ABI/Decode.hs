@@ -6,7 +6,6 @@ module Bio.ABI.Decode
   ) where
 
 import           Control.Applicative        (many)
-import           Control.Lens               (ix, (^?))
 import           Data.Bifunctor             (bimap)
 import           Data.Binary.Get            (getInt16be, runGetOrFail)
 import           Data.ByteString            as BS (ByteString)
