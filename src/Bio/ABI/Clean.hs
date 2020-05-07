@@ -28,17 +28,17 @@ class Cleanable a where
 --
 -- Step 1. Clean edges:
 --
---   * Take frame with @frameSize@ and go through the sequence;
---   * On each step evaluate mean value;
---   * If mean value less than 'edgeThreshold', go further;
---   * If mean value more than 'edgeThreshold' stop and cut the sequence from END of this frame;
+--   * take frame with @frameSize@ and go through the sequence;
+--   * on each step evaluate mean value;
+--   * if mean value less than 'edgeThreshold', go further;
+--   * if mean value more than 'edgeThreshold' stop and cut the sequence from END of this frame;
 --   * repeat this algorithm for the right edge.
 --
 -- Step 2. Evaluate quality:
 --
---   * For cropped sequence evaluate mean value;
---   * If mean value less then 'innerThreshold', sequence is bad;
---   * If mean value more then 'innerThreshold', sequence is acceptable.
+--   * for cropped sequence evaluate mean value;
+--   * if mean value less then 'innerThreshold', sequence is bad;
+--   * if mean value more then 'innerThreshold', sequence is acceptable.
 --
 -- Logic of this algorithm and 'defaultThresholds' were obtained by taking experiments with read ABI files.
 --
