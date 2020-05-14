@@ -5,10 +5,12 @@ module Bio.ABI.Clean
   , defaultThresholds
   ) where
 
+import           Control.Monad (guard, join)
+import qualified Data.Vector   as V
+
 import           Bio.Sequence            (mean, meanInRange)
-import qualified Bio.Sequence            as S (drop, length, reverse, tail)
-import           Bio.Sequence.Basecalled (BasecalledSequence)
-import           Control.Monad           (join)
+import qualified Bio.Sequence            as S (drop, length, reverse, tail, take)
+import           Bio.Sequence.Basecalled (BasecalledSequence, BasecalledSequenceWithRawData (..))
 
 -- | Ability to clean initial data.
 -- Returns cleaned variant or 'Nothing' if it can not be cleaned.
@@ -43,28 +45,42 @@ class Cleanable a where
 -- Logic of this algorithm and 'defaultThresholds' were obtained by taking experiments with read ABI files.
 --
 data Thresholds
-   = Thresholds { frameSize      :: Int
-                , edgeThreshold  :: Double
-                , innerThreshold :: Double
-                }
+  = Thresholds
+      { frameSize      :: Int
+      , edgeThreshold  :: Double
+      , innerThreshold :: Double
+      }
   deriving (Eq, Show)
 
--- | This thresholds were selected by many experiments on ab1-files.
+-- | These thresholds were selected by many experiments on ab1-files.
 --
 defaultThresholds :: Thresholds
 defaultThresholds = Thresholds 10 20 30
 
 instance Cleanable BasecalledSequence where
-  cleanWith thr input = if fmap (checkInner thr) fromBoth == Just True
-                          then fromBoth
-                          else Nothing
+  cleanWith thr input = do
+      cut <- fromBoth
+      guard $ checkInner thr cut
+      return cut
     where
-      fromLeft = cutEdge thr input
+      fromLeft = doCutEdge thr input
       fromBoth =  fmap S.reverse
                .  join
-               $  cutEdge thr
+               $  doCutEdge thr
                .  S.reverse
               <$> fromLeft
+
+instance Cleanable BasecalledSequenceWithRawData where
+  cleanWith thr input@BasecalledSequenceWithRawData{..} = do
+    toDropLeft <- cutEdge thr bsSequence
+    let leftDroppedSequ = S.drop toDropLeft bsSequence
+    let leftDroppedPloc = V.drop toDropLeft bsPeakLocations
+
+    toDropRight <- cutEdge thr $ S.reverse leftDroppedSequ
+    let rightDroppedSequ = S.take (S.length leftDroppedSequ - toDropRight) leftDroppedSequ
+    let rightDroppedPloc = V.take (V.length leftDroppedPloc - toDropRight) leftDroppedPloc
+
+    return input { bsSequence = rightDroppedSequ, bsPeakLocations = rightDroppedPloc }
 
 -------------------------------------------------------------------------------
 -- INTERNAL
@@ -73,10 +89,15 @@ instance Cleanable BasecalledSequence where
 checkInner :: Thresholds -> BasecalledSequence -> Bool
 checkInner Thresholds{..} = (> innerThreshold) . mean
 
-cutEdge :: Thresholds -> BasecalledSequence -> Maybe BasecalledSequence
-cutEdge t@Thresholds{..} sequ | S.length sequ < frameSize                    = Just sequ
-                              | meanInR < edgeThreshold && S.length sequ > 1 = cutEdge t $ S.tail sequ
-                              | S.length sequ > frameSize                    = Just $ S.drop frameSize sequ
+doCutEdge :: Thresholds -> BasecalledSequence -> Maybe BasecalledSequence
+doCutEdge t sequ = do
+    toDrop <- cutEdge t sequ
+    return $ S.drop toDrop sequ
+
+cutEdge :: Thresholds -> BasecalledSequence -> Maybe Int
+cutEdge t@Thresholds{..} sequ | S.length sequ < frameSize                    = Just 0
+                              | meanInR < edgeThreshold && S.length sequ > 1 = (1+) <$> cutEdge t (S.tail sequ)
+                              | S.length sequ > frameSize                    = Just frameSize
                               | otherwise                                    = Nothing
   where
     meanInR = meanInRange sequ (0, frameSize - 1)
