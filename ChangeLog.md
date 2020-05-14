@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.4] - 2020-05-14
+### Added
+- `instance Cleanable BasecalledSequenceWithRawData`.
+
 ## [0.1.3.3] - 2020-05-07
 ### Added
 - Type and decoder for `ab1` with raw channel data and peak locations.
