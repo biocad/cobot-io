@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.5] - 2020-05-26
+### Fixed
+- Correctly clean `BasecalledSequenceWithRawData`, including inner quality.
+
 ## [0.1.3.4] - 2020-05-14
 ### Added
 - `instance Cleanable BasecalledSequenceWithRawData`.

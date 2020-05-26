@@ -80,6 +80,7 @@ instance Cleanable BasecalledSequenceWithRawData where
     let rightDroppedSequ = S.take (S.length leftDroppedSequ - toDropRight) leftDroppedSequ
     let rightDroppedPloc = V.take (V.length leftDroppedPloc - toDropRight) leftDroppedPloc
 
+    guard $ checkInner thr rightDroppedSequ
     return input { bsSequence = rightDroppedSequ, bsPeakLocations = rightDroppedPloc }
 
 -------------------------------------------------------------------------------
