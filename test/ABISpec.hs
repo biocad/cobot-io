@@ -56,6 +56,10 @@ abiCleanSpec =
     it "clean with raw data is the same as without" $ do
       Right bsWithRaw <- decodeRawSequence <$> BSL.readFile "test/ABI/bad_at_the_end.ab1"
       bsSequence <$> clean bsWithRaw `shouldBe` clean (bsSequence bsWithRaw)
+
+    it "totally clean bad ABI file with raw data" $ do
+      Right bsWithRaw <- decodeRawSequence <$> BSL.readFile "test/ABI/bad_quality.ab1"
+      clean bsWithRaw `shouldBe` Nothing
   where
     checkFile :: FilePath -> Int -> Int -> String -> IO ()
     checkFile path lengthBefore lengthAfter start = do
