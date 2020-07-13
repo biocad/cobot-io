@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Bio.PDB
-  ( modelsFromPDBText
-  , modelsFromPDBFile
+  ( modelsFromPDBText, modelsToPDBText
+  , modelsFromPDBFile, modelsFromPDBText
   ) where
 
 import           Bio.PDB.BondRestoring  (residueID, restoreChainLocalBonds,
@@ -9,6 +9,7 @@ import           Bio.PDB.BondRestoring  (residueID, restoreChainLocalBonds,
 import           Bio.PDB.Functions      (groupChainByResidue)
 import           Bio.PDB.Reader         (PDBWarnings, fromTextPDB)
 import qualified Bio.PDB.Type           as PDB
+import           Bio.PDB.Writer         (pdbToFile, pdbToText)
 import           Bio.Structure
 import           Control.Arrow          ((&&&))
 import           Control.Lens           ((^.))
@@ -22,6 +23,7 @@ import           Data.Text              (Text)
 import qualified Data.Text              as T (head, pack, singleton, strip,
                                               unpack)
 import           Data.Text.IO           as TIO (readFile)
+import           Data.Vector            (Vector)
 import qualified Data.Vector            as V
 import           Linear.V3              (V3 (..), _x, _y, _z)
 import           Text.Read              (readMaybe)
@@ -115,3 +117,9 @@ instance StructureSerializable PDB.PDB where
 
           nullAltLoc :: Char
           nullAltLoc = ' '
+
+modelsToPDBFile :: MonadIO m => FilePath -> Vector Model -> m ()
+modelsToPDBFile path = pdbToFile path . serializeModels
+
+modelsToPDBText :: Vector Model -> Text
+modelsToPDBText = pdbToText . serializeModels
