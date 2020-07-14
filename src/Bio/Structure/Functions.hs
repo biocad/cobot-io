@@ -3,16 +3,19 @@ module Bio.Structure.Functions
   , chain, globalBond
   , residue
   , atom, localBond
+  , renameChains
   ) where
 
 import           Bio.Structure   (Atom (..), Bond (..), Chain (..),
                                   GlobalID (..), LocalID (..), Model (..),
                                   Residue (..), atoms, chains, globalBonds,
                                   localBonds, residues)
-import           Control.Lens    (Traversal', each)
-import qualified Data.Map.Strict as M (fromList, (!))
+import           Control.Lens    (Traversal', each, (%~), (&))
+import           Data.Map.Strict (Map)
+import qualified Data.Map.Strict as M (fromList, (!), (!?))
 import           Data.Set        (Set)
 import qualified Data.Set        as S (fromList, notMember, unions)
+import           Data.Text       (Text)
 import           Data.Vector     (Vector)
 import qualified Data.Vector     as V (filter, fromList, length, toList, unzip)
 
@@ -40,6 +43,15 @@ atom = atoms . each
 --
 localBond :: Traversal' Residue (Bond LocalID)
 localBond = localBonds . each
+
+-- | Rename chains of a given model according to the given mapping.
+--   If chain is not present in the mapping then its name won't be changed.
+--
+renameChains :: Model -> Map Text Text -> Model
+renameChains model mapping = model & chain %~ renameChain
+  where
+    renameChain :: Chain -> Chain
+    renameChain ch@Chain{..} = ch { chainName = maybe chainName id $ mapping M.!? chainName }
 
 -- | Takes predicate on 'Atom's of 'Model' and returns new 'Model' containing only atoms
 --   satisfying given predicate.

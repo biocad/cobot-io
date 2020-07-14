@@ -7,13 +7,14 @@ import           GBWriterSpec
 import           MAEParserSpec
 import           MAESpec
 import           MMTFSpec
+import           PDBParserSpec
 import           PDBSpec
+import           PDBWriterSpec
 import           SequenceSpec
 import           StructureSpec
 import           System.IO
 import           Test.Hspec
 import           UniprotSpec
-import           PDBParserSpec
 
 main :: IO ()
 main = do
@@ -57,5 +58,6 @@ main = do
          rawPDBToModelConversionSingleChainSpec
          bondsRestoringTripeptideSpec
          bondsRestoringBiggerMoleculesSpec
+         pdbWriterSpec
          -- Structure
          structureSpec
