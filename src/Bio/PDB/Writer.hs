@@ -21,8 +21,8 @@ import           Text.Printf            (printf)
 
 -- | Writes 'PDB' to the given path.
 --
-pdbToFile :: MonadIO m => FilePath -> PDB -> m ()
-pdbToFile path = liftIO . TIO.writeFile path . pdbToText
+pdbToFile :: MonadIO m => PDB -> FilePath -> m ()
+pdbToFile pdb = liftIO . flip TIO.writeFile (pdbToText pdb)
 
 -- | Converts 'PDB' to 'Text'.
 --

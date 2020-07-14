@@ -120,8 +120,8 @@ instance StructureSerializable PDB.PDB where
 
 -- | Writes models to the given path as PDB.
 --
-modelsToPDBFile :: MonadIO m => FilePath -> Vector Model -> m ()
-modelsToPDBFile path = pdbToFile path . serializeModels
+modelsToPDBFile :: MonadIO m => Vector Model -> FilePath -> m ()
+modelsToPDBFile models = pdbToFile $ serializeModels models
 
 -- | Converts models to their 'Text' representation as PDB.
 --
