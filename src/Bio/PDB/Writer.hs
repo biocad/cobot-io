@@ -70,8 +70,7 @@ modelToText separateModels (pdbModel, modelInd) = modelPrefix <> atomsT <> model
             addSerial i at@Atom{..} = at { atomSerial = atomSerial + i }
 
     atomOrTer :: Either Atom TerAtom -> Text
-    atomOrTer (Left at)  = atomToText at
-    atomOrTer (Right at) = terAtomToText at
+    atomOrTer = either atomToText terAtomToText
 
 terAtomToText :: Atom -> Text
 terAtomToText at = toPDBLine $ pref <> spaceText 6 <> suf

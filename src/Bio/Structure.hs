@@ -119,4 +119,3 @@ class StructureModels a where
 class StructureSerializable a where
     -- | Serialize an array of models to some format
     serializeModels :: Vector Model -> a
-
