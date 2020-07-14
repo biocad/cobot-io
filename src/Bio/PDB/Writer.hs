@@ -7,22 +7,27 @@ module Bio.PDB.Writer
   ) where
 
 
-import           Bio.PDB.Type           (Atom (..), Model, PDB (..))
-import           Control.Monad          (join)
+import           Bio.PDB.Type           (Atom (..), Chain, Model, PDB (..))
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Text              (Text)
-import qualified Data.Text              as T (cons, init, intercalate, last,
-                                              length, pack, replicate,
-                                              singleton)
+import qualified Data.Text              as T (cons, drop, init, intercalate,
+                                              last, length, pack, replicate,
+                                              singleton, splitAt, take)
 import qualified Data.Text.IO           as TIO (writeFile)
-import qualified Data.Vector            as V (fromList, length, toList, zip)
+import           Data.Vector            (Vector)
+import qualified Data.Vector            as V (all, foldl', fromList, last,
+                                              length, toList, zip)
 import           Text.Printf            (printf)
 
+-- | Writes 'PDB' to the given path.
+--
 pdbToFile :: MonadIO m => FilePath -> PDB -> m ()
 pdbToFile path = liftIO . TIO.writeFile path . pdbToText
 
+-- | Converts 'PDB' to 'Text'.
+--
 pdbToText :: PDB -> Text
-pdbToText PDB{..} = (<> newLine <> end)
+pdbToText PDB{..} = (<> newLine <> toPDBLine end)
                   $ T.intercalate newLine . V.toList . fmap (modelToText separateModels)
                   $ V.zip models $ V.fromList [1 ..]
   where
@@ -31,15 +36,17 @@ pdbToText PDB{..} = (<> newLine <> end)
     end :: Text
     end = "END   "
 
+type TerAtom = Atom
+
 modelToText :: Bool -> (Model, Int) -> Text
 modelToText separateModels (pdbModel, modelInd) = modelPrefix <> atomsT <> modelSuffix
   where
-    atomsT = T.intercalate newLine . V.toList . fmap atomToText . join $ pdbModel
+    atomsT = T.intercalate newLine . V.toList . fmap atomOrTer . withTers $ pdbModel
 
-    modelPrefix | separateModels = mdl <> spaceText 4 <> prependToS 4 modelInd <> newLine
+    modelPrefix | separateModels = toPDBLine (mdl <> spaceText 4 <> prependToS 4 modelInd) <> newLine
                 | otherwise      = ""
 
-    modelSuffix | separateModels = endmdl <> newLine
+    modelSuffix | separateModels = newLine <> toPDBLine endmdl
                 | otherwise      = ""
 
     mdl :: Text
@@ -48,9 +55,32 @@ modelToText separateModels (pdbModel, modelInd) = modelPrefix <> atomsT <> model
     endmdl :: Text
     endmdl = "ENDMDL "
 
--- TODO: chainToText
-chainToText :: Int -> Vector Atom -> Text
-chainToText startInd atoms = undefined
+    withTers :: Vector Chain -> Vector (Either Atom TerAtom)
+    withTers = snd . V.foldl' addTer (0, mempty)
+      where
+        addTer :: (Int, Vector (Either Atom TerAtom)) -> Chain -> (Int, Vector (Either Atom TerAtom))
+        addTer (add, res) cur = if V.all (isHetatm . atomResName) cur then (add, newRes) else withTer
+          where
+            ter    = addSerial (add + 1) $ V.last cur
+            newRes = res <> fmap (Left . addSerial add) cur
+
+            withTer = (add + 1, newRes <> pure (Right ter))
+
+            addSerial :: Int -> Atom -> Atom
+            addSerial i at@Atom{..} = at { atomSerial = atomSerial + i }
+
+    atomOrTer :: Either Atom TerAtom -> Text
+    atomOrTer (Left at)  = atomToText at
+    atomOrTer (Right at) = terAtomToText at
+
+terAtomToText :: Atom -> Text
+terAtomToText at = toPDBLine $ pref <> spaceText 6 <> suf
+  where
+    t           = (ter <>) . T.take 21 . T.drop 6 $ atomToText at
+    (pref, suf) = T.drop 6 <$> T.splitAt 11 t
+
+    ter :: Text
+    ter = "TER   "
 
 atomToText :: Atom -> Text
 atomToText Atom{..} = res
@@ -92,13 +122,20 @@ atomToText Atom{..} = res
     printFloat :: Int -> Float -> Text
     printFloat after f = T.pack $ printf "%.*f" after f
 
-    isHetatm :: Text -> Bool
-    isHetatm = (`notElem` canonicalAminoAcids)
-      where
-        canonicalAminoAcids = [ "ACE", "ALA", "ARG", "ASN", "ASP", "CYS", "GLU", "GLN"
-                              , "GLY", "HIS", "HID", "HIE", "HIP", "ILE", "LEU", "LYS", "LYN"
-                              , "MET", "NMA", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL"
-                              ]
+--------------------------------------------------------------------------------
+-- Utility functions.
+--------------------------------------------------------------------------------
+
+isHetatm :: Text -> Bool
+isHetatm = (`notElem` canonicalAminoAcids)
+  where
+    canonicalAminoAcids = [ "ACE", "ALA", "ARG", "ASN", "ASP", "CYS", "GLU", "GLN"
+                          , "GLY", "HIS", "HID", "HIE", "HIP", "ILE", "LEU", "LYS", "LYN"
+                          , "MET", "NMA", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL"
+                          ]
+
+toPDBLine :: Text -> Text
+toPDBLine = appendTo 80
 
 prependToS :: Show a => Int -> a -> Text
 prependToS i = prependTo i . T.pack . show

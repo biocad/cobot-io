@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Bio.PDB
   ( modelsFromPDBText, modelsToPDBText
-  , modelsFromPDBFile, modelsFromPDBText
+  , modelsFromPDBFile, modelsToPDBFile
   ) where
 
 import           Bio.PDB.BondRestoring  (residueID, restoreChainLocalBonds,
@@ -118,8 +118,12 @@ instance StructureSerializable PDB.PDB where
           nullAltLoc :: Char
           nullAltLoc = ' '
 
+-- | Writes models to the given path as PDB.
+--
 modelsToPDBFile :: MonadIO m => FilePath -> Vector Model -> m ()
 modelsToPDBFile path = pdbToFile path . serializeModels
 
+-- | Converts models to their 'Text' representation as PDB.
+--
 modelsToPDBText :: Vector Model -> Text
 modelsToPDBText = pdbToText . serializeModels

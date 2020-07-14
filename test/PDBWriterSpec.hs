@@ -12,28 +12,21 @@ import           Test.Hspec
 
 pdbWriterSpec :: Spec
 pdbWriterSpec = describe "PDB format writer." $ do
-    justWritingSpec
-    severalModelsSpec "writing"
-    hetatmSpec "writing"
+    testWriting "correctly writes several models" "test/PDB/Writer/several_models.pdb"
+    testWriting "correctly wrtes models with HETATMs" "test/PDB/Writer/hetatms.pdb"
+    testWriting "correctly writes big complex model" "test/PDB/Writer/big_file.pdb"
 
-justWritingSpec :: Spec
-justWritingSpec = it "Correctly writes very big PDB." $ do
-    Right (_, models) <- modelsFromPDBFile testFile
-    modelsText        <- liftIO $ TIO.readFile testFile
+testWriting :: String -> FilePath -> Spec
+testWriting description path = it description $ do
+    Right (_, models) <- modelsFromPDBFile path
+    modelsText        <- liftIO $ TIO.readFile path
 
     let modelsTextFromWriter = modelsToPDBText models
 
-    zipWithM_ shouldBe (T.splitOn newLine modelsTextFromWriter) $ T.splitOn newLine modelsText
+    compareLinesOfText modelsTextFromWriter modelsText
+
+compareLinesOfText :: Text -> Text -> Expectation
+compareLinesOfText t = zipWithM_ shouldBe (T.splitOn newLine t) . T.splitOn newLine
   where
-    testFile = "test/PDB/Writer/big_file.pdb"
-
-severalModelsSpec :: FilePath -> Spec
-severalModelsSpec path = describe "Correctly writes several models." $ do
-    pure ()
-
-hetatmSpec :: FilePath -> Spec
-hetatmSpec path = describe "Correctly wrtes models with HETATMs." $ do
-  pure ()
-
-newLine :: Text
-newLine = "\n"
+    newLine :: Text
+    newLine = "\n"

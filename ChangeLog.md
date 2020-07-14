@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.1.3.6] - 2020-07-14
+### Added
+- Convertation from `Model`s to `PDB`.
+- Writer for `PDB`.
+- `renameChains` function that renames chains in a model.
+
 ## [0.1.3.5] - 2020-05-26
 ### Fixed
 - Correctly clean `BasecalledSequenceWithRawData`, including inner quality.
