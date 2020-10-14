@@ -93,35 +93,48 @@ restoreDisulfideBonds atomsGroupedByResidue = do
   guard (PDB.atomSerial atom1 < PDB.atomSerial atom2)
   guard $ distance (coords atom1) (coords atom2) < sulfidicBondMaxLength
   pure $ Bond (GlobalID $ PDB.atomSerial atom1) (GlobalID $ PDB.atomSerial atom2) 1
-  where
-    cystineSulfur :: [PDB.Atom]
-    cystineSulfur = filter (("SG" ==) . T.strip . PDB.atomName) $ concat cystines
-    cystines :: [[PDB.Atom]]
-    cystines = filter cystinePredicate atomsGroupedByResidue
-    cystinePredicate :: [PDB.Atom] -> Bool
-    cystinePredicate residue = any (("SG" ==) . T.strip . PDB.atomName) residue && all (("HG" /=) . T.strip . PDB.atomName) residue
-    coords :: PDB.Atom -> V3 Float
-    coords PDB.Atom{..} = V3 atomX atomY atomZ
+    where
+      cystineSulfur :: [PDB.Atom]
+      cystineSulfur = filter (("SG" ==) . T.strip . PDB.atomName) $ concat cystines
+      cystines :: [[PDB.Atom]]
+      cystines = filter cystinePredicate atomsGroupedByResidue
+      cystinePredicate :: [PDB.Atom] -> Bool
+      cystinePredicate residue = any (("SG" ==) . T.strip . PDB.atomName) residue && all (("HG" /=) . T.strip . PDB.atomName) residue
+
+coords :: PDB.Atom -> V3 Float
+coords PDB.Atom{..} = V3 atomX atomY atomZ
 
 sulfidicBondMaxLength :: Float
 sulfidicBondMaxLength = 2.56
 
+peptideBondMaxLength :: Float
+peptideBondMaxLength = 1.5
+
 restoreChainPeptideBonds :: [[PDB.Atom]] -> [Bond GlobalID]
-restoreChainPeptideBonds atomsGroupedByResidue = restoreChainPeptideBonds' atomsGroupedByResidue []
+restoreChainPeptideBonds atomsGroupedByResidue = catMaybes $ restoreChainPeptideBonds' atomsGroupedByResidue mempty
   where
-    restoreChainPeptideBonds' :: [[PDB.Atom]] -> [Bond GlobalID] -> [Bond GlobalID]
+    restoreChainPeptideBonds' :: [[PDB.Atom]] -> [Maybe (Bond GlobalID)] -> [Maybe (Bond GlobalID)]
     restoreChainPeptideBonds' [] acc = acc
     restoreChainPeptideBonds' [_] acc = acc
     restoreChainPeptideBonds' (residue1:residue2:residues) acc = 
       restoreChainPeptideBonds' (residue2:residues) (constructBond residue1 residue2 : acc)
 
-    constructBond :: [PDB.Atom] -> [PDB.Atom] -> Bond GlobalID
-    constructBond residue1 residue2 = Bond (GlobalID $ getAtomIndex residue1 "C") (GlobalID $ getAtomIndex residue2 "N") 1
+    constructBond :: [PDB.Atom] -> [PDB.Atom] -> Maybe (Bond GlobalID)
+    constructBond residue1 residue2 = do
+        let carbonAtom1   = getAtomByName residue1 "C"
+            nitrogenAtom2 = getAtomByName residue2 "N"
+
+        -- check if distance between the atoms is short enough
+        -- in order not to restore a wrong peptide bond in case of absent residues (gaps)
+        guard $ distance (coords carbonAtom1) (coords nitrogenAtom2) < peptideBondMaxLength
+
+        pure $ Bond (GlobalID $ PDB.atomSerial carbonAtom1) (GlobalID $ PDB.atomSerial nitrogenAtom2) 1
     
-    getAtomIndex :: [PDB.Atom] -> Text -> Int
-    getAtomIndex atoms atomNameToFind = case find ((atomNameToFind ==) . T.strip . PDB.atomName) atoms of 
-      Just PDB.Atom{..} -> atomSerial
-      Nothing           -> error ("Atom with name " ++ T.unpack atomNameToFind ++ " wasn't found in residue " ++ residueId atoms ++ ", chain: " ++ chainId atoms)
+    getAtomByName :: [PDB.Atom] -> Text -> PDB.Atom
+    getAtomByName atoms atomNameToFind = case find ((atomNameToFind ==) . T.strip . PDB.atomName) atoms of 
+      Just a  -> a
+      Nothing -> error ("Atom with name " ++ T.unpack atomNameToFind ++ " wasn't found in residue " ++ residueId atoms ++ ", chain: " ++ chainId atoms)
+    
     residueId :: [PDB.Atom] -> String
     residueId [] = error "cobot-io: it's impossible to form a residue ID on a residue with no atoms"
     residueId (PDB.Atom{..}:_) = T.unpack atomResName ++ show atomResSeq ++ show atomICode
