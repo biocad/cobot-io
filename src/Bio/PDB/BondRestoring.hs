@@ -124,7 +124,7 @@ restoreChainPeptideBonds atomsGroupedByResidue = catMaybes $ restoreChainPeptide
         let carbonAtom1   = getAtomByName residue1 "C"
             nitrogenAtom2 = getAtomByName residue2 "N"
 
-        -- check if distance between the atoms is short enough
+        -- check if the atoms are close enough
         -- in order not to restore a wrong peptide bond in case of absent residues (gaps)
         guard $ distance (coords carbonAtom1) (coords nitrogenAtom2) < peptideBondMaxLength
 
