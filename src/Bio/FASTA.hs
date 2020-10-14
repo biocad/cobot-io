@@ -5,6 +5,7 @@ module Bio.FASTA
   , fromFile
   , toFile
   , fastaP
+  , fastaPGeneric
   ) where
 
 import           Bio.FASTA.Parser
