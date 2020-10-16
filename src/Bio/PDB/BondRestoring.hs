@@ -121,8 +121,8 @@ restoreChainPeptideBonds atomsGroupedByResidue = catMaybes $ restoreChainPeptide
 
     constructBond :: [PDB.Atom] -> [PDB.Atom] -> Maybe (Bond GlobalID)
     constructBond residue1 residue2 = do
-        let carbonAtom1   = getAtomByName residue1 "C"
-            nitrogenAtom2 = getAtomByName residue2 "N"
+        carbonAtom1   <- getAtomByName residue1 "C"
+        nitrogenAtom2 <- getAtomByName residue2 "N"
 
         -- check if the atoms are close enough
         -- in order not to restore a wrong peptide bond in case of absent residues (gaps)
@@ -130,19 +130,9 @@ restoreChainPeptideBonds atomsGroupedByResidue = catMaybes $ restoreChainPeptide
 
         pure $ Bond (GlobalID $ PDB.atomSerial carbonAtom1) (GlobalID $ PDB.atomSerial nitrogenAtom2) 1
     
-    getAtomByName :: [PDB.Atom] -> Text -> PDB.Atom
-    getAtomByName atoms atomNameToFind = case find ((atomNameToFind ==) . T.strip . PDB.atomName) atoms of 
-      Just a  -> a
-      Nothing -> error ("Atom with name " ++ T.unpack atomNameToFind ++ " wasn't found in residue " ++ residueId atoms ++ ", chain: " ++ chainId atoms)
-    
-    residueId :: [PDB.Atom] -> String
-    residueId [] = error "cobot-io: it's impossible to form a residue ID on a residue with no atoms"
-    residueId (PDB.Atom{..}:_) = T.unpack atomResName ++ show atomResSeq ++ show atomICode
-    
-    chainId :: [PDB.Atom] -> String
-    chainId [] = error "cobot-io: it's impossible to get a chain ID on a chain with no atoms"
-    chainId (PDB.Atom{..}:_) = show atomChainID
-    
+    getAtomByName :: [PDB.Atom] -> Text -> Maybe PDB.Atom
+    getAtomByName atoms atomNameToFind = find ((atomNameToFind ==) . T.strip . PDB.atomName) atoms
+
 
 restoreChainIntraResidueBonds :: [[PDB.Atom]] -> [Bond GlobalID]
 restoreChainIntraResidueBonds = concatMap restoreIntraResidueBonds
