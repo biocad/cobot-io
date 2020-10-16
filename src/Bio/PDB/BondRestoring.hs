@@ -164,7 +164,7 @@ backboneBonds = [("N", "CA"), ("CA", "C"), ("C", "O"), ("N", "H")] ++ [("C","OXT
 caCbBonds :: Text -> [(Text, Text)]
 caCbBonds aminoacid = case aminoacid of
   "GLY" -> bwhMany [("CA", ["HA2", "HA3"])]
-  _     -> [("CA", "CB"), ("CA", "HA")]
+  _     -> [("CA", "CB"), ("CA", "HA"), ("CA", "HA2")]
 
 sideChainBonds :: Text -> [(Text, Text)]
 sideChainBonds "ALA" = bwhMany [("CB", ["HB1", "HB2", "HB3"])]
