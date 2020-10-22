@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.7] - 2020-10-14
+### Added
+- Generic fasta parser. 
+
 ## [0.1.3.6] - 2020-07-14
 ### Added
 - Convertation from `Model`s to `PDB`.
