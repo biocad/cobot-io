@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.8] - 2020-10-22
+### Fixed
+- A couple of issues, that caused parametrization failures, fixed in bond restoring for PDB format.
+
 ## [0.1.3.7] - 2020-10-14
 ### Added
 - Generic fasta parser. 
