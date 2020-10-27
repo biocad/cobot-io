@@ -5,7 +5,7 @@ module Bio.FASTA.Parser
 
 import Bio.FASTA.Type       (Fasta, FastaItem (..))
 import Bio.Sequence         (BareSequence, bareSequence)
-import Data.Attoparsec.Text (Parser, char, choice, endOfInput, endOfLine, many', many1', satisfy,
+import Data.Attoparsec.Text (Parser, char, choice, endOfInput, many', many1', satisfy, space,
                              takeWhile)
 import Data.Char            (isLetter)
 import Data.Text            (Text, strip)
@@ -35,7 +35,7 @@ eol :: Parser ()
 eol = tabs *> choice [slashN, endOfInput]
 
 slashN :: Parser ()
-slashN = () <$ many1' endOfLine
+slashN = () <$ many1' space
 
 tabs :: Parser ()
 tabs = () <$ many' (char '\t')
