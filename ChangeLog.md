@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [0.1.3.r] - 2020-10-27
+## [0.1.3.9] - 2020-10-27
 ### Fixed
 - FASTA parser can now parse empty lines with spaces. 
 
