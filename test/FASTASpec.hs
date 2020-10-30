@@ -2,15 +2,12 @@
 
 module FASTASpec where
 
-import           Bio.FASTA            (fastaP, fromFile, toFile)
-import           Bio.FASTA.Type       (Fasta, FastaItem (..))
-import           Bio.Sequence         (bareSequence)
-import           Data.Attoparsec.Text (endOfInput, parseOnly)
-import           Data.Text            (Text)
-import qualified Data.Text            as T
-import           Prelude              hiding (readFile, writeFile)
-import           System.Directory     (removeFile)
-import           Test.Hspec
+import Bio.FASTA        (fromFile, toFile)
+import Bio.FASTA.Type   (Fasta, FastaItem (..))
+import Bio.Sequence     (bareSequence)
+import Prelude          hiding (readFile, writeFile)
+import System.Directory (removeFile)
+import Test.Hspec
 
 correctFasta :: Fasta Char
 correctFasta = [ FastaItem "3HMX:A|PDBID|CHAIN|SEQUENCE" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEDGITWTLDQSSEVLGSGKTLTIQVKEFGDAGQYTCHKGGEVLSHSLL")
