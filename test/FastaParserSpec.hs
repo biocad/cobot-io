@@ -2,10 +2,12 @@
 
 module FastaParserSpec where
 
-import           Bio.FASTA.Parser       (fastaP)
-import           Bio.FASTA.Type         (FastaItem(..))
-import           Bio.Sequence           (bareSequence)
-import           Data.Attoparsec.Text   (parseOnly)
+import           Bio.FASTA.Parser     (fastaP)
+import           Bio.FASTA.Type       (Fasta, FastaItem (..))
+import           Bio.Sequence         (bareSequence)
+import           Data.Attoparsec.Text (endOfInput, parseOnly)
+import           Data.Text            (Text)
+import qualified Data.Text            as T
 import           Test.Hspec
 
 fastaParserSpec :: Spec
@@ -21,6 +23,7 @@ fastaParserSpec = describe "Fasta format parser." $ do
     sequenceWithSeveralEndOfLineInSequence
     sequenceWithTabsInName
     sequenceWithTabsInSequence
+    toughParserTests
 
 emptyFasta :: Spec
 emptyFasta = describe "emptyFasta" $ do
@@ -87,3 +90,64 @@ sequenceWithTabsInSequence = describe "sequenceWithTabsInSequence" $ do
     it "correctly parses sequence with tabs between sequence parts" $ do
         let res = parseOnly fastaP ">this is my sequence\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE\t\t\nYYYYYYYYYYYYYYYYYYYYYYYY\t\n"
         res `shouldBe` Right [FastaItem "this is my sequence" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSEYYYYYYYYYYYYYYYYYYYYYYYY")]
+
+toughParserTests :: Spec
+toughParserTests = describe "various parser tests" $ do
+    it "correctly parses empty lines" $ checkParser correctTest1 (Right correctAnswer)
+    it "correctly parses empty lines with spaces" $ checkParser correctTest2 (Right correctAnswer)
+    it "correctly parses empty lines with tabs" $ checkParser correctTest3 (Right correctAnswer)
+    it "correctly fails to parse a name without >" $ checkParser incorrectTest1 (Left "endOfInput")
+    it "correctly fails to parse a new sequence at the same line" $ checkParser incorrectTest2 (Left "endOfInput")
+
+correctTest1 :: Text
+correctTest1 = T.unlines
+  [ ">test1"
+  , "ABCDEF"
+  , "GHIJKL"
+  , ""
+  , ">test2"
+  , "ABCDEF"
+  ]
+
+correctTest2 :: Text
+correctTest2 = T.unlines
+  [ ">test1"
+  , "ABCDEF"
+  , "GHIJKL"
+  , " "
+  , ">test2"
+  , "ABCDEF"
+  ]
+
+correctTest3 :: Text
+correctTest3 = T.unlines
+  [ ">test1"
+  , "ABCDEF"
+  , "GHIJKL"
+  , "\t"
+  , ">test2"
+  , "ABCDEF"
+  ]
+
+incorrectTest1 :: Text
+incorrectTest1 = T.unlines
+  [ "test1"
+  , "ABCDEF"
+  , "GHIJKL"
+  , ">test2"
+  , "ABCDEF"
+  ]
+
+incorrectTest2 :: Text
+incorrectTest2 = T.unlines
+  [ ">test1"
+  , "ABCDEF"
+  , "GHIJKL >test2"
+  , "ABCDEF"
+  ]
+
+correctAnswer :: Fasta Char
+correctAnswer = [FastaItem "test1" (bareSequence "ABCDEFGHIJKL"), FastaItem "test2" (bareSequence "ABCDEF")]
+
+checkParser :: Text -> Either String (Fasta Char) -> Expectation
+checkParser source expectation = parseOnly (fastaP <* endOfInput) source `shouldBe` expectation

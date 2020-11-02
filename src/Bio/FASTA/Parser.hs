@@ -6,8 +6,8 @@ module Bio.FASTA.Parser
 import Bio.FASTA.Type       (Fasta, FastaItem (..))
 import Bio.Sequence         (BareSequence, bareSequence)
 import Data.Attoparsec.Text (Parser, char, choice, endOfInput, endOfLine, many', many1', satisfy,
-                             takeWhile)
-import Data.Char            (isLetter)
+                             skipWhile, takeWhile)
+import Data.Char            (isLetter, isSpace)
 import Data.Text            (Text, strip)
 import Prelude              hiding (takeWhile)
 
@@ -20,7 +20,7 @@ fastaPGeneric :: (Char -> Bool) -> Parser (Fasta Char)
 fastaPGeneric = many' . item
 
 item :: (Char -> Bool) -> Parser (FastaItem Char)
-item predicate = FastaItem <$> seqName <*> fastaSeq predicate
+item predicate = (FastaItem <$> seqName <*> fastaSeq predicate) <* skipWhile isSpace
 
 seqName :: Parser Text
 seqName = strip <$> (char '>' *> tabs *> takeWhile (`notElem` ['\n', '\r']) <* tabs <* eol)
@@ -39,4 +39,3 @@ slashN = () <$ many1' endOfLine
 
 tabs :: Parser ()
 tabs = () <$ many' (char '\t')
-

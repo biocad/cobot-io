@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.9] - 2020-10-27
+### Fixed
+- FASTA parser can now parse empty lines with spaces. 
+
 ## [0.1.3.8] - 2020-10-22
 ### Fixed
 - A couple of issues, that caused parametrization failures, fixed in bond restoring for PDB format.
