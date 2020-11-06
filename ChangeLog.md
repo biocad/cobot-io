@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.10] - 2020-11-06
+### Fixed
+- `SOURCE` and `ORIGIN` in GB parser.
+
 ## [0.1.3.9] - 2020-10-27
 ### Fixed
 - FASTA parser can now parse empty lines with spaces. 
@@ -12,7 +16,7 @@
 
 ## [0.1.3.7] - 2020-10-14
 ### Added
-- Generic fasta parser. 
+- Generic fasta parser.
 
 ## [0.1.3.6] - 2020-07-14
 ### Added
