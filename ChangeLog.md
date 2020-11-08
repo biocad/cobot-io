@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.11] - 2020-11-08
+### Changed
+- Allow `linear-0.21`.
+
 ## [0.1.3.10] - 2020-11-06
 ### Fixed
 - `SOURCE` and `ORIGIN` in GB parser.

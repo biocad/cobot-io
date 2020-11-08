@@ -27,20 +27,20 @@ maeSpec = describe "Mae spec." $
         let secondChainResidues Model{..} = (chainResidues $ modelChains V.! 1)
 
         it "two chains" $ \Model{..} -> length modelChains `shouldBe` 2
-        
-        it "residue numbers" $ \m@Model{..} -> do
+
+        it "residue numbers" $ \m -> do
             fmap resName (firstChainResidues m) `shouldBe` V.fromList ["ACE", "ASP", "ILE", "LYS"]
             fmap resName (secondChainResidues m) `shouldBe` V.fromList ["GLU", "LEU", "VAL", "ARG", "PRO", "GLY", "ALA", "LEU", "VAL"]
-        
-        it "residue names" $ \m@Model{..} -> do
+
+        it "residue names" $ \m -> do
             fmap resNumber (firstChainResidues m) `shouldBe` V.fromList [0, 1, 2, 3]
             fmap resNumber (secondChainResidues m) `shouldBe` V.fromList [10, 11, 12, 13, 13, 15, 16, 17, 18] -- 13 is doubled because the second 13 has 'A' insertion code
 
-        it "residue insertion codes" $ \m@Model{..} -> do
+        it "residue insertion codes" $ \m -> do
             fmap resInsertionCode (firstChainResidues m) `shouldBe` V.fromList [' ', ' ', ' ', ' ']
             fmap resInsertionCode (secondChainResidues m) `shouldBe` V.fromList [' ', ' ', ' ', ' ', 'A', ' ', ' ', ' ', ' ']
 
-        it "atoms count" $ \m@Model{..} -> do
+        it "atoms count" $ \m -> do
             sum (fmap (length . resAtoms) (firstChainResidues m)) `shouldBe` 62
             sum (fmap (length . resAtoms) (secondChainResidues m)) `shouldBe` 140
 
@@ -68,7 +68,7 @@ maeSpec = describe "Mae spec." $
         let residue1 m = firstChainResidues m V.! 3
         let residue2 m = secondChainResidues m V.! 0
 
-        it "atoms in residues" $ \m@Model{..} -> do
+        it "atoms in residues" $ \m -> do
             let atoms1 = resAtoms $ residue1 m
             let atoms2 = resAtoms $ residue2 m
 
@@ -94,7 +94,7 @@ maeSpec = describe "Mae spec." $
                                                          , V3 (-10.322000) 11.996000 16.297000, V3 (-9.798000) 11.676000 19.305000, V3 (-10.128000) 10.318000 18.313000, V3 (-12.084000) 12.633000 18.684000, V3 (-12.123000) 11.111000 19.544000
                                                          ]
 
-        it "bonds in residues" $ \m@Model{..} -> do
+        it "bonds in residues" $ \m -> do
             toSet (resBonds $ residue1 m) `shouldBe` toSet (V.fromList $ toBond LocalID . (\(x, y, o) -> (x - 37, y - 37, o)) <$> filter (\(x, y, _) -> x - 1 `elem` [37 .. 58] && y - 1 `elem` [37 .. 58]) allBonds)
             toSet (resBonds $ residue2 m) `shouldBe` toSet (V.fromList $ toBond LocalID . (\(x, y, o) -> (x - 59, y - 59, o)) <$> filter (\(x, y, _) -> x - 1 `elem` [59 .. 73] && y - 1 `elem` [59 .. 73]) allBonds)
     where
