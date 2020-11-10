@@ -1,12 +1,17 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module ABISpec where
 
-import           Bio.ABI                 (Cleanable (..))
-import           Bio.Sequence            (SequenceDecodable (..))
-import qualified Bio.Sequence            as S (getWeights, length, toList)
-import           Bio.Sequence.Basecalled (BasecalledSequence)
 import           Data.ByteString.Lazy    as BSL (readFile)
 import           Data.Text               (Text)
 import           Test.Hspec
+
+import           Bio.ABI                 (Cleanable (..))
+import           Bio.ABI.Decode          (decodeRawSequence)
+import           Bio.Sequence            (SequenceDecodable (..))
+import qualified Bio.Sequence            as S (getWeights, length, toList)
+import           Bio.Sequence.Basecalled (BasecalledSequence,
+                                          BasecalledSequenceWithRawData (..))
 
 abiExtractSpec :: Spec
 abiExtractSpec =
@@ -21,6 +26,13 @@ abiExtractSpec =
       datM <- readData "test/ABI/not_ab1.txt"
       datM `shouldBe` Left "Error reading root: not enough bytes"
 
+    it "decode with raw data" $ do
+      Right BasecalledSequenceWithRawData{..} <- decodeRawSequence <$> BSL.readFile "test/ABI/test.ab1"
+      S.length bsSequence `shouldBe` length bsPeakLocations
+      length bsRawG `shouldSatisfy` (>0)
+      length bsRawA `shouldSatisfy` (>0)
+      length bsRawT `shouldSatisfy` (>0)
+      length bsRawC `shouldSatisfy` (>0)
 
 abiCleanSpec :: Spec
 abiCleanSpec =
@@ -34,6 +46,20 @@ abiCleanSpec =
     it "totally clean bad ABI file" $ do
       Right dat <- readData "test/ABI/bad_quality.ab1"
       clean dat `shouldBe` Nothing
+
+    it "clean good ABI file with raw data" $ do
+      Right bsWithRaw <- decodeRawSequence <$> BSL.readFile "test/ABI/bad_at_the_end.ab1"
+      Just cleaned <- return $ clean bsWithRaw
+
+      length (bsPeakLocations cleaned) `shouldBe` S.length (bsSequence cleaned)
+
+    it "clean with raw data is the same as without" $ do
+      Right bsWithRaw <- decodeRawSequence <$> BSL.readFile "test/ABI/bad_at_the_end.ab1"
+      bsSequence <$> clean bsWithRaw `shouldBe` clean (bsSequence bsWithRaw)
+
+    it "totally clean bad ABI file with raw data" $ do
+      Right bsWithRaw <- decodeRawSequence <$> BSL.readFile "test/ABI/bad_quality.ab1"
+      clean bsWithRaw `shouldBe` Nothing
   where
     checkFile :: FilePath -> Int -> Int -> String -> IO ()
     checkFile path lengthBefore lengthAfter start = do

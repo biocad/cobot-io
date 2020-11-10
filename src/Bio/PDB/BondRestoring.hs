@@ -93,43 +93,46 @@ restoreDisulfideBonds atomsGroupedByResidue = do
   guard (PDB.atomSerial atom1 < PDB.atomSerial atom2)
   guard $ distance (coords atom1) (coords atom2) < sulfidicBondMaxLength
   pure $ Bond (GlobalID $ PDB.atomSerial atom1) (GlobalID $ PDB.atomSerial atom2) 1
-  where
-    cystineSulfur :: [PDB.Atom]
-    cystineSulfur = filter (("SG" ==) . T.strip . PDB.atomName) $ concat cystines
-    cystines :: [[PDB.Atom]]
-    cystines = filter cystinePredicate atomsGroupedByResidue
-    cystinePredicate :: [PDB.Atom] -> Bool
-    cystinePredicate residue = any (("SG" ==) . T.strip . PDB.atomName) residue && all (("HG" /=) . T.strip . PDB.atomName) residue
-    coords :: PDB.Atom -> V3 Float
-    coords PDB.Atom{..} = V3 atomX atomY atomZ
+    where
+      cystineSulfur :: [PDB.Atom]
+      cystineSulfur = filter (("SG" ==) . T.strip . PDB.atomName) $ concat cystines
+      cystines :: [[PDB.Atom]]
+      cystines = filter cystinePredicate atomsGroupedByResidue
+      cystinePredicate :: [PDB.Atom] -> Bool
+      cystinePredicate residue = any (("SG" ==) . T.strip . PDB.atomName) residue && all (("HG" /=) . T.strip . PDB.atomName) residue
+
+coords :: PDB.Atom -> V3 Float
+coords PDB.Atom{..} = V3 atomX atomY atomZ
 
 sulfidicBondMaxLength :: Float
 sulfidicBondMaxLength = 2.56
 
+peptideBondMaxLength :: Float
+peptideBondMaxLength = 1.5
+
 restoreChainPeptideBonds :: [[PDB.Atom]] -> [Bond GlobalID]
-restoreChainPeptideBonds atomsGroupedByResidue = restoreChainPeptideBonds' atomsGroupedByResidue []
+restoreChainPeptideBonds atomsGroupedByResidue = catMaybes $ restoreChainPeptideBonds' atomsGroupedByResidue mempty
   where
-    restoreChainPeptideBonds' :: [[PDB.Atom]] -> [Bond GlobalID] -> [Bond GlobalID]
+    restoreChainPeptideBonds' :: [[PDB.Atom]] -> [Maybe (Bond GlobalID)] -> [Maybe (Bond GlobalID)]
     restoreChainPeptideBonds' [] acc = acc
     restoreChainPeptideBonds' [_] acc = acc
     restoreChainPeptideBonds' (residue1:residue2:residues) acc = 
       restoreChainPeptideBonds' (residue2:residues) (constructBond residue1 residue2 : acc)
 
-    constructBond :: [PDB.Atom] -> [PDB.Atom] -> Bond GlobalID
-    constructBond residue1 residue2 = Bond (GlobalID $ getAtomIndex residue1 "C") (GlobalID $ getAtomIndex residue2 "N") 1
+    constructBond :: [PDB.Atom] -> [PDB.Atom] -> Maybe (Bond GlobalID)
+    constructBond residue1 residue2 = do
+        carbonAtom1   <- getAtomByName residue1 "C"
+        nitrogenAtom2 <- getAtomByName residue2 "N"
+
+        -- check if the atoms are close enough
+        -- in order not to restore a wrong peptide bond in case of absent residues (gaps)
+        guard $ distance (coords carbonAtom1) (coords nitrogenAtom2) < peptideBondMaxLength
+
+        pure $ Bond (GlobalID $ PDB.atomSerial carbonAtom1) (GlobalID $ PDB.atomSerial nitrogenAtom2) 1
     
-    getAtomIndex :: [PDB.Atom] -> Text -> Int
-    getAtomIndex atoms atomNameToFind = case find ((atomNameToFind ==) . T.strip . PDB.atomName) atoms of 
-      Just PDB.Atom{..} -> atomSerial
-      Nothing           -> error ("Atom with name " ++ T.unpack atomNameToFind ++ " wasn't found in residue " ++ residueId atoms ++ ", chain: " ++ chainId atoms)
-    residueId :: [PDB.Atom] -> String
-    residueId [] = error "cobot-io: it's impossible to form a residue ID on a residue with no atoms"
-    residueId (PDB.Atom{..}:_) = T.unpack atomResName ++ show atomResSeq ++ show atomICode
-    
-    chainId :: [PDB.Atom] -> String
-    chainId [] = error "cobot-io: it's impossible to get a chain ID on a chain with no atoms"
-    chainId (PDB.Atom{..}:_) = show atomChainID
-    
+    getAtomByName :: [PDB.Atom] -> Text -> Maybe PDB.Atom
+    getAtomByName atoms atomNameToFind = find ((atomNameToFind ==) . T.strip . PDB.atomName) atoms
+
 
 restoreChainIntraResidueBonds :: [[PDB.Atom]] -> [Bond GlobalID]
 restoreChainIntraResidueBonds = concatMap restoreIntraResidueBonds
@@ -160,8 +163,8 @@ backboneBonds = [("N", "CA"), ("CA", "C"), ("C", "O"), ("N", "H")] ++ [("C","OXT
 
 caCbBonds :: Text -> [(Text, Text)]
 caCbBonds aminoacid = case aminoacid of
-  "GLY" -> bwhMany [("CA", ["HA2", "HA3"])]
-  _     -> [("CA", "CB"), ("CA", "HA")]
+  "GLY" -> bwhMany [("CA", ["HA1", "HA2", "HA3"])]
+  _     -> [("CA", "CB"), ("CA", "HA"), ("CA", "HA1"), ("CA", "HA2"), ("CA", "HA3")]
 
 sideChainBonds :: Text -> [(Text, Text)]
 sideChainBonds "ALA" = bwhMany [("CB", ["HB1", "HB2", "HB3"])]
@@ -170,20 +173,20 @@ sideChainBonds "ASN" = [("CB", "CG"), ("CG", "OD1"), ("CG", "ND2")] ++ bwhMany [
 sideChainBonds "ASP" = [("CB", "CG"), ("CG", "OD1"), ("CG", "OD2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("OD2", ["HD2"])]
 sideChainBonds "CYS" = [("CB", "SG")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("SG", ["HG"])]
 sideChainBonds "GLN" = [("CB", "CG"), ("CG", "CD"), ("CD", "OE1"), ("CD", "NE2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("NE2", ["HE22", "HE21"])]
-sideChainBonds "GLU" = [("CB", "CG"), ("CG", "CD"), ("CD", "OE1"), ("CD", "OE2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("OE2", ["HE2"])]
+sideChainBonds "GLU" = [("CB", "CG"), ("CG", "CD"), ("CD", "OE1"), ("CD", "OE2")] ++ bwhMany [("CB", ["HB1", "HB2", "HB3"]), ("CG", ["HG3", "HG2"]), ("OE2", ["HE2"])]
 sideChainBonds "GLY" = [] -- nothing
 sideChainBonds "HIS" = [("CB", "CG"), ("CG", "ND1"), ("ND1", "CE1"), ("CE1", "NE2"), ("NE2", "CD2"), ("CD2", "CG")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("ND1", ["HD1"]), ("CE1", ["HE1"]), ("NE2", ["HE2"]), ("CD2", ["HD2"])]
-sideChainBonds "ILE" = [("CB", "CG1"), ("CB", "CG2"), ("CG1", "CD1")] ++ bwhMany [("CB", ["HB"]), ("CG1", ["HG13", "HG12"]), ("CG2", ["HG21", "HG22", "HG23"]), ("CD1", ["HD11", "HD12", "HD13"])]
-sideChainBonds "LEU" = [("CB", "CG"), ("CG", "CD1"), ("CG", "CD2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG"]), ("CD1", ["HD11", "HD12", "HD13"]), ("CD2", ["HD21", "HD22", "HD23"])]
-sideChainBonds "LYS" = [("CB", "CG"), ("CG", "CD"), ("CD", "CE"), ("CE", "NZ")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("CD", ["HD3", "HD2"]), ("CE", ["HE3", "HE2"]), ("NZ", ["HZ1", "HZ2", "HZ3"])]
+sideChainBonds "ILE" = [("CB", "CG1"), ("CB", "CG2"), ("CG1", "CD1")] ++ bwhMany [("CB", ["HB", "HB2", "HB3"]), ("CG1", ["HG13", "HG12"]), ("CG2", ["HG21", "HG22", "HG23"]), ("CD1", ["HD11", "HD12", "HD13"])]
+sideChainBonds "LEU" = [("CB", "CG"), ("CG", "CD1"), ("CG", "CD2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG", "HG2"]), ("CD1", ["HD11", "HD12", "HD13"]), ("CD2", ["HD21", "HD22", "HD23"])]
+sideChainBonds "LYS" = [("CB", "CG"), ("CG", "CD"), ("CD", "CE"), ("CE", "NZ")] ++ bwhMany [("CB", ["HB1", "HB2", "HB3"]), ("CG", ["HG1", "HG2", "HG3"]), ("CD", ["HD3", "HD2"]), ("CE", ["HE3", "HE2"]), ("NZ", ["HZ1", "HZ2", "HZ3"])]
 sideChainBonds "MET" = [("CB", "CG"), ("CG", "SD"), ("SD", "CE")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("CE", ["HE1", "HE2", "HE3"])]
 sideChainBonds "PHE" = [("CB", "CG"), ("CG", "CD1"), ("CD1", "CE1"), ("CE1", "CZ"), ("CZ", "CE2"), ("CE2", "CD2"), ("CD2", "CG")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CD1", ["HD1"]), ("CE1", ["HE1"]), ("CZ", ["HZ"]), ("CE2", ["HE2"]), ("CD2", ["HD2"])]
-sideChainBonds "PRO" = [("CB", "CG"), ("CG", "CD"), ("CD", "N")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("CD", ["HD2", "HD3"])]
-sideChainBonds "SER" = [("CB", "OG")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("OG", ["HG"])]
-sideChainBonds "THR" = [("CB", "OG1"), ("CB", "CG2")] ++ bwhMany [("CB", ["HB"]), ("OG1", ["HG1"]), ("CG2", ["HG21", "HG22", "HG23"])]
+sideChainBonds "PRO" = [("CB", "CG"), ("CG", "CD"), ("CD", "N")] ++ bwhMany [("CB", ["HB1", "HB2", "HB3"]), ("CG", ["HG3", "HG2"]), ("CD", ["HD2", "HD3"])]
+sideChainBonds "SER" = [("CB", "OG")] ++ bwhMany [("CB", ["HB3", "HB2", "HB1"]), ("OG", ["HG"])]
+sideChainBonds "THR" = [("CB", "OG1"), ("CB", "CG2")] ++ bwhMany [("CB", ["HB", "HB3"]), ("OG1", ["HG1"]), ("CG2", ["HG21", "HG22", "HG23"])]
 sideChainBonds "TRP" = [("CB", "CG"), ("CG", "CD1"), ("CD1", "NE1"), ("NE1", "CE2"), ("CE2", "CD2"), ("CD2", "CG"), ("CD2", "CE3"), ("CE3", "CZ3"), ("CZ3", "CH2"), ("CH2", "CZ2"), ("CZ2", "CE2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CD1", ["HD1"]), ("NE1", ["HE1"]), ("CE3", ["HE3"]), ("CZ3", ["HZ3"]), ("CH2", ["HH2"]), ("CZ2", ["HZ2"])]
 sideChainBonds "TYR" = [("CB", "CG"), ("CG", "CD1"), ("CD1", "CE1"), ("CE1", "CZ"), ("CZ", "CE2"), ("CE2", "CD2"), ("CD2", "CG"), ("CZ", "OH")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("CD1", ["HD1"]), ("CE1", ["HE1"]), ("CE2", ["HE2"]), ("CD2", ["HD2"]), ("OH", ["HH"])]
-sideChainBonds "VAL" = [("CB", "CG1"), ("CB", "CG2")] ++ bwhMany [("CB", ["HB"]), ("CG1", ["HG11", "HG12", "HG13"]), ("CG2", ["HG21", "HG22", "HG23"])]
+sideChainBonds "VAL" = [("CB", "CG1"), ("CB", "CG2")] ++ bwhMany [("CB", ["HB", "HB3"]), ("CG1", ["HG11", "HG12", "HG13"]), ("CG2", ["HG21", "HG22", "HG23"])]
 sideChainBonds unknownResidue = error . T.unpack $ "cobot-io: we don't know what to do with residue " <> unknownResidue
 
 bwhMany :: [(Text, [Text])] -> [(Text, Text)]

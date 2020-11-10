@@ -2,13 +2,12 @@
 
 module Bio.MMTF.Decode.MessagePack where
 
-import           Data.ByteString.Lazy  (ByteString, fromStrict)
-import           Data.Map.Strict       (Map, fromList)
-import qualified Data.Map.Strict       as M (lookup)
+import           Data.ByteString.Lazy (ByteString, fromStrict)
+import           Data.Map.Strict      (Map, fromList)
+import qualified Data.Map.Strict      as M (lookup)
 import           Data.MessagePack
-import           Data.Monoid           ((<>))
-import           Data.Text             (Text)
-import qualified Data.Text             as T (unpack)
+import           Data.Text            (Text)
+import qualified Data.Text            as T (unpack)
 
 #if !MIN_VERSION_base(4,13,0)
 -- Data.MessagePack includes MonadFail constraints only for GHC-8.8+, so we can't use

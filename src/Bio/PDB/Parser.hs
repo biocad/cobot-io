@@ -17,7 +17,6 @@ import           Data.Attoparsec.Text (Parser, choice, count, endOfInput,
 import qualified Data.List            as L (groupBy)
 import           Data.Map.Strict      (Map, fromListWithKey)
 import           Data.Maybe           (catMaybes)
-import           Data.Monoid          ((<>))
 import           Data.Function        (on)
 import           Data.Text            as T (Text, concat, pack, stripEnd)
 import qualified Data.Vector          as V (Vector, concat, fromList, singleton)
@@ -68,11 +67,12 @@ atomP :: Parser CoordLike
 atomP = let atom = Atom <$>
                     (
                       (string "ATOM " *>                                      -- (1 -  5)  ATOM -- we extended atomSerial length to the left for one symbol
-                      (read <$> count 6 notEndLineChar) <* space)             -- (6 - 11)  atomSerial
+                      (read <$> count 6 notEndLineChar))                      -- (6 - 11)  atomSerial
                         <|>                                                   -- or
                       (string "HETATM" *>                                     -- (1 -  6)  HETATM
-                      (read <$> count 5 notEndLineChar) <* space)             -- (7 - 11)  atomSerial
+                      (read <$> count 5 notEndLineChar))                      -- (7 - 11)  atomSerial
                     )
+                    <* space
                     <*> (T.pack <$> count 4 notEndLineChar)                   -- (13 - 16) atomName
                     <*> notEndLineChar                                        -- (17)      atomAltLoc
                     <*> (T.pack <$> count 3 notEndLineChar) <* space          -- (18 - 20) atomResName

@@ -14,6 +14,7 @@ module Bio.Sequence.Class
   , sequ
   , markings
   , weights
+  , bareSequ
 
   -- classes for weights and markings of sequence
   , IsMarking
@@ -45,7 +46,6 @@ module Bio.Sequence.Class
 import           Bio.Sequence.Utilities (Range, checkRange, unsafeEither)
 import           Control.Lens
 import           Control.Monad.Except   (MonadError, throwError)
-import           Data.Bifunctor         (bimap)
 import           Data.Kind              (Constraint)
 import qualified Data.List              as L (length, null)
 import           Data.Text              (Text)
@@ -88,7 +88,7 @@ instance Foldable (Sequence mk w) where
   length = V.length . _sequ
 
 instance Traversable (Sequence mk w) where
-  traverse f s@Sequence{..} = fmap (\newSeq -> s { _sequ = newSeq }) $ traverse f _sequ
+  traverse f s@Sequence{..} = (\newSeq -> s { _sequ = newSeq }) <$> traverse f _sequ
 
 -- | Exported constructor for 'Sequence'. Should be used ONLY in module Bio.Sequence.
 --
@@ -114,6 +114,7 @@ type BareSequence a = Sequence () () a
 --------------------------------------------------------------------------------
 -- Lenses for 'Sequence'.
 -- We create only getters, so user that couldn't ruin 'Sequence's invariant.
+-- But we can create a Lens for 'BareSequence', and it won't ruin any invariants.
 --------------------------------------------------------------------------------
 
 sequ :: Getter (Sequence mk w a) (Vector a)
@@ -124,6 +125,9 @@ markings = to _markings
 
 weights :: Getter (Sequence mk w a) (Vector w)
 weights  = to _weights
+
+bareSequ :: Lens' (BareSequence a) (Vector a)
+bareSequ = lens _sequ (\s v -> s { _sequ = v })
 
 
 --------------------------------------------------------------------------------

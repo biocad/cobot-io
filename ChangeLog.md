@@ -2,6 +2,56 @@
 
 ## [Unreleased]
 
+## [0.1.3.11] - 2020-11-08
+### Changed
+- Allow `linear-0.21`.
+
+## [0.1.3.10] - 2020-11-06
+### Fixed
+- `SOURCE` and `ORIGIN` in GB parser.
+
+## [0.1.3.9] - 2020-10-27
+### Fixed
+- FASTA parser can now parse empty lines with spaces. 
+
+## [0.1.3.8] - 2020-10-22
+### Fixed
+- A couple of issues, that caused parametrization failures, fixed in bond restoring for PDB format.
+
+## [0.1.3.7] - 2020-10-14
+### Added
+- Generic fasta parser.
+
+## [0.1.3.6] - 2020-07-14
+### Added
+- Convertation from `Model`s to `PDB`.
+- Writer for `PDB`.
+- `renameChains` function that renames chains in a model.
+
+## [0.1.3.5] - 2020-05-26
+### Fixed
+- Correctly clean `BasecalledSequenceWithRawData`, including inner quality.
+
+## [0.1.3.4] - 2020-05-14
+### Added
+- `instance Cleanable BasecalledSequenceWithRawData`.
+
+## [0.1.3.3] - 2020-05-07
+### Added
+- Type and decoder for `ab1` with raw channel data and peak locations.
+### Fixed
+- Use supplied thresholds instead of default ones in the implementation of `cleanWith`;
+- Do not run `IO` in `hspec` `Spec` monad, use `beforeAll`.
+
+## [0.1.3.2] - 2020-04-15
+### Changed
+- Resolver version up.
+- Moving from `less-wrong` to `biocad`.
+
+## [0.1.3.1] - 2020-04-02
+### Fixed
+- Reading of insertion code for residues in MAE.
+
 ## [0.1.3.0] - 2020-03-27
 ### Added
 - Residue index in `Structure`.

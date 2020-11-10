@@ -4,20 +4,17 @@ module Bio.GB.Parser
   ( genBankP
   ) where
 
-import           Bio.GB.Type          (Feature (..), Form (..),
-                                       GenBankSequence (..), Locus (..),
-                                       Meta (..), Reference (..), Source (..),
-                                       Version (..))
-import           Bio.Sequence         (MarkedSequence, Range, markedSequence)
-import           Control.Applicative  ((<|>))
-import           Data.Attoparsec.Text (Parser, char, decimal, digit, endOfInput,
-                                       endOfLine, letter, many', many1',
-                                       satisfy, string, takeWhile, takeWhile1)
-import           Data.Bifunctor       (bimap)
-import           Data.Char            (isAlphaNum, isSpace, isUpper)
-import           Data.Functor         (($>))
-import           Data.Text            (Text, intercalate, pack, splitOn, unpack)
-import           Prelude              hiding (takeWhile)
+import Bio.GB.Type          (Feature (..), Form (..), GenBankSequence (..), Locus (..), Meta (..),
+                             Reference (..), Source (..), Version (..))
+import Bio.Sequence         (MarkedSequence, Range, markedSequence)
+import Control.Applicative  ((<|>))
+import Data.Attoparsec.Text (Parser, char, decimal, digit, endOfInput, endOfLine, letter, many',
+                             many1', satisfy, string, takeWhile, takeWhile1)
+import Data.Bifunctor       (bimap)
+import Data.Char            (isAlphaNum, isSpace, isUpper)
+import Data.Functor         (($>))
+import Data.Text            (Text, intercalate, pack, splitOn, unpack)
+import Prelude              hiding (takeWhile)
 
 -- | Parser of .gb file.
 --
@@ -84,9 +81,9 @@ keywordsP =  string "KEYWORDS"
 
 sourceP :: Parser Source
 sourceP =  string "SOURCE" *> space
-        *> ((flip Source Nothing <$> emptyP) <|> (Source
+        *> (Source
        <$> someLinesP
-       <*> wrapMP organismP))
+       <*> wrapMP organismP)
   where
     organismP = string "  ORGANISM" *> space *> someLinesP
 
