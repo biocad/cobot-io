@@ -429,6 +429,29 @@ pdbEmptyModel = PDB { title = "STRUCTURE OF THE TRANSFORMED MONOCLINIC  LYSOZYME
                                                               (MASTER,V.fromList[" 1 2 3 4 5 6 7 8"])]
                     }
 
+withSegmentIdentifierModelSpecP :: Spec
+withSegmentIdentifierModelSpecP = describe "PDB with segment identifier field." $
+    it "correctly parses PDB with segment identifier field" $ do
+        let mt = fromTextPDB . lenghtenLines $ T.pack ( 
+                "ATOM      1  N   VAL H   1      12.009 -20.902   2.468  0.00  0.00      H    N  \n" ++
+                "ATOM      2  CA  VAL H   1      12.654 -20.252   1.326  0.00  0.00      H    C  \n" ++
+                "END\n"
+                                      )
+        mt `shouldBe` Right ([], withSegmentIdentifierModel)
+
+withSegmentIdentifierModel :: PDB
+withSegmentIdentifierModel = PDB { title = ""
+                           , remarks = Data.Map.Strict.empty
+                           , models = V.singleton $ V.fromList [ 
+                                V.fromList [
+                                        Atom {atomSerial = 1, atomName = " N  ", atomAltLoc = ' ', atomResName = "VAL", atomChainID = 'H', atomResSeq = 1, atomICode = ' ',
+                                                atomX = 12.009, atomY = -20.902, atomZ = 2.468, atomOccupancy = 0.0, atomTempFactor = 0.0, atomElement = " N", atomCharge = "  "},
+                                        Atom {atomSerial = 2, atomName = " CA ", atomAltLoc = ' ', atomResName = "VAL", atomChainID = 'H', atomResSeq = 1, atomICode = ' ', 
+                                                atomX = 12.654, atomY = -20.252, atomZ = 1.326, atomOccupancy = 0.0, atomTempFactor = 0.0, atomElement = " C", atomCharge = "  "}
+                                ]]                
+                           , otherFields = Data.Map.Strict.empty
+                           }
+
 lenghtenLines :: Text -> Text
 lenghtenLines text = longLinedText
    where

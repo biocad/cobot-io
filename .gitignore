@@ -34,5 +34,11 @@ cabal.project.local~
 *.swp
 *.swo
 
+# vs code
+.vscode
+
+# Haskell
+hie.yaml
+
 # Stack lock file
 stack.yaml.lock

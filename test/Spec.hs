@@ -57,5 +57,6 @@ main = do
          rawPDBToModelConversionSingleChainSpec
          bondsRestoringTripeptideSpec
          bondsRestoringBiggerMoleculesSpec
+         withSegmentIdentifierModelSpecP
          -- Structure
          structureSpec
