@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [0.1.3.12] - 2020-11-08
+## [0.1.3.12] - 2020-11-11
 ### Fixed
 - PDB parser error: it didn't account for segment identifier field.
 - Bond restoring in PDB for non-standard residue names.
