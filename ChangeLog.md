@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.1.3.12] - 2020-11-08
+### Fixed
+- PDB parser error: it didn't account for segment identifier field.
+- Bond restoring in PDB for non-standard residue names.
+
 ## [0.1.3.11] - 2020-11-08
 ### Changed
 - Allow `linear-0.21`.
