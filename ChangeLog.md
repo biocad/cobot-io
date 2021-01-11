@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.13] - 2021-01-02
+### Changed
+- Allow `QuickCheck-2.14`.
+
 ## [0.1.3.12] - 2020-11-11
 ### Fixed
 - PDB parser error: it didn't account for segment identifier field.
