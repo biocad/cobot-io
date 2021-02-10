@@ -3,7 +3,7 @@
 module FastaParserSpec where
 
 import           Bio.FASTA.Parser     (fastaP)
-import           Bio.FASTA.Type       (Fasta, FastaItem (..))
+import           Bio.FASTA.Type       (Fasta, FastaItem (..), ModItem (..), Modification (..))
 import           Bio.Sequence         (bareSequence)
 import           Data.Attoparsec.Text (endOfInput, parseOnly)
 import           Data.Text            (Text)
@@ -23,13 +23,14 @@ fastaParserSpec = describe "Fasta format parser." $ do
     sequenceWithSeveralEndOfLineInSequence
     sequenceWithTabsInName
     sequenceWithTabsInSequence
+    sequenceWithModifications
     toughParserTests
 
 emptyFasta :: Spec
 emptyFasta = describe "emptyFasta" $ do
     it "correctly parses empty fasta" $ do
         let res = parseOnly fastaP ""
-        res `shouldBe` Right []
+        res `shouldBe` Right ([] :: Fasta Char)
 
 onlyName :: Spec
 onlyName = describe "onlyName" $ do
@@ -59,7 +60,7 @@ sequenceWithWrongName :: Spec
 sequenceWithWrongName = describe "sequenceWithWrongName" $ do
     it "correctly parses incorrect sequence with wrong name" $ do
         let res = parseOnly fastaP "123\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE"
-        res `shouldBe` Right []
+        res `shouldBe` Right ([] :: Fasta Char)
 
 sequenceWithSpacesInName :: Spec
 sequenceWithSpacesInName = describe "sequenceWithSpacesInName" $ do
@@ -90,6 +91,12 @@ sequenceWithTabsInSequence = describe "sequenceWithTabsInSequence" $ do
     it "correctly parses sequence with tabs between sequence parts" $ do
         let res = parseOnly fastaP ">this is my sequence\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE\t\t\nYYYYYYYYYYYYYYYYYYYYYYYY\t\n"
         res `shouldBe` Right [FastaItem "this is my sequence" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSEYYYYYYYYYYYYYYYYYYYYYYYY")]
+
+sequenceWithModifications :: Spec
+sequenceWithModifications = describe "sequenceWithModifications" $ do
+    it "correctly parses sequence with modifications" $ do
+        let res = parseOnly fastaP ">this is my sequence\nIWEL[mU*]KKDVYV\t\t\nYY[56FAM]YY[Trololo]YY\t\n"
+        res `shouldBe` Right [FastaItem "this is my sequence" (bareSequence [Letter 'I', Letter 'W', Letter 'E', Letter 'L', Mod Mod_mU_Star, Letter 'K', Letter 'K', Letter 'D', Letter 'V', Letter 'Y', Letter 'V', Letter 'Y', Letter 'Y', Mod Mod_56FAM, Letter 'Y', Letter 'Y', Mod (Unknown "[Trololo]"), Letter 'Y', Letter 'Y'])]
 
 toughParserTests :: Spec
 toughParserTests = describe "various parser tests" $ do
