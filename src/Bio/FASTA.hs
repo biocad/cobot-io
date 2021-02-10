@@ -9,9 +9,6 @@ module Bio.FASTA
   , fastaPGeneric
   ) where
 
-import Bio.FASTA.Parser
-import Bio.FASTA.Type         as T
-import Bio.FASTA.Writer       (WritableFastaToken (..), fastaToText)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Attoparsec.Text   (parseOnly)
 import Data.Text.IO           (readFile, writeFile)
@@ -21,6 +18,10 @@ import Prelude            hiding (fail, readFile, writeFile)
 #else
 import Prelude hiding (readFile, writeFile)
 #endif
+
+import Bio.FASTA.Parser
+import Bio.FASTA.Type   as T
+import Bio.FASTA.Writer (WritableFastaToken (..), fastaToText)
 
 -- | Reads 'FastaSequence' from given file.
 --
