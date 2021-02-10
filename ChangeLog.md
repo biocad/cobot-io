@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.14] - 2021-02-10
+### Changed
+- Added ability to parse modifications in Fasta.
+
 ## [0.1.3.13] - 2021-01-02
 ### Changed
 - Allow `QuickCheck-2.14`.

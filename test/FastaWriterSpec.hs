@@ -15,7 +15,7 @@ fastaWriterSpec = describe "Fasta format parser." $ do
 emptyFasta :: Spec
 emptyFasta = describe "emptyFasta" $ do
     it "correctly write empty fasta" $ do
-        let res = fastaToText []
+        let res = fastaToText ([] :: [FastaItem Char])
         res `shouldBe` ""
 
 oneShortSequence :: Spec
