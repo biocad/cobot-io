@@ -20,107 +20,110 @@ type Fasta a = [FastaItem a]
 --
 data FastaItem a
   = FastaItem
-      { name :: Text -- ^ name of the sequence
+      { name :: Text
+        -- ^ name of the sequence
+      , sequ :: BareSequence a
         -- ^ bare sequence
-      , sequ :: BareSequence a -- ^ bare sequence
       }
   deriving (Eq, Show, Functor)
 
 class ParsableFastaToken a where
     parseToken :: (Char -> Bool) -> Parser a
 
-data ModItem = Mod Modification | Letter Char
+data ModItem
+  = Mod Modification
+  | Letter Char
   deriving (Eq, Show)
 
-data Modification 
-    = Mod_A_Star 
-    | Mod_C_Star 
-    | Mod_G_Star 
-    | Mod_T_Star 
-    | Mod_rA 
-    | Mod_rC 
-    | Mod_rG 
-    | Mod_rU 
-    | Mod_Plus_A 
-    | Mod_Plus_C 
-    | Mod_Plus_G 
-    | Mod_Plus_T 
-    | Mod_rAf 
-    | Mod_rCf 
-    | Mod_rGf 
-    | Mod_rUf 
-    | Mod_mA 
-    | Mod_mC 
-    | Mod_mG 
-    | Mod_mU 
-    | Mod_mA_Star 
-    | Mod_mC_Star 
-    | Mod_mG_Star 
-    | Mod_mU_Star 
-    | Mod_dU 
-    | Mod_5Bio 
-    | Mod_iBio 
-    | Mod_56FAM 
-    | Mod_36FAM 
-    | Mod_5HEX 
-    | Mod_5TMR 
-    | Mod_3BHQ1 
-    | Mod_3BHQ2 
-    | Mod_5NH2 
-    | Mod_3NH2 
-    | Mod_5PO4 
-    | Mod_3PO4 
-    | Mod_3BioTEG 
-    | Mod_C12 
-    | Mod_NHSdT 
-    | Mod_5Mal 
-    | Mod_5thio 
-    | Mod_3thio 
-    | Mod_3azide 
-    | Mod_3alkine 
-    | Mod_5CholTEG 
-    | Mod_3CholTEG 
-    | Mod_5C10 
-    | Mod_5Alk 
-    | Mod_GC 
-    | Mod_GT 
-    | Mod_AT 
-    | Mod_TG 
-    | Mod_AC 
-    | Mod_CC 
-    | Mod_AA 
-    | Mod_TC 
-    | Mod_TT 
-    | Mod_CG 
-    | Mod_GG 
-    | Mod_AG 
-    | Mod_GA 
-    | Mod_CA 
-    | Mod_CT 
-    | Mod_TA 
-    | Mod_AAA 
-    | Mod_AAC 
-    | Mod_ACT 
-    | Mod_ATC 
-    | Mod_ATG 
-    | Mod_CAG 
-    | Mod_AGA 
-    | Mod_CAT 
-    | Mod_CCG 
-    | Mod_CGT 
-    | Mod_CTG 
-    | Mod_GAA 
-    | Mod_GAC 
-    | Mod_GCT 
-    | Mod_GGT 
-    | Mod_GTT 
-    | Mod_TAC 
-    | Mod_TCT 
-    | Mod_TGC 
-    | Mod_TGG 
-    | Mod_TTC 
-    | Mod_TTT 
-    | Unknown String
+data Modification
+  = Mod_A_Star
+  | Mod_C_Star
+  | Mod_G_Star
+  | Mod_T_Star
+  | Mod_rA
+  | Mod_rC
+  | Mod_rG
+  | Mod_rU
+  | Mod_Plus_A
+  | Mod_Plus_C
+  | Mod_Plus_G
+  | Mod_Plus_T
+  | Mod_rAf
+  | Mod_rCf
+  | Mod_rGf
+  | Mod_rUf
+  | Mod_mA
+  | Mod_mC
+  | Mod_mG
+  | Mod_mU
+  | Mod_mA_Star
+  | Mod_mC_Star
+  | Mod_mG_Star
+  | Mod_mU_Star
+  | Mod_dU
+  | Mod_5Bio
+  | Mod_iBio
+  | Mod_56FAM
+  | Mod_36FAM
+  | Mod_5HEX
+  | Mod_5TMR
+  | Mod_3BHQ1
+  | Mod_3BHQ2
+  | Mod_5NH2
+  | Mod_3NH2
+  | Mod_5PO4
+  | Mod_3PO4
+  | Mod_3BioTEG
+  | Mod_C12
+  | Mod_NHSdT
+  | Mod_5Mal
+  | Mod_5thio
+  | Mod_3thio
+  | Mod_3azide
+  | Mod_3alkine
+  | Mod_5CholTEG
+  | Mod_3CholTEG
+  | Mod_5C10
+  | Mod_5Alk
+  | Mod_GC
+  | Mod_GT
+  | Mod_AT
+  | Mod_TG
+  | Mod_AC
+  | Mod_CC
+  | Mod_AA
+  | Mod_TC
+  | Mod_TT
+  | Mod_CG
+  | Mod_GG
+  | Mod_AG
+  | Mod_GA
+  | Mod_CA
+  | Mod_CT
+  | Mod_TA
+  | Mod_AAA
+  | Mod_AAC
+  | Mod_ACT
+  | Mod_ATC
+  | Mod_ATG
+  | Mod_CAG
+  | Mod_AGA
+  | Mod_CAT
+  | Mod_CCG
+  | Mod_CGT
+  | Mod_CTG
+  | Mod_GAA
+  | Mod_GAC
+  | Mod_GCT
+  | Mod_GGT
+  | Mod_GTT
+  | Mod_TAC
+  | Mod_TCT
+  | Mod_TGC
+  | Mod_TGG
+  | Mod_TTC
+  | Mod_TTT
+  | Unknown String
   deriving (Eq, Show)
 
 modificationToString :: Modification -> String
