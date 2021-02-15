@@ -4,8 +4,11 @@ module Bio.PDB
   , modelsFromPDBFile, modelsToPDBFile
   ) where
 
-import           Bio.PDB.BondRestoring  (residueID, restoreChainLocalBonds,
-                                         restoreModelGlobalBonds)
+import           Bio.PDB.BondRestoring  (residueID,
+                                         restoreChainLocalBonds,
+                                         restoreModelGlobalBonds,
+                                         toAtomPDBId,
+                                         AtomPDBId)
 import           Bio.PDB.Functions      (groupChainByResidue)
 import           Bio.PDB.Reader         (PDBWarnings, fromTextPDB)
 import qualified Bio.PDB.Type           as PDB
@@ -32,13 +35,17 @@ instance StructureModels PDB.PDB where
     modelsOf PDB.PDB {..} = fmap mkModel models
       where
         mkModel :: PDB.Model -> Model
-        mkModel model = Model (fmap mkChain model) (restoreModelGlobalBonds atomSerialToNilBasedIndex model)
+        mkModel model = case length atomPDBIdToNilBasedIndex == length allModelAtomPDBIds of
+            False -> error "Mapping from PDB id to nil based index must be a bijection."
+            True  -> Model (fmap mkChain model) (restoreModelGlobalBonds atomPDBIdToNilBasedIndex model)
           where
-            atomSerialToNilBasedIndex :: Map Int Int
-            atomSerialToNilBasedIndex = M.fromList $ allModelAtomSerials `zip` [0..]
+            -- We cannot use only atomSerial as key because there 
+            -- can be two atoms with the same atomSerial in different chains
+            atomPDBIdToNilBasedIndex :: Map AtomPDBId Int
+            atomPDBIdToNilBasedIndex = M.fromList $ allModelAtomPDBIds `zip` [0..]
 
-            allModelAtomSerials :: [Int]
-            allModelAtomSerials = sort . V.toList . fmap PDB.atomSerial . V.concat $ V.toList model
+            allModelAtomPDBIds :: [AtomPDBId]
+            allModelAtomPDBIds = sort . V.toList . fmap toAtomPDBId . V.concat $ V.toList model
 
             mkChain :: PDB.Chain -> Chain
             mkChain = uncurry Chain . (mkChainName &&& mkChainResidues)
@@ -66,7 +73,7 @@ instance StructureModels PDB.PDB where
                 firstResidueAtom = head atoms'
 
             mkAtom :: PDB.Atom -> Atom
-            mkAtom PDB.Atom{..} = Atom (GlobalID $ atomSerialToNilBasedIndex M.! atomSerial)
+            mkAtom atom@PDB.Atom{..} = Atom (GlobalID $ atomPDBIdToNilBasedIndex M.! toAtomPDBId atom)
                                        atomSerial
                                        (T.strip atomName)
                                        atomElement
