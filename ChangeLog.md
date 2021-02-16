@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.15] - 2021-02-16
+### Fixed
+- Unknown fields in GB.
+
 ## [0.1.3.14] - 2021-02-10
 ### Changed
 - Added ability to parse modifications in Fasta.
