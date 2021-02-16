@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.16] - 2021-02-16
+### Fixed
+- Bad comment in GB parser.
+
 ## [0.1.3.15] - 2021-02-16
 ### Fixed
 - Unknown fields in GB.
