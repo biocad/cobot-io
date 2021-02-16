@@ -13,6 +13,7 @@ gbParserSpec = describe "GenBank format parser." $ do
     pAAVGFPSpecP "test/GB/pAAV-GFP-CellBioLab.gb"
     pAAVCMVSpecP "test/GB/pAAV_CMV_RPE65_PolyA_linkers.gb"
     dottedMetaSpecP "test/GB/pAAV-GFP-CellBioLab-dots.gb"
+    unknownFieldsSpecP "test/GB/pIntA-TRBV.gb"
 
 pAAVGFPSpecP :: FilePath -> Spec
 pAAVGFPSpecP path = describe "pAAVGFP" $ do
@@ -39,6 +40,12 @@ dottedMetaSpecP path = describe "Meta with dots." $ do
     it "correctly parses meta information with all info set to dots" $ do
         mt <- meta <$> fromFile path
         mt `shouldBe` dottedMeta
+
+unknownFieldsSpecP :: FilePath -> Spec
+unknownFieldsSpecP path = describe "Unknown fields" $ do
+    it "correctly parses and skip unknown fields before FEATURES" $ do
+        mt <- meta <$> fromFile path
+        name (locus mt) `shouldBe` "P2-32_pIntA-TRBV5-1_J1-1-Fc-lama-knob-EPEA"
 
 
 pAAVGFPMeta :: Meta

@@ -4,17 +4,18 @@ module Bio.GB.Parser
   ( genBankP
   ) where
 
-import Bio.GB.Type          (Feature (..), Form (..), GenBankSequence (..), Locus (..), Meta (..),
-                             Reference (..), Source (..), Version (..))
-import Bio.Sequence         (MarkedSequence, Range, markedSequence)
-import Control.Applicative  ((<|>))
-import Data.Attoparsec.Text (Parser, char, decimal, digit, endOfInput, endOfLine, letter, many',
-                             many1', satisfy, string, takeWhile, takeWhile1)
-import Data.Bifunctor       (bimap)
-import Data.Char            (isAlphaNum, isSpace, isUpper)
-import Data.Functor         (($>))
-import Data.Text            (Text, intercalate, pack, splitOn, unpack)
-import Prelude              hiding (takeWhile)
+import Bio.GB.Type                (Feature (..), Form (..), GenBankSequence (..), Locus (..),
+                                   Meta (..), Reference (..), Source (..), Version (..))
+import Bio.Sequence               (MarkedSequence, Range, markedSequence)
+import Control.Applicative        ((<|>))
+import Data.Attoparsec.Combinator (manyTill)
+import Data.Attoparsec.Text       (Parser, char, decimal, digit, endOfInput, endOfLine, letter,
+                                   many', many1', satisfy, string, takeWhile, takeWhile1)
+import Data.Bifunctor             (bimap)
+import Data.Char                  (isAlphaNum, isSpace, isUpper)
+import Data.Functor               (($>))
+import Data.Text                  (Text, intercalate, pack, splitOn, unpack)
+import Prelude                    hiding (takeWhile)
 
 -- | Parser of .gb file.
 --
@@ -55,7 +56,7 @@ locusP = string "LOCUS" *> space *> (Locus
     textP = takeWhile1 $ not . isSpace
 
     formP :: Parser Form
-    formP = (string "linear" $> Linear) <|> (string "circular" *> pure Circular)
+    formP = (string "linear" $> Linear) <|> (string "circular" $> Circular)
 
 definitionP :: Parser Text
 definitionP =  string "DEFINITION" *> space *> (emptyP <|> someLinesP)
@@ -104,7 +105,8 @@ commentP = string "COMMENT" *> (emptyP <|> (many' (char ' ') *> someLinesP))
 --------------------------------------------------------------------------------
 
 featuresP :: Parser [(Feature, Range)]
-featuresP =  string "FEATURES" *> space
+featuresP =  manyTill (textWithSpacesP <* eolSpaceP) (string "FEATURES") *> space
+          -- ^ skip unknown fields and stop on line with "FEATURES"
           *> textWithSpacesP <* eolSpaceP
           *> many1' featureP
 
