@@ -6,8 +6,6 @@ module Bio.PDB.BondRestoring
   , restoreModelLocalBonds
   , restoreChainLocalBonds
   , residueID
-  , toAtomPDBId
-  , AtomPDBId
   ) where
 
 import qualified Bio.PDB.Type as PDB  (Atom(..))
@@ -28,12 +26,6 @@ import           Linear.V3            (V3(..))
 
 import           Control.Monad        (guard)
 
-data AtomPDBId = AtomPDBId { atomSerial :: Int, atomChainID :: Char }
-  deriving (Show, Eq, Ord)
-
-toAtomPDBId :: PDB.Atom -> AtomPDBId
-toAtomPDBId PDB.Atom{..} = AtomPDBId atomSerial atomChainID
-
 residueID :: PDB.Atom -> Text
 residueID PDB.Atom{..} = T.pack (show atomChainID) <> T.pack (show atomResSeq) <> T.pack (show atomICode)
 
@@ -53,31 +45,31 @@ restoreChainLocalBonds' chainAtoms = residueIDToLocalBonds
       let _residueID = residueID $ head residueAtoms
       pure (_residueID, localBonds)
     
-    intraResidueGlobalBonds :: [[Bond AtomPDBId]]
+    intraResidueGlobalBonds :: [[Bond PDB.Atom]]
     intraResidueGlobalBonds = fmap restoreIntraResidueBonds chainAtomsGroupedByResidue
     
     chainAtomsGroupedByResidue :: [[PDB.Atom]]
     chainAtomsGroupedByResidue = groupChainByResidue chainAtoms
     
-    convertGlobalsToLocals :: [PDB.Atom] -> [Bond AtomPDBId] -> [Bond LocalID]
+    convertGlobalsToLocals :: [PDB.Atom] -> [Bond PDB.Atom] -> [Bond LocalID]
     convertGlobalsToLocals residueAtoms = map convertGlobalToLocal
       where
-        convertGlobalToLocal :: Bond AtomPDBId -> Bond LocalID
+        convertGlobalToLocal :: Bond PDB.Atom -> Bond LocalID
         convertGlobalToLocal (Bond from to order) = 
-          Bond (LocalID $ globalToLocalIdxMap ! from) (LocalID $ globalToLocalIdxMap ! to) order
+          Bond (LocalID $ atomToLocalIdMap ! from) (LocalID $ atomToLocalIdMap ! to) order
         
-        globalToLocalIdxMap :: Map AtomPDBId Int
-        globalToLocalIdxMap = M.fromList $ zip sortedGlobalIndices [0..]
+        atomToLocalIdMap :: Map PDB.Atom Int
+        atomToLocalIdMap = M.fromList $ zip sortedAtoms [0..]
         
-        sortedGlobalIndices :: [AtomPDBId]
-        sortedGlobalIndices = sort $ map toAtomPDBId residueAtoms
+        sortedAtoms :: [PDB.Atom]
+        sortedAtoms = sort residueAtoms
 
 
-restoreModelGlobalBonds :: Map AtomPDBId Int -> Vector (Vector PDB.Atom) -> Vector (Bond GlobalID)
-restoreModelGlobalBonds atomPDBIdToNilBasedIndex chains = convertToGlobalIDs atomPDBIdToNilBasedIndex . V.fromList $ _intraResidueBonds ++ peptideBonds ++ disulfideBonds
+restoreModelGlobalBonds :: Map PDB.Atom Int -> Vector (Vector PDB.Atom) -> Vector (Bond GlobalID)
+restoreModelGlobalBonds atomToNilBasedIndex chains = convertToGlobalIDs atomToNilBasedIndex . V.fromList $ _intraResidueBonds ++ peptideBonds ++ disulfideBonds
   where
-    convertToGlobalIDs :: Map AtomPDBId Int -> Vector (Bond AtomPDBId) -> Vector (Bond GlobalID)
-    convertToGlobalIDs mapping = reindexBonds (\atomPDBId -> GlobalID $ mapping ! atomPDBId)
+    convertToGlobalIDs :: Map PDB.Atom Int -> Vector (Bond PDB.Atom) -> Vector (Bond GlobalID)
+    convertToGlobalIDs mapping = reindexBonds (\atom -> GlobalID $ mapping ! atom)
     
     reindexBonds :: (a -> b) -> Vector (Bond a) -> Vector (Bond b)
     reindexBonds convertID = fmap (\(Bond from to order) -> Bond (convertID from) (convertID to) order)
@@ -85,22 +77,22 @@ restoreModelGlobalBonds atomPDBIdToNilBasedIndex chains = convertToGlobalIDs ato
     chainAtomsGroupedByResidue :: Vector [[PDB.Atom]]
     chainAtomsGroupedByResidue = fmap groupChainByResidue chains
     
-    _intraResidueBonds :: [Bond AtomPDBId]
+    _intraResidueBonds :: [Bond PDB.Atom]
     _intraResidueBonds = concatMap restoreChainIntraResidueBonds chainAtomsGroupedByResidue
     
-    peptideBonds :: [Bond AtomPDBId]
+    peptideBonds :: [Bond PDB.Atom]
     peptideBonds = concatMap restoreChainPeptideBonds chainAtomsGroupedByResidue
     
-    disulfideBonds :: [Bond AtomPDBId]
+    disulfideBonds :: [Bond PDB.Atom]
     disulfideBonds = restoreDisulfideBonds . concat $ V.toList chainAtomsGroupedByResidue
 
-restoreDisulfideBonds :: [[PDB.Atom]] -> [Bond AtomPDBId]
+restoreDisulfideBonds :: [[PDB.Atom]] -> [Bond PDB.Atom]
 restoreDisulfideBonds atomsGroupedByResidue = do
   atom1 <- cystineSulfur
   atom2 <- cystineSulfur
   guard (PDB.atomSerial atom1 < PDB.atomSerial atom2)
   guard $ distance (coords atom1) (coords atom2) < sulfidicBondMaxLength
-  pure $ Bond (toAtomPDBId atom1) (toAtomPDBId atom2) 1
+  pure $ Bond atom1 atom2 1
     where
       cystineSulfur :: [PDB.Atom]
       cystineSulfur = filter (("SG" ==) . T.strip . PDB.atomName) $ concat cystines
@@ -118,16 +110,16 @@ sulfidicBondMaxLength = 2.56
 peptideBondMaxLength :: Float
 peptideBondMaxLength = 1.5
 
-restoreChainPeptideBonds :: [[PDB.Atom]] -> [Bond AtomPDBId]
+restoreChainPeptideBonds :: [[PDB.Atom]] -> [Bond PDB.Atom]
 restoreChainPeptideBonds atomsGroupedByResidue = catMaybes $ restoreChainPeptideBonds' atomsGroupedByResidue mempty
   where
-    restoreChainPeptideBonds' :: [[PDB.Atom]] -> [Maybe (Bond AtomPDBId)] -> [Maybe (Bond AtomPDBId)]
+    restoreChainPeptideBonds' :: [[PDB.Atom]] -> [Maybe (Bond PDB.Atom)] -> [Maybe (Bond PDB.Atom)]
     restoreChainPeptideBonds' [] acc = acc
     restoreChainPeptideBonds' [_] acc = acc
     restoreChainPeptideBonds' (residue1:residue2:residues) acc = 
       restoreChainPeptideBonds' (residue2:residues) (constructBond residue1 residue2 : acc)
 
-    constructBond :: [PDB.Atom] -> [PDB.Atom] -> Maybe (Bond AtomPDBId)
+    constructBond :: [PDB.Atom] -> [PDB.Atom] -> Maybe (Bond PDB.Atom)
     constructBond residue1 residue2 = do
         carbonAtom1   <- getAtomByName residue1 "C"
         nitrogenAtom2 <- getAtomByName residue2 "N"
@@ -136,27 +128,26 @@ restoreChainPeptideBonds atomsGroupedByResidue = catMaybes $ restoreChainPeptide
         -- in order not to restore a wrong peptide bond in case of absent residues (gaps)
         guard $ distance (coords carbonAtom1) (coords nitrogenAtom2) < peptideBondMaxLength
 
-        pure $ Bond (toAtomPDBId carbonAtom1) (toAtomPDBId nitrogenAtom2) 1
+        pure $ Bond carbonAtom1 nitrogenAtom2 1
     
     getAtomByName :: [PDB.Atom] -> Text -> Maybe PDB.Atom
     getAtomByName atoms atomNameToFind = find ((atomNameToFind ==) . T.strip . PDB.atomName) atoms
 
-
-restoreChainIntraResidueBonds :: [[PDB.Atom]] -> [Bond AtomPDBId]
+restoreChainIntraResidueBonds :: [[PDB.Atom]] -> [Bond PDB.Atom]
 restoreChainIntraResidueBonds = concatMap restoreIntraResidueBonds
 
-restoreIntraResidueBonds :: [PDB.Atom] -> [Bond AtomPDBId]
+restoreIntraResidueBonds :: [PDB.Atom] -> [Bond PDB.Atom]
 restoreIntraResidueBonds residueAtoms = catMaybes $ constructBond <$> residueBonds
   where
     -- TODO: support bond order somehow
-    constructBond :: (Text, Text) -> Maybe (Bond AtomPDBId)
-    constructBond (fromAtomName, toAtomName) = Bond <$> constructAtomPDBId fromAtomName <*> constructAtomPDBId  toAtomName <*> Just 1
+    constructBond :: (Text, Text) -> Maybe (Bond PDB.Atom)
+    constructBond (fromAtomName, toAtomName) = Bond <$> constructAtom fromAtomName <*> constructAtom toAtomName <*> Just 1
     
-    constructAtomPDBId :: Text -> Maybe AtomPDBId
-    constructAtomPDBId atomName = atomNameToIndex !? atomName
+    constructAtom :: Text -> Maybe PDB.Atom
+    constructAtom atomName = atomNameToAtom !? atomName
     
-    atomNameToIndex :: Map Text AtomPDBId
-    atomNameToIndex = M.fromList $ (\atom@PDB.Atom{..} -> (T.strip atomName, toAtomPDBId atom)) <$> residueAtoms
+    atomNameToAtom :: Map Text PDB.Atom
+    atomNameToAtom = M.fromList $ (\atom@PDB.Atom{..} -> (T.strip atomName, atom)) <$> residueAtoms
     
     residueBonds :: [(Text, Text)]
     residueBonds = intraResidueBonds . T.strip . PDB.atomResName $ head residueAtoms
