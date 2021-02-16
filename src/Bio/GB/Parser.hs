@@ -105,8 +105,8 @@ commentP = string "COMMENT" *> (emptyP <|> (many' (char ' ') *> someLinesP))
 --------------------------------------------------------------------------------
 
 featuresP :: Parser [(Feature, Range)]
-featuresP =  manyTill (textWithSpacesP <* eolSpaceP) (string "FEATURES") *> space
-          -- ^ skip unknown fields and stop on line with "FEATURES"
+featuresP = -- skip unknown fields and stop on line with "FEATURES" 
+          manyTill (textWithSpacesP <* eolSpaceP) (string "FEATURES") *> space
           *> textWithSpacesP <* eolSpaceP
           *> many1' featureP
 
