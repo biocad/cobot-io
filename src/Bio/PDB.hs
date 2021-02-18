@@ -4,7 +4,8 @@ module Bio.PDB
   , modelsFromPDBFile, modelsToPDBFile
   ) where
 
-import           Bio.PDB.BondRestoring  (residueID, restoreChainLocalBonds,
+import           Bio.PDB.BondRestoring  (residueID,
+                                         restoreChainLocalBonds,
                                          restoreModelGlobalBonds)
 import           Bio.PDB.Functions      (groupChainByResidue)
 import           Bio.PDB.Reader         (PDBWarnings, fromTextPDB)
@@ -32,13 +33,15 @@ instance StructureModels PDB.PDB where
     modelsOf PDB.PDB {..} = fmap mkModel models
       where
         mkModel :: PDB.Model -> Model
-        mkModel model = Model (fmap mkChain model) (restoreModelGlobalBonds atomSerialToNilBasedIndex model)
+        mkModel model = case length atomToNilBasedIndex == length allModelAtoms of
+            False -> error "Mapping from PDB id to nil based index must be a bijection."
+            True  -> Model (fmap mkChain model) (restoreModelGlobalBonds atomToNilBasedIndex model)
           where
-            atomSerialToNilBasedIndex :: Map Int Int
-            atomSerialToNilBasedIndex = M.fromList $ allModelAtomSerials `zip` [0..]
+            atomToNilBasedIndex :: Map PDB.Atom Int
+            atomToNilBasedIndex = M.fromList $ allModelAtoms `zip` [0..]
 
-            allModelAtomSerials :: [Int]
-            allModelAtomSerials = sort . V.toList . fmap PDB.atomSerial . V.concat $ V.toList model
+            allModelAtoms :: [PDB.Atom]
+            allModelAtoms = sort . V.toList . V.concat $ V.toList model
 
             mkChain :: PDB.Chain -> Chain
             mkChain = uncurry Chain . (mkChainName &&& mkChainResidues)
@@ -66,7 +69,7 @@ instance StructureModels PDB.PDB where
                 firstResidueAtom = head atoms'
 
             mkAtom :: PDB.Atom -> Atom
-            mkAtom PDB.Atom{..} = Atom (GlobalID $ atomSerialToNilBasedIndex M.! atomSerial)
+            mkAtom atom@PDB.Atom{..} = Atom (GlobalID $ atomToNilBasedIndex M.! atom)
                                        atomSerial
                                        (T.strip atomName)
                                        atomElement

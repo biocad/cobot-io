@@ -93,5 +93,8 @@ data Atom = Atom { atomSerial     :: Int     -- ^ Atom serial number.
                  }
   deriving (Show, Eq, Generic, NFData)
 
+-- | We cannot use only atomSerial as key because there
+-- | can be two atoms with the same atomSerial in different chains
+--
 instance Ord Atom where
-  a1 <= a2 = atomSerial a1 <= atomSerial a2
+  a1 <= a2 = (atomSerial a1, atomChainID a1) <= (atomSerial a2, atomChainID a2)
