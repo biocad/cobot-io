@@ -12,7 +12,8 @@ import           Bio.Structure   (Atom (..), Bond (..), Chain (..),
                                   localBonds, residues)
 import           Control.Lens    (Traversal', each, (%~), (&))
 import           Data.Map.Strict (Map)
-import qualified Data.Map.Strict as M (fromList, (!), (!?))
+import qualified Data.Map.Strict as M (fromList, (!?))
+import qualified Bio.Utils.Map   as M ((!?!))
 import           Data.Set        (Set)
 import qualified Data.Set        as S (fromList, notMember, unions)
 import           Data.Text       (Text)
@@ -84,8 +85,8 @@ removeAtomsFromResidue p r'@Residue{..} = (res, S.fromList $ V.toList $ fmap ato
     leaveBond (Bond (LocalID l) (LocalID r) _) = l `notElem` indsToDelete && r `notElem` indsToDelete
 
     modifyBond :: Bond LocalID -> Bond LocalID
-    modifyBond (Bond (LocalID l) (LocalID r) t) = Bond (LocalID $ oldIndsToNew M.! l)
-                                                       (LocalID $ oldIndsToNew M.! r)
+    modifyBond (Bond (LocalID l) (LocalID r) t) = Bond (LocalID $ oldIndsToNew M.!?! l)
+                                                       (LocalID $ oldIndsToNew M.!?! r)
                                                        t
 
     newInd :: Int -> Int

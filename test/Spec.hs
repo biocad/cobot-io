@@ -59,6 +59,7 @@ main = do
          bondsRestoringTripeptideSpec
          bondsRestoringBiggerMoleculesSpec
          withSegmentIdentifierModelSpecP
+         lowercaseInsertionCodeSpec
          pdbWriterSpec
          -- Structure
          structureSpec

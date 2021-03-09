@@ -130,6 +130,12 @@ bondsRestoringBiggerMoleculesSpec = describe "Bonds should be restored correctly
         formAtomId :: (Text, Atom) -> Text
         formAtomId (chainId, Atom{..}) = chainId <> "_" <> atomName <> "_" <> T.pack (show $ getGlobalID atomId)
 
+lowercaseInsertionCodeSpec :: SpecWith ()
+lowercaseInsertionCodeSpec = describe "Lowercase insertion code in PDB" $ do
+    it "should be processed normally" $ do
+        model <- firstPDBModel "test/PDB/6a0z.HLHL.pdb" >>= ef
+
+        V.length (modelChains model) `shouldBe` 2
 
 getStats :: Model -> (Int, Int, Int, Int)
 getStats model = (globalBondCount, localBondCount, chainCount, atomCount)
