@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.18] - 2021-03-09
+### Fixed
+- Lowercase insertion code parsing in PDB.
+
 ## [0.1.3.17] - 2021-02-18
 ### Fixed
 - PDB parsing.

@@ -21,6 +21,7 @@ import           Bio.Structure          (Atom (..), Bond (..), Chain (..), Model
                                          Model (..), Residue (..),
                                          SecondaryStructure (..),
                                          StructureModels (..))
+import qualified Bio.Utils.Map          as M ((!?!))
 import           Control.Monad          (join)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Attoparsec.Text   (parseOnly)
@@ -28,7 +29,7 @@ import           Data.Bifunctor         (bimap, first)
 import           Data.Function          (on)
 import qualified Data.List              as L (find, groupBy, sortOn)
 import           Data.Map.Strict        (Map)
-import qualified Data.Map.Strict        as M (fromList, lookup, (!))
+import qualified Data.Map.Strict        as M (fromList, lookup)
 import           Data.Maybe             (catMaybes, fromJust)
 import           Data.Text              (Text)
 import qualified Data.Text              as T (head, init, last, null, pack,
@@ -62,7 +63,7 @@ instance StructureModels Mae where
   modelsOf Mae{..} = V.fromList $ fmap blockToModel blocks
     where
       unsafeGetFromContentsMap :: FromMaeValue a => Map Text [MaeValue] -> Text -> Int -> a
-      unsafeGetFromContentsMap m name i = unsafeFromMaeValue $ (m M.! name) !! i
+      unsafeGetFromContentsMap m name i = unsafeFromMaeValue $ (m M.!?! name) !! i
 
       getFromContentsMap :: FromMaeValue a => Map Text [MaeValue] -> Text -> Int -> Maybe a
       getFromContentsMap m name i = join $ fromMaeValue . (!! i) <$> name `M.lookup` m
@@ -71,7 +72,7 @@ instance StructureModels Mae where
       blockToModel Block{..} = Model (atomsTableToChains atomsTable) bonds
         where
           atomsTable    = findTable "m_atom"
-          numberOfAtoms = length $ atomsTable M.! "r_m_x_coord"
+          numberOfAtoms = length $ atomsTable M.!?! "r_m_x_coord"
 
           bondsTable         = findTable "m_bond"
           (bondGraph, bonds) = bondsTableToGlobalBonds bondsTable
@@ -89,7 +90,7 @@ instance StructureModels Mae where
           bondsTableToGlobalBonds :: Map Text [MaeValue] -> (Map Int [(Int, Int)], Vector (Bond GlobalID))
           bondsTableToGlobalBonds m = bimap toMap V.fromList bonds'
             where
-              numberOfBonds = length $ m M.! "i_m_from"
+              numberOfBonds = length $ m M.!?! "i_m_from"
               bonds'        = unzip $ fmap indexToBond [0 .. numberOfBonds - 1]
 
               toMap :: [(Int, (Int, Int))] -> Map Int [(Int, Int)]
@@ -150,7 +151,7 @@ instance StructureModels Mae where
 
                   toLocalBond :: Int -> (Int, Int) -> [Bond LocalID]
                   toLocalBond x (y, o) | y `elem` group = pure $ Bond (LocalID x)
-                                                                      (LocalID $ globalToLocal M.! y)
+                                                                      (LocalID $ globalToLocal M.!?! y)
                                                                       o
                                        | otherwise          = []
 
@@ -161,7 +162,7 @@ instance StructureModels Mae where
               indexToAtom i = Atom (GlobalID i)
                                    (i + 1)
                                    (stripQuotes $ getFromContentsI "s_m_pdb_atom_name")
-                                   (elIndToElement M.! getFromContentsI "i_m_atomic_number")
+                                   (elIndToElement M.!?! getFromContentsI "i_m_atomic_number")
                                    coords
                                    (getFromContents 0 "i_m_formal_charge" i)
                                    (getFromContents 0 "r_m_pdb_tfactor" i)
