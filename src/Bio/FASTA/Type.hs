@@ -10,6 +10,7 @@ module Bio.FASTA.Type
 import Bio.Sequence         (BareSequence)
 import Data.Attoparsec.Text (Parser)
 import Data.Text            (Text)
+import GHC.Generics         (Generic)
 
 -- | Type alias for FASTA file.
 --  satisfies the following format : >(\s|\t)*[^\n\r]+(\s|\t)*(\n|\r)*((\w|\s)(\n|\r)*)*
@@ -33,7 +34,7 @@ class ParsableFastaToken a where
 data ModItem
   = Mod Modification
   | Letter Char
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
 data Modification
   = Mod_A_Star
@@ -124,7 +125,7 @@ data Modification
   | Mod_TTC
   | Mod_TTT
   | Unknown String
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord, Generic)
 
 modificationToString :: Modification -> String
 modificationToString Mod_A_Star   = "[A*]"

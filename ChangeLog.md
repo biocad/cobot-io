@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.19] - 2021-04-30
+### Changed 
+- Exports and instances for Biosset. 
+
 ## [0.1.3.18] - 2021-03-09
 ### Fixed
 - Lowercase insertion code parsing in PDB.

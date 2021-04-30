@@ -3,6 +3,8 @@
 module Bio.FASTA.Parser
   ( fastaP
   , fastaPGeneric
+  , fastaLine 
+  , modificationP
   ) where
 
 import Bio.FASTA.Type       (Fasta, FastaItem (..), ModItem (..), Modification (..),
@@ -37,10 +39,10 @@ seqName :: Parser Text
 seqName = strip <$> (char '>' *> tabs *> takeWhile (`notElem` ['\n', '\r']) <* tabs <* eol)
 
 fastaSeq :: ParsableFastaToken a => (Char -> Bool) -> Parser (BareSequence a)
-fastaSeq predicate = bareSequence . mconcat <$> many' (line predicate)
+fastaSeq predicate = bareSequence . mconcat <$> many' (fastaLine predicate)
 
-line :: ParsableFastaToken a => (Char -> Bool) -> Parser [a]
-line predicate = concat <$> many1' (many1' (parseToken predicate) <* many' (char ' ')) <* eol
+fastaLine :: ParsableFastaToken a => (Char -> Bool) -> Parser [a]
+fastaLine predicate = concat <$> many1' (many1' (parseToken predicate) <* many' (char ' ')) <* eol
 
 eol :: Parser ()
 eol = tabs *> choice [slashN, endOfInput]

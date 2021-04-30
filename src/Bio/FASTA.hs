@@ -7,6 +7,8 @@ module Bio.FASTA
   , toFile
   , fastaP
   , fastaPGeneric
+  , fastaLine
+  , modificationP
   ) where
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
