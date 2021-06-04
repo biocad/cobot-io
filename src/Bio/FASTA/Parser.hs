@@ -27,7 +27,7 @@ instance ParsableFastaToken ModItem where
 -- | Parser of .fasta file.
 --
 fastaP :: ParsableFastaToken a => Parser (Fasta a)
-fastaP = many' eol *> fastaPGeneric isLetter
+fastaP = many' slashN *> fastaPGeneric isLetter
 
 fastaPGeneric :: ParsableFastaToken a => (Char -> Bool) -> Parser (Fasta a)
 fastaPGeneric = many' . item
