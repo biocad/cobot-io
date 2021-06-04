@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.20] - 2021-06-04
+### Changed 
+- YLAB2-629: Fixed Fasta parser.
+
 ## [0.1.3.19] - 2021-04-30
 ### Changed 
 - Exports and instances for Biosset. 
