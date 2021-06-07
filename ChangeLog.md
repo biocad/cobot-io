@@ -4,7 +4,7 @@
 
 ## [0.1.3.20] - 2021-06-04
 ### Changed 
-- YLAB2-629: Fixed Fasta parser.
+- YLAB2-629: Fasta parser is now able to parse empty lines in the beginning. 
 
 ## [0.1.3.19] - 2021-04-30
 ### Changed 
