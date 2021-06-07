@@ -12,7 +12,7 @@ import Bio.FASTA.Type       (Fasta, FastaItem (..), ModItem (..), Modification (
 import Bio.Sequence         (BareSequence, bareSequence)
 import Control.Applicative  ((<|>))
 import Data.Attoparsec.Text (Parser, char, choice, endOfInput, endOfLine, many', many1', satisfy,
-                             skipWhile, string, takeWhile, try)
+                             skipWhile, space, string, takeWhile, try)
 import Data.Char            (isAlphaNum, isLetter, isSpace)
 import Data.Text            (Text, strip)
 import Prelude              hiding (takeWhile)
@@ -27,7 +27,7 @@ instance ParsableFastaToken ModItem where
 -- | Parser of .fasta file.
 --
 fastaP :: ParsableFastaToken a => Parser (Fasta a)
-fastaP = fastaPGeneric isLetter
+fastaP = many' space *> fastaPGeneric isLetter
 
 fastaPGeneric :: ParsableFastaToken a => (Char -> Bool) -> Parser (Fasta a)
 fastaPGeneric = many' . item
