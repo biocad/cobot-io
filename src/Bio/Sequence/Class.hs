@@ -46,7 +46,7 @@ module Bio.Sequence.Class
 import           Bio.Sequence.Utilities (Range, checkRange, unsafeEither)
 import           Control.Lens
 import           Control.Monad.Except   (MonadError, throwError)
-import           Data.Kind              (Constraint)
+import           Data.Kind              (Constraint, Type)
 import qualified Data.List              as L (length, null)
 import           Data.Text              (Text)
 import           Data.Vector            (Vector)
@@ -189,9 +189,9 @@ instance IsWeight Double where
 -- having not null weights type-safe.
 --
 class (IsMarking (Marking s), IsWeight (Weight s)) => IsSequence s where
-  type Element s :: *
-  type Marking s :: *
-  type Weight  s :: *
+  type Element s :: Type
+  type Marking s :: Type
+  type Weight  s :: Type
 
   toSequence :: s -> Sequence (Marking s) (Weight s) (Element s)
   fromSequence :: Sequence (Marking s) (Weight s) (Element s) -> s
