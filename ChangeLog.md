@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.3.22] - 2021-07-06
+### Changed
+- `*` -> `Type` for GHC-9.
+
 ## [0.1.3.21] - 2021-07-03
 ### Changed
 - Update dependency versions.
