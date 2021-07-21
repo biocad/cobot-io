@@ -168,7 +168,7 @@ caCbBonds aminoacid = case aminoacid of
 sideChainBonds :: Text -> [(Text, Text)]
 sideChainBonds "ALA" = bwhMany [("CB", ["HB1", "HB2", "HB3"])]
 sideChainBonds "ARG" = [("CB", "CG"), ("CG", "CD"), ("CD", "NE"), ("NE", "CZ"), ("CZ", "NH2"), ("CZ", "NH1")] ++ bwhMany[("CB", ["HB3", "HB2"]), ("CG", ["HG3", "HG2"]), ("CD", ["HD3", "HD2"]), ("NE", ["HE"]), ("NH1", ["HH12", "HH11"]), ("NH2", ["HH22", "HH21"])]
-sideChainBonds "ASN" = [("CB", "CG"), ("CG", "OD1"), ("CG", "ND2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("ND2", ["HD22", "HD21"])]
+sideChainBonds "ASN" = [("CB", "CG"), ("CG", "OD1"), ("CG", "ND2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("ND2", ["HD22", "HD21"]), ("ND2", ["HD2", "HD1"])]
 sideChainBonds "ASP" = [("CB", "CG"), ("CG", "OD1"), ("CG", "OD2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("OD2", ["HD2"])] -- in fact, these are bonds for ASH, but sometimes ASH called just ASP...
 sideChainBonds "ASH" = [("CB", "CG"), ("CG", "OD1"), ("CG", "OD2")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("OD2", ["HD2"])]
 sideChainBonds "CYS" = [("CB", "SG")] ++ bwhMany [("CB", ["HB3", "HB2"]), ("SG", ["HG"])]
