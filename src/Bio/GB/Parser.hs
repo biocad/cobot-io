@@ -8,9 +8,11 @@ import Bio.GB.Type                (Feature (..), Form (..), GenBankSequence (..)
                                    Meta (..), Reference (..), Source (..), Version (..))
 import Bio.Sequence               (MarkedSequence, Range, markedSequence)
 import Control.Applicative        ((<|>))
+import Control.Monad.Fail         (fail)
 import Data.Attoparsec.Combinator (manyTill)
 import Data.Attoparsec.Text       (Parser, char, decimal, digit, endOfInput, endOfLine, letter,
-                                   many', many1', satisfy, string, takeWhile, takeWhile1)
+                                   many', many1', satisfy, string, takeWhile, takeWhile1, try,
+                                   (<?>))
 import Data.Bifunctor             (bimap)
 import Data.Char                  (isAlphaNum, isSpace, isUpper)
 import Data.Functor               (($>))
@@ -21,8 +23,8 @@ import Prelude                    hiding (takeWhile)
 --
 genBankP :: Parser GenBankSequence
 genBankP =  GenBankSequence
-        <$> metaP
-        <*> gbSeqP
+        <$> (metaP <?> "Meta parser")
+        <*> (gbSeqP <?> "GB sequence parser")
         <*  string "//" <* eolSpaceP <* endOfInput
 
 --------------------------------------------------------------------------------
@@ -31,15 +33,15 @@ genBankP =  GenBankSequence
 
 metaP :: Parser Meta
 metaP = do
-  locus'      <- locusP
+  locus'      <- locusP <?> "Locus parser"
 
-  definitionM <- wrapMP definitionP
-  accessionM  <- wrapMP accessionP
-  versionM    <- wrapMP versionP
-  keywordsM   <- wrapMP keywordsP
-  sourceM     <- wrapMP sourceP
-  referencesL <- many' referenceP
-  commentsL   <- many' commentP
+  definitionM <- wrapMP definitionP <?> "Definition parser"
+  accessionM  <- wrapMP accessionP <?> "Accession parser"
+  versionM    <- wrapMP versionP <?> "Version parser"
+  keywordsM   <- wrapMP keywordsP <?> "Keywords parser"
+  sourceM     <- wrapMP sourceP <?> "Source parser"
+  referencesL <- many' referenceP <?> "References parser"
+  commentsL   <- many' commentP <?> "Comments parser"
 
   pure $ Meta locus' definitionM accessionM versionM keywordsM sourceM referencesL commentsL
 
@@ -108,7 +110,7 @@ featuresP :: Parser [(Feature, Range)]
 featuresP = -- skip unknown fields and stop on line with "FEATURES" 
           manyTill (textWithSpacesP <* eolSpaceP) (string "FEATURES") *> space
           *> textWithSpacesP <* eolSpaceP
-          *> many1' featureP
+          *> many1' (featureP <?> "Single feature parser")
 
 featureP :: Parser (Feature, Range)
 featureP = do
@@ -122,7 +124,9 @@ featureP = do
     pure (Feature featureName' strand53 props, range)
 
 rangeP :: Parser (Bool, Range)
-rangeP =  (string "complement(" *> rP False <* char ')') <|> rP True
+rangeP =  (string "join" *> fail "Unsupported range with join(..)")
+      <|> (string "complement(" *> rP False <* char ')') 
+      <|> rP True
   where
     rP :: Bool -> Parser (Bool, Range)
     rP b =  fmap (bimap pred id)
@@ -159,7 +163,7 @@ featureIndent2 = pack $ replicate 21 ' '
 --------------------------------------------------------------------------------
 
 originP :: Parser String
-originP =  string "ORIGIN" *> eolSpaceP
+originP =  (string "ORIGIN" <?> "String ORIGIN") *> eolSpaceP
         *> pure toText
        <*> many1' (space *> many1' digit *> space1
         *> many1' (many1' letter <* (space1 <|> eolSpaceP)))
@@ -172,8 +176,8 @@ originP =  string "ORIGIN" *> eolSpaceP
 --------------------------------------------------------------------------------
 gbSeqP :: Parser (MarkedSequence Feature Char)
 gbSeqP = do
-    features <- featuresP
-    origin   <- originP
+    features <- (featuresP <?> "Features parser")
+    origin   <- (originP <?> "Origin parser")
 
     either (fail . unpack) pure (markedSequence origin features)
 
