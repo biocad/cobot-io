@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ## [0.1.3.23] - 2021-07-06
+### Changed
+- GB parser made more verbose.
+
+## [0.1.3.23] - 2021-07-06
 ### Added
 Added ASN hydrogen names sometimes set by Scho
 
