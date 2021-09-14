@@ -8,11 +8,9 @@ import Bio.GB.Type                (Feature (..), Form (..), GenBankSequence (..)
                                    Meta (..), Reference (..), Source (..), Version (..))
 import Bio.Sequence               (MarkedSequence, Range, markedSequence)
 import Control.Applicative        ((<|>))
-import Control.Monad.Fail         (fail)
 import Data.Attoparsec.Combinator (manyTill)
 import Data.Attoparsec.Text       (Parser, char, decimal, digit, endOfInput, endOfLine, letter,
-                                   many', many1', satisfy, string, takeWhile, takeWhile1, try,
-                                   (<?>))
+                                   many', many1', satisfy, string, takeWhile, takeWhile1, (<?>))
 import Data.Bifunctor             (bimap)
 import Data.Char                  (isAlphaNum, isSpace, isUpper)
 import Data.Functor               (($>))

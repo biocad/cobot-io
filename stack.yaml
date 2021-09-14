@@ -1,4 +1,4 @@
-resolver: lts-15.5
+resolver: lts-17.5
 
 packages:
 - .
@@ -6,7 +6,7 @@ packages:
 extra-deps:
 - data-msgpack-0.0.13
 - data-msgpack-types-0.0.3
-- hyraxAbif-0.2.3.21
+- hyraxAbif-0.2.3.27
 
 ghc-options:
   $locals: -Wall -fdiagnostics-color=always
