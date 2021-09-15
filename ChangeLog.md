@@ -2,7 +2,11 @@
 
 ## [Unreleased]
 
-## [0.1.3.23] - 2021-07-06
+## [0.1.3.25] - 2021-09-15
+### Added
+- Pedantic build and CI
+
+## [0.1.3.24] - 2021-09-10
 ### Changed
 - GB parser made more verbose.
 
