@@ -1,5 +1,5 @@
 name:                cobot-io
-version:             0.1.3.25
+version:             0.1.4.0
 github:              "biocad/cobot-io"
 license:             BSD3
 category:            Bio
@@ -35,6 +35,8 @@ dependencies:
 - deepseq >= 1.4 && < 1.5
 - lens >= 4.16 && < 5.1
 - linear >= 1.20 && < 1.22
+- megaparsec >= 9.0.1
+- parser-combinators >= 1.2.1
 - vector
 
 library:

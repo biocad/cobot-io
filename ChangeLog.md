@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.1.4.0] - 2021-09-27
+### Changed
+- Redesigned the Range type to reflect all possible cases.
+- Switched to Megaparsec.
+
 ## [0.1.3.25] - 2021-09-15
 ### Added
 - Pedantic build and CI

@@ -10,25 +10,20 @@ module Bio.Sequence.Functions.Marking
   , listMarkings
   ) where
 
-import           Bio.Sequence.Class              (ContainsMarking,
-                                                  IsBareSequence,
-                                                  IsMarkedSequence,
-                                                  IsSequence (..),
-                                                  markedSequence, markings,
-                                                  sequ, unsafeMarkedSequence,
-                                                  weights, _sequenceInner)
+import           Bio.Sequence.Class              (ContainsMarking, IsBareSequence, IsMarkedSequence,
+                                                  IsSequence (..), _sequenceInner, markedSequence,
+                                                  markings, sequ, unsafeMarkedSequence, weights)
 import           Bio.Sequence.Functions.Sequence (length, unsafeGetRange)
-import           Bio.Sequence.Utilities          (Range, checkRange,
-                                                  unsafeEither)
+import           Bio.Sequence.Range              (Range, checkRange)
+import           Bio.Sequence.Utilities          (unsafeEither)
 import           Control.Lens
 import           Control.Monad.Except            (MonadError, throwError)
 import           Data.List                       (nub)
 import           Data.List.NonEmpty              (NonEmpty (..))
 import           Data.Text                       (Text)
 import qualified Data.Vector                     as V (toList)
-import           Prelude                         hiding (drop, head, length,
-                                                  null, reverse, tail, take,
-                                                  (!!))
+import           Prelude                         hiding (drop, head, length, null, reverse, tail,
+                                                  take, (!!))
 
 -- | Function that retrieves all elements in 'IsSequence' @s@ that are covered by given 'Marking'' @s@.
 -- Returns 'NonEmpty' list, because if 'Marking' is present in @s@, then list of

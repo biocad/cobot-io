@@ -43,7 +43,9 @@ module Bio.Sequence.Class
   , _sequenceInner
   ) where
 
-import           Bio.Sequence.Utilities (Range, checkRange, unsafeEither)
+import           Bio.Sequence.Range     (Range, checkRange, shiftRange)
+import           Bio.Sequence.Utilities (unsafeEither)
+import           Control.DeepSeq        (NFData)
 import           Control.Lens
 import           Control.Monad.Except   (MonadError, throwError)
 import           Data.Kind              (Constraint, Type)
@@ -61,23 +63,28 @@ import           GHC.TypeLits           (ErrorMessage (..), TypeError)
 -- 'Sequence' represents sequence of objects of type 'a' that
 -- can have different markings of type 'mk' and weights of type 'w'.
 --
-data Sequence mk w a = Sequence { _sequ     :: Vector a      -- ^ sequence itself
-                                , _markings :: [(mk, Range)] -- ^ list of pairs containing marking and 'Range', that corresponds to it
-                                , _weights  :: Vector w      -- ^ weights for all elements in sequence
-                                }
-  deriving (Eq, Show, Generic, Functor)
+data Sequence mk w a
+  = Sequence
+      { _sequ     :: Vector a
+        -- ^ sequence itself
+      , _markings :: [(mk, Range)]
+        -- ^ list of pairs containing marking and 'Range', that corresponds to it
+      , _weights  :: Vector w
+        -- ^ weights for all elements in sequence
+      }
+  deriving (Eq, Show, Generic, NFData, Functor)
 
 instance Semigroup (Sequence mk w a) where
   sequA <> sequB = res
     where
       newSequ     = sequA ^. sequ     <> sequB ^. sequ
-      newMarkings = sequA ^. markings <> fmap (fmap (bimap addInd addInd)) (sequB ^. markings)
+      newMarkings = sequA ^. markings <> fmap (fmap (shiftRange addInd)) (sequB ^. markings)
       newWeights  = sequA ^. weights  <> sequB ^. weights
 
       res = Sequence newSequ newMarkings newWeights
 
-      addInd :: Int -> Int
-      addInd = (+ V.length (sequA ^. sequ))
+      addInd :: Int 
+      addInd = V.length (sequA ^. sequ)
 
 instance Monoid (Sequence mk () a) where
   mempty = Sequence mempty mempty mempty

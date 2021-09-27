@@ -12,20 +12,19 @@ module Bio.Sequence.Functions.Sequence
   , (!), (!?)
   ) where
 
-import           Bio.Sequence.Class     (ContainsNoMarking, IsSequence (..),
-                                         markings, sequ, weights,
-                                         _sequenceInner)
-import           Bio.Sequence.Utilities (Range, checkRange, unsafeEither)
+import           Bio.Sequence.Class     (ContainsNoMarking, IsSequence (..), _sequenceInner,
+                                         markings, sequ, weights)
+import           Bio.Sequence.Range     (Range (..), RangeBorder (..), checkRange, mapRange,
+                                         swapRange)
+import           Bio.Sequence.Utilities (unsafeEither)
 import           Control.Lens
 import           Control.Monad.Except   (MonadError, throwError)
 import qualified Data.Foldable          as F (length, null, toList)
 import qualified Data.List              as L (drop, take)
 import           Data.Maybe             (fromMaybe)
 import           Data.Text              (Text)
-import           Data.Tuple             (swap)
-import qualified Data.Vector            as V (drop, reverse, take, (!?))
-import           Prelude                hiding (drop, length, null, reverse,
-                                         tail, take)
+import qualified Data.Vector            as V
+import           Prelude                hiding (drop, length, null, reverse, tail, take)
 
 -- | Get elements from sequence that belong to given 'Range' (format of range is [a; b)).
 -- If given 'Range' is out of bounds, an error will be thrown.
@@ -34,8 +33,15 @@ import           Prelude                hiding (drop, length, null, reverse,
 -- > getRange sequ (0, 3) == Just ['a', 'a', 'b']
 --
 getRange :: (IsSequence s, MonadError Text m) => s -> Range -> m [Element s]
-getRange s r@(lInd, rInd) | checkRange (length s) r = pure $ L.take (rInd - lInd) $ L.drop lInd $ toList s
-                          | otherwise               = throwError "Bio.Sequence.Functions.Sequence: invalid range in getRange."
+getRange s r | checkRange (length s) r = pure $ extractRange s r 
+             | otherwise               = throwError "Bio.Sequence.Functions.Sequence: invalid range in getRange."
+
+extractRange :: IsSequence s => s -> Range -> [Element s]
+extractRange s (Point pos)                                  = [s ! pos]
+extractRange s (Span (RangeBorder _ lo) (RangeBorder _ hi)) = L.drop lo . L.take hi . toList $ s
+extractRange _ (Between _ _)                                = []
+extractRange s (Join ranges)                                = concatMap (extractRange s) ranges
+extractRange s (Complement range)                           = extractRange s range
 
 unsafeGetRange :: IsSequence s => s -> Range -> [Element s]
 unsafeGetRange s = unsafeEither . getRange s
@@ -78,7 +84,7 @@ reverse (toSequence -> s) = res
     newMaxInd = length s
 
     newSequ     = V.reverse $ s ^. sequ
-    newMarkings = fmap (fmap $ swap . bimap ((-) newMaxInd) ((-) newMaxInd)) $ s ^. markings
+    newMarkings = fmap (fmap $ swapRange . mapRange ((-) newMaxInd)) $ s ^. markings
     newWeights  = V.reverse $ s ^. weights
 
     res = fromSequence $ _sequenceInner newSequ newMarkings newWeights
