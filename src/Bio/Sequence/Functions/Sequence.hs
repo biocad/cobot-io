@@ -26,7 +26,7 @@ import           Data.Text              (Text)
 import qualified Data.Vector            as V
 import           Prelude                hiding (drop, length, null, reverse, tail, take)
 
--- | Get elements from sequence that belong to given 'Range' (format of range is [a; b)).
+-- | Get elements from sequence that belong to given 'Range'. If the range is a Span, then both lower and upper bounds are included.
 -- If given 'Range' is out of bounds, an error will be thrown.
 --
 -- > sequ = Sequence ['a', 'a', 'b', 'a'] [("Letter A", (0, 2)), ("Letter A", (3, 4)), ("Letter B", (2, 3))] mempty
@@ -38,7 +38,7 @@ getRange s r | checkRange (length s) r = pure $ extractRange s r
 
 extractRange :: IsSequence s => s -> Range -> [Element s]
 extractRange s (Point pos)                                  = [s ! pos]
-extractRange s (Span (RangeBorder _ lo) (RangeBorder _ hi)) = L.drop lo . L.take hi . toList $ s
+extractRange s (Span (RangeBorder _ lo) (RangeBorder _ hi)) = L.drop lo . L.take (hi + 1) . toList $ s
 extractRange _ (Between _ _)                                = []
 extractRange s (Join ranges)                                = concatMap (extractRange s) ranges
 extractRange s (Complement range)                           = extractRange s range
@@ -81,7 +81,7 @@ null = F.null . toSequence
 reverse :: IsSequence s => s -> s
 reverse (toSequence -> s) = res
   where
-    newMaxInd = length s
+    newMaxInd = length s - 1
 
     newSequ     = V.reverse $ s ^. sequ
     newMarkings = fmap (fmap $ swapRange . mapRange ((-) newMaxInd)) $ s ^. markings

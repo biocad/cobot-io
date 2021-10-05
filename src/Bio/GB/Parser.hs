@@ -8,7 +8,7 @@ module Bio.GB.Parser
 import Bio.GB.Type                (Feature (..), Form (..), GenBankSequence (..), Locus (..),
                                    Meta (..), Parser, Reference (..), Source (..), Version (..))
 import Bio.Sequence               (Border (..), MarkedSequence, Range (..), RangeBorder (..),
-                                   markedSequence)
+                                   markedSequence, shiftRange)
 import Control.Monad.Combinators  (many, manyTill, optional, some, (<|>))
 import Data.Char                  (isAlphaNum, isSpace, isUpper)
 import Data.Functor               (($>))
@@ -119,7 +119,10 @@ featureP = do
 
     props <- some propsP
 
-    pure (Feature featureName' props, range)
+    -- | Ranges are 1-based, but the underlying Vector in the Feature is 0-based.
+    -- We shift the range left so the numberings match.
+    --
+    pure (Feature featureName' props, shiftRange (-1) range)
 
 rangeP :: Parser Range
 rangeP =  try spanP 

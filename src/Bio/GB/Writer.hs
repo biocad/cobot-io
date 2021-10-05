@@ -4,7 +4,8 @@ module Bio.GB.Writer
 
 import           Bio.GB.Type     (Feature (..), GenBankSequence (..), Locus (..), Meta (..),
                                   Reference (..), Source (..), Version (..))
-import           Bio.Sequence    (Border (..), Range (..), RangeBorder (..), markings, toList)
+import           Bio.Sequence    (Border (..), Range (..), RangeBorder (..), markings, shiftRange,
+                                  toList)
 import           Control.Lens    ((^.))
 import qualified Data.List.Split as S (chunksOf)
 import           Data.Maybe      (fromMaybe)
@@ -98,7 +99,7 @@ featuresToText l = interNewLine $ mainPart : sections
 featureToText :: (Feature, Range) -> Text
 featureToText (Feature{..}, range) = interNewLine $ mainPart : sections
   where
-    mainPart = processMany featuresIndent (prependIndent featuresPreIndent fName) (featureRangeToText range)
+    mainPart = processMany featuresIndent (prependIndent featuresPreIndent fName) (featureRangeToText $ shiftRange 1 range)
     sections = fmap featurePropToText fProps
 
 featurePropToText :: (Text, Text) -> Text

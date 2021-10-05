@@ -18,6 +18,9 @@ module Bio.Sequence.Range
   , point
   , preciseSpan
   , between
+  , extendRight
+  , extendLeft
+  , overlap
   ) where
 
 import Control.DeepSeq (NFData)
@@ -84,8 +87,8 @@ between :: (Int, Int) -> Range
 between = uncurry Between
 
 checkRange :: Int -> Range -> Bool
-checkRange len (Point pos) = 0 <= pos && pos <= len
-checkRange len (Span (RangeBorder _ lInd) (RangeBorder _ rInd)) = lInd < rInd && 0 <= lInd && rInd <= len
+checkRange len (Point pos) = 0 <= pos && pos < len
+checkRange len (Span (RangeBorder _ lInd) (RangeBorder _ rInd)) = lInd < rInd && 0 <= lInd && rInd < len
 checkRange len (Between lInd rInd) = lInd < rInd && 0 <= lInd && rInd <= len
 checkRange len (Join ranges') = all (checkRange len) ranges'
 checkRange len (Complement range') = checkRange len range'
@@ -106,4 +109,36 @@ swapRange (Span brLo brHi)    = Span brHi brLo
 swapRange (Between lo hi)     = Between hi lo
 swapRange (Join ranges')      = Join $ fmap swapRange ranges'
 swapRange (Complement range') = Complement $ swapRange range'
+
+extendRight :: Int -> Range -> Range
+extendRight delta (Point a) = Span (RangeBorder Precise a) (RangeBorder Precise (a + delta))
+extendRight delta (Span lo (RangeBorder r hi)) = Span lo (RangeBorder r (hi + delta))
+extendRight _ b@Between{} = b
+extendRight delta (Join ranges') = Join $ extendRight delta <$> ranges'
+extendRight delta (Complement range') = Complement $ extendRight delta range'
+
+extendLeft :: Int -> Range -> Range
+extendLeft delta (Point a) = Span (RangeBorder Precise (a - delta)) (RangeBorder Precise a)
+extendLeft delta (Span (RangeBorder r lo) hi) = Span (RangeBorder r (lo - delta)) hi
+extendLeft _ b@Between{} = b
+extendLeft delta (Join ranges') = Join $ extendLeft delta <$> ranges'
+extendLeft delta (Complement range') = Complement $ extendLeft delta range'
+
+overlap :: Range -> Range -> Bool
+overlap (Point a) (Point b) = a == b
+overlap (Point a) (Span (RangeBorder _ lo) (RangeBorder _ hi)) = lo <= a && a <= hi
+overlap (Point _) (Between _ _) = False
+
+overlap (Span (RangeBorder _ lo1) (RangeBorder _ hi1)) (Span (RangeBorder _ lo2) (RangeBorder _ hi2)) = 
+    (lo1 <= lo2 && hi1 >= lo2) ||
+    (lo1 >= lo2 && lo1 <= hi2) ||
+    (lo1 <= lo2 && hi1 >= hi2)
+overlap (Span (RangeBorder _ lo) (RangeBorder _ hi)) (Between b1 b2) = b1 >= lo && b2 <= hi
+
+overlap b1@Between{} b2@Between{} = b1 == b2
+
+overlap r1 (Join ranges') = any (overlap r1) ranges'
+overlap r1 (Complement range') = overlap r1 range'
+
+overlap r1 r2 = overlap r2 r1
 

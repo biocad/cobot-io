@@ -122,28 +122,28 @@ pAAVGFPMeta = Meta { locus=Locus "pAAV-GFP-CellBio" 5374 "ds-DNA" (Just Circular
 
 pAAVGFPFeatures :: [(Feature, Range)]
 pAAVGFPFeatures = [ ( (Feature "misc_feature" [ ("label", "Right ITR") ]
-                                           ), preciseSpan (1, 130))
+                                           ), preciseSpan (0, 129))
                                        , ( (Feature "enhancer" [ ("label", "CMV enhancer")
                                                                , ("note", "human cytomegalovirus immediate early enhancer")
                                                                ]
-                                           ), preciseSpan (206, 509))
+                                           ), preciseSpan (205, 508))
                                        , ( (Feature "promoter" [ ("label", "CMV promoter")
                                                                , ("note", "human cytomegalovirus (CMV) immediate early \npromoter")
                                                                ]
-                                           ), preciseSpan (510, 712))
+                                           ), preciseSpan (509, 711))
                                        , ( (Feature "misc_feature" [ ("label", "Human beta-globin Intron") ]
-                                           ), preciseSpan (805, 1297))
+                                           ), preciseSpan (804, 1296))
                                        , ( (Feature "CDS" [ ("codon_start", "1")
                                                           , ("product", "enhanced GFP")
                                                           , ("label", "EGFP")
                                                           , ("note", "mammalian codon-optimized")
                                                           ]
-                                           ), preciseSpan (1320, 2036))
+                                           ), preciseSpan (1319, 2035))
                                        , ( (Feature "repeat_region" [ ("label", "Left ITR")
                                                                     , ("note", "inverted terminal repeat of adeno-associated virus \nserotype 2\noooooo")
                                                                     , ("prop", "1")
                                                                     ]
-                                           ), compPreciseSpan (2637, 2777))
+                                           ), compPreciseSpan (2636, 2776))
                                        ]
 
 pAAVGFPOrigin :: String
@@ -169,14 +169,14 @@ pAAVCMVFeatures = [ ( (Feature "rep_origin" [ ("direction", "RIGHT")
                                             , ("ApEinfo_revcolor", "#999999")
                                             , ("ApEinfo_graphicformat", "arrow_data {{0 1 2 0 0 -1} {} 0}\r\nwidth 5 offset 0")
                                             ]
-                      ), preciseSpan (3743, 4198))
+                      ), preciseSpan (3742, 4197))
                     , ( (Feature "promoter" [ ("gene", "bla")
                                             , ("label", "AmpR promoter")
                                             , ("ApEinfo_fwdcolor", "#346ee0")
                                             , ("ApEinfo_revcolor", "#346ee0")
                                             , ("ApEinfo_graphicformat", "arrow_data {{0 1 2 0 0 -1} {} 0}\r\nwidth 5 offset 0")
                                             ]
-                        ), preciseSpan (4480, 4584))
+                        ), preciseSpan (4479, 4583))
                     , ( (Feature "CDS" [ ("codon_start", "1")
                                        , ("gene", "bla")
                                        , ("product", "beta-lactamase")
@@ -186,15 +186,15 @@ pAAVCMVFeatures = [ ( (Feature "rep_origin" [ ("direction", "RIGHT")
                                        , ("ApEinfo_revcolor", "#e9d024")
                                        , ("ApEinfo_graphicformat", "arrow_data {{0 1 2 0 0 -1} {} 0}\r\nwidth 5 offset 0")
                                        ]
-                        ), preciseSpan (4585, 5445))
+                        ), preciseSpan (4584, 5444))
                      , ( (Feature "misc_feature" [ ("label", "RightITR2")
                                                  , ("ApEinfo_fwdcolor", "#7eff74")
                                                  , ("ApEinfo_revcolor", "#7eff74")
                                                  , ("ApEinfo_graphicformat", "arrow_data {{0 1 2 0 0 -1} {} 0}\r\nwidth 5 offset 0")
                                                  ]
-                         ), preciseSpan (3528, 3668))
+                         ), preciseSpan (3527, 3667))
                       , ( (Feature "misc_feature" [ ("label", "A->T") ]
-                          ), Complement (Point 200))
+                          ), Complement (Point 199))
                       ]
 
 pAAVCMVOrigin :: String
@@ -223,43 +223,43 @@ sophisticatedFeatures =
       [ ("organism", "synthetic DNA construct")
       , ("mol_type", "other DNA")
       ]
-    , preciseSpan (1, 6951))
+    , preciseSpan (0, 6950))
 
   , (Feature "rep_origin" 
       [ ("label", "pUCorigin")
       , ("note", "/vntifkey=33")
       ]
-    , Join [Point 1, preciseSpan (6551, 6951)])
+    , Join [Point 0, preciseSpan (6550, 6950)])
 
   , (Feature "enhancer" 
       [ ("label", "cmv enhanser")
       , ("label", "cmv\\enhanser")
       , ("note", "/vntifkey=9")
       ]
-    , preciseSpan (449, 858))
+    , preciseSpan (448, 857))
 
   , (Feature "misc_feature"
       [ ("label", "hCMV promoter")
       , ("label", "hCMV\\promoter")
       , ("note", "/vntifkey=21")
       ]
-    , preciseSpan (859, 984))
+    , preciseSpan (858, 983))
 
   , (Feature "intron"
       [ ("label", "IntronA")
       , ("note", "/vntifkey=15")
       ]
-    , preciseSpan (1012, 1919))
+    , preciseSpan (1011, 1918))
 
   , (Feature "primer_bind" 
       [ ("label", "inv olig1") ]
-    , preciseSpan (1502, 1522))
+    , preciseSpan (1501, 1521))
 
   , (Feature "misc_feature"
       [ ("label", "Kozak")
       , ("note", "/vntifkey=21")
       ]
-    , preciseSpan (1945, 1953))
+    , preciseSpan (1944, 1952))
 
   , (Feature "misc_feature"
       [ ("label", "Leader IgK")
@@ -267,7 +267,7 @@ sophisticatedFeatures =
       , ("note", "/ugene_name=Leader\\ IgK")
       , ("note", "/vntifkey=21")
       ]
-    , preciseSpan (1954, 2010))
+    , preciseSpan (1953, 2009))
 
   , (Feature "misc_feature"   
       [ ("label", "START")
@@ -275,7 +275,7 @@ sophisticatedFeatures =
       , ("note", "/ugene_name=START")
       , ("note", "/vntifkey=21")
       ]
-    , preciseSpan (1954, 1956))
+    , preciseSpan (1953, 1955))
 
   , (Feature "misc_feature"   
       [ ("label", "GFP stuffer")
@@ -283,7 +283,7 @@ sophisticatedFeatures =
       , ("note", "/ugene_name=GFP\\ stuffer")
       , ("note", "/vntifkey=21")
       ]
-    , preciseSpan (2011, 3739))
+    , preciseSpan (2010, 3738))
 
   , (Feature "misc_feature"   
       [ ("label", "CK")
@@ -291,7 +291,7 @@ sophisticatedFeatures =
       , ("note", "/ugene_name=CK")
       , ("note", "/vntifkey=21")
       ]
-    , preciseSpan (3740, 4060))
+    , preciseSpan (3739, 4059))
 
   , (Feature "misc_feature"   
       [ ("label", "STOP")
@@ -299,7 +299,7 @@ sophisticatedFeatures =
       , ("note", "/ugene_name=STOP")
       , ("note", "/vntifkey=21")
       ]
-    , preciseSpan (4061, 4066))
+    , preciseSpan (4060, 4065))
 
   , (Feature "misc_feature"  
       [ ("gene", "SV40_PA term")
@@ -307,18 +307,18 @@ sophisticatedFeatures =
       , ("label", "SV40_PA\\term")
       , ("note", "/vntifkey=21")
       ]
-    , preciseSpan (4079, 4317))
+    , preciseSpan (4078, 4316))
 
   , (Feature "primer_bind"   
       [ ("label", "pEE_Clab") ]
-    , preciseSpan (4350, 4370))
+    , preciseSpan (4349, 4369))
 
   , (Feature "rep_origin"     
       [ ("label", "EBV ori")
       , ("label", "EBV\\ori")
       , ("note", "/vntifkey=33")
       ]
-    , preciseSpan (4582, 4975))
+    , preciseSpan (4581, 4974))
 
   , (Feature "CDS"          
       [ ("codon_start", "1")
@@ -326,5 +326,5 @@ sophisticatedFeatures =
       , ("note", "/vntifkey=4")
       , ("translation", "MSIQHFRVALIPFFAAFCLPVFAHPETLVKVKDAEDQLGARVGYI\nELDLNSGKILESFRPEERFPMMSTFKVLLCGAVLSRVDAGQEQLGRRIHYSQNDLVEYS\nPVTEKHLTDGMTVRELCSAAITMSDNTAANLLLTTIGGPKELTAFLHNMGDHVTRLDRW\nEPELNEAIPNDERDTTMPAAMATTLRKLLTGELLTLASRQQLIDWMEADKVAGPLLRSA\nLPAGWFIADKSGAGERGSRGIIAALGPDGKPSRIVVIYTTGSQATMDERNRQIAEIGAS\nLIKHW")
       ]
-    , preciseSpan (5543, 6403))
+    , preciseSpan (5542, 6402))
   ]
