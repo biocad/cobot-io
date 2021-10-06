@@ -10,20 +10,21 @@ module Bio.Sequence.Functions.Marking
   , listMarkings
   ) where
 
-import           Bio.Sequence.Class              (ContainsMarking, IsBareSequence, IsMarkedSequence,
-                                                  IsSequence (..), _sequenceInner, markedSequence,
-                                                  markings, sequ, unsafeMarkedSequence, weights)
-import           Bio.Sequence.Functions.Sequence (length, unsafeGetRange)
-import           Bio.Sequence.Range              (Range, checkRange)
-import           Bio.Sequence.Utilities          (unsafeEither)
 import           Control.Lens
-import           Control.Monad.Except            (MonadError, throwError)
-import           Data.List                       (nub)
-import           Data.List.NonEmpty              (NonEmpty (..))
-import           Data.Text                       (Text)
-import qualified Data.Vector                     as V (toList)
-import           Prelude                         hiding (drop, head, length, null, reverse, tail,
-                                                  take, (!!))
+import           Control.Monad.Except (MonadError, throwError)
+import           Data.List            (nub)
+import           Data.List.NonEmpty   (NonEmpty (..))
+import           Data.Text            (Text)
+import qualified Data.Vector          as V (toList)
+import           Prelude              hiding (drop, head, length, null, reverse, tail, take, (!!))
+
+import Bio.NucleicAcid.Nucleotide      (Complementary (..))
+import Bio.Sequence.Class              (ContainsMarking, IsBareSequence, IsMarkedSequence,
+                                        IsSequence (..), _sequenceInner, markedSequence, markings,
+                                        sequ, unsafeMarkedSequence, weights)
+import Bio.Sequence.Functions.Sequence (length, unsafeGetRange)
+import Bio.Sequence.Range              (Range, checkRange)
+import Bio.Sequence.Utilities          (unsafeEither)
 
 -- | Function that retrieves all elements in 'IsSequence' @s@ that are covered by given 'Marking'' @s@.
 -- Returns 'NonEmpty' list, because if 'Marking' is present in @s@, then list of
@@ -33,7 +34,7 @@ import           Prelude                         hiding (drop, head, length, nul
 -- > sequ = Sequence ['a', 'a', 'b', 'a'] [("Letter A", (0, 2)), ("Letter A", (3, 4)), ("Letter B", (2, 3))] mempty
 -- > getMarking sequ "Letter A" == ['a', 'a'] :| [['a']]
 --
-getMarking :: (ContainsMarking s, MonadError Text m) => s -> Marking s -> m (NonEmpty [Element s])
+getMarking :: (ContainsMarking s, MonadError Text m, Complementary (Element s)) => s -> Marking s -> m (NonEmpty [Element s])
 getMarking (toSequence -> s) mk | not $ mk `member` (s ^. markings) = throwError markingNotFoundError
                                 | otherwise                         = pure $ res
   where
@@ -42,7 +43,7 @@ getMarking (toSequence -> s) mk | not $ mk `member` (s ^. markings) = throwError
     markingNotFoundError :: Text
     markingNotFoundError = "Bio.Sequence.Functions.Marking: given marking not found in Sequence."
 
-unsafeGetMarking :: ContainsMarking s => s -> Marking s -> NonEmpty [Element s]
+unsafeGetMarking :: (ContainsMarking s, Complementary (Element s)) => s -> Marking s -> NonEmpty [Element s]
 unsafeGetMarking mk = unsafeEither . getMarking mk
 
 -- | Converts 'IsBareSequence' @s@ to 'IsMarkedSequence' @s'@ that is marked using provided list

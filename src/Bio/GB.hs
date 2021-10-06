@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 module Bio.GB
   ( module T
   , fromFile
@@ -17,10 +15,6 @@ import           Data.Bifunctor         (first)
 import           Data.Text              (Text, pack)
 import qualified Data.Text.IO           as TIO (readFile, writeFile)
 import           Text.Megaparsec        (eof, errorBundlePretty, parse)
-#if !MIN_VERSION_base(4,13,0)
-import Control.Monad.Fail (MonadFail (..))
-import Prelude            hiding (fail)
-#endif
 
 -- | Reads 'GenBankSequence' from givem file.
 --

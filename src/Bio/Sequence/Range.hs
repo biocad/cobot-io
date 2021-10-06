@@ -21,17 +21,24 @@ module Bio.Sequence.Range
   , extendRight
   , extendLeft
   , overlap
+  , rangeMargins
   ) where
 
 import Control.DeepSeq (NFData)
 import Control.Lens    (makeLenses)
 import GHC.Generics    (Generic)
 
+-- | The type of range border. A border is @Exceeded@ when its end point is beyond the
+-- specified base number, otherwise it is @Precise@.
+-- In GenBank, for example, @Exceeded@ borders are marked with < and >.
+--
 data Border
   = Precise
   | Exceeded
   deriving (Eq, Show, Generic, NFData)
 
+-- | The end point of a range with indication whether it is @Precise@ of @Exceeded@ (see @Border@).
+--
 data RangeBorder
   = RangeBorder
       { _borderType     :: Border
@@ -141,4 +148,14 @@ overlap r1 (Join ranges') = any (overlap r1) ranges'
 overlap r1 (Complement range') = overlap r1 range'
 
 overlap r1 r2 = overlap r2 r1
+
+rangeMargins :: Range -> (Int, Int)
+rangeMargins rng = 
+    case rng of
+      Point x -> (x, x)
+      Span (RangeBorder _ lo) (RangeBorder _ hi) -> (lo, hi)
+      Between lo hi -> (lo, hi)
+      Join children -> let (los, his) = unzip (rangeMargins <$> children) 
+                        in (minimum los, maximum his)
+      Complement child -> rangeMargins child
 

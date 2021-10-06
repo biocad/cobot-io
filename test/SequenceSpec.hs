@@ -3,17 +3,17 @@
 
 module SequenceSpec where
 
-import           Bio.Sequence       (BareSequence, IsMarking, IsWeight (..), MarkedSequence,
-                                     Range (..), Sequence, WeightedSequence, addMarkings,
-                                     bareSequence, createSequence, drop, getMarking, getRange,
-                                     getWeight, markedSequence, mean, meanInRange, preciseSpan,
-                                     reverse, tail, take, toMarked, toWeighted,
-                                     unsafeCreateSequence, unsafeMarkedSequence,
-                                     unsafeWeightedSequence, weightedSequence)
 import qualified Data.List.NonEmpty as NE (fromList)
 import           Data.Text          (Text)
 import           Prelude            hiding (drop, reverse, tail, take)
 import           Test.Hspec
+
+import Bio.Sequence               (BareSequence, IsMarking, IsWeight (..), MarkedSequence,
+                                   Range (..), Sequence, WeightedSequence, addMarkings,
+                                   bareSequence, createSequence, drop, getMarking, getRange,
+                                   getWeight, markedSequence, mean, meanInRange, preciseSpan,
+                                   reverse, tail, take, toMarked, toWeighted, unsafeCreateSequence,
+                                   unsafeMarkedSequence, unsafeWeightedSequence, weightedSequence)
 
 instance IsWeight Int where
   toDouble = fromIntegral
