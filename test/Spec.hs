@@ -1,20 +1,21 @@
-import           ABISpec
-import           FastaParserSpec
-import           FASTASpec
-import           FastaWriterSpec
-import           GBParserSpec
-import           GBWriterSpec
-import           MAEParserSpec
-import           MAESpec
-import           MMTFSpec
-import           PDBParserSpec
-import           PDBSpec
-import           PDBWriterSpec
-import           SequenceSpec
-import           StructureSpec
-import           System.IO
-import           Test.Hspec
-import           UniprotSpec
+import ABISpec
+import FASTASpec
+import FastaParserSpec
+import FastaWriterSpec
+import GBParserSpec
+import GBWriterSpec
+import MAEParserSpec
+import MAESpec
+import MMTFSpec
+import PDBParserSpec
+import PDBSpec
+import PDBWriterSpec
+import RangeSpec
+import SequenceSpec
+import StructureSpec
+import System.IO
+import Test.Hspec
+import UniprotSpec
 
 main :: IO ()
 main = do
@@ -23,6 +24,8 @@ main = do
          -- MMTF
          mmtfCodecSpec
          mmtfParserSpec
+         -- Range
+         rangeSpec
          -- Sequence
          weightedSequenceSpec
          markedSequenceSpec

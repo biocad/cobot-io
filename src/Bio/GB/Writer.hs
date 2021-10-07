@@ -2,16 +2,16 @@ module Bio.GB.Writer
   ( genBankToText
   ) where
 
-import           Bio.GB.Type     (Feature (..), GenBankSequence (..),
-                                  Locus (..), Meta (..), Reference (..),
-                                  Source (..), Version (..))
-import           Bio.Sequence    (Range, markings, toList)
+import           Bio.GB.Type     (Feature (..), GenBankSequence (..), Locus (..), Meta (..),
+                                  Reference (..), Source (..), Version (..))
+import           Bio.Sequence    (Border (..), Range (..), RangeBorder (..), markings, shiftRange,
+                                  toList)
 import           Control.Lens    ((^.))
 import qualified Data.List.Split as S (chunksOf)
 import           Data.Maybe      (fromMaybe)
 import           Data.Text       (Text)
-import qualified Data.Text       as T (append, chunksOf, intercalate, length,
-                                       lines, null, pack, toLower, unwords)
+import qualified Data.Text       as T (append, chunksOf, intercalate, length, lines, null, pack,
+                                       toLower, unwords)
 
 genBankToText :: GenBankSequence -> Text
 genBankToText GenBankSequence{..} = interNewLine parts <> "\n"
@@ -99,7 +99,7 @@ featuresToText l = interNewLine $ mainPart : sections
 featureToText :: (Feature, Range) -> Text
 featureToText (Feature{..}, range) = interNewLine $ mainPart : sections
   where
-    mainPart = processMany featuresIndent (prependIndent featuresPreIndent fName) (featureRangeToText fStrand53 range)
+    mainPart = processMany featuresIndent (prependIndent featuresPreIndent fName) (featureRangeToText $ shiftRange 1 range)
     sections = fmap featurePropToText fProps
 
 featurePropToText :: (Text, Text) -> Text
@@ -107,13 +107,17 @@ featurePropToText (nameF, textF) = mainPart
   where
     mainPart = processMany featuresIndent mempty ("/" <> nameF <> "=\"" <> textF <> "\"")
 
-featureRangeToText :: Bool -> Range -> Text
-featureRangeToText complement (l, r) | l == r - 1 = processComplement complement $ showText (l + 1)
-                                     | otherwise  = processComplement complement $ showText (l + 1) <> ".." <> showText r
+featureRangeToText :: Range -> Text
+featureRangeToText (Point pos) = showText pos 
+featureRangeToText (Span (RangeBorder rbLo lo) (RangeBorder rbHi hi)) = borderToText True rbLo <> showText lo <> ".." <> borderToText False rbHi <> showText hi 
   where
-    processComplement :: Bool -> Text -> Text
-    processComplement True  text = text
-    processComplement False text = "complement(" <> text <> ")"
+    borderToText :: Bool -> Border -> Text
+    borderToText _ Precise      = ""
+    borderToText True Exceeded  = "<"
+    borderToText False Exceeded = ">"
+featureRangeToText (Between lo hi) = showText lo <> "^" <> showText hi
+featureRangeToText (Join ranges) = "join(" <> T.intercalate "," (featureRangeToText <$> ranges) <> ")"
+featureRangeToText (Complement range) = "complement(" <> featureRangeToText range <> ")"
 
 -- | Indentation of feature's properties in FEATURES section.
 --

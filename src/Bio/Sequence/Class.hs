@@ -43,12 +43,15 @@ module Bio.Sequence.Class
   , _sequenceInner
   ) where
 
-import           Bio.Sequence.Utilities (Range, checkRange, unsafeEither)
+import           Bio.Sequence.Range     (Range, checkRange, shiftRange)
+import           Bio.Sequence.Utilities (unsafeEither)
+import           Control.DeepSeq        (NFData)
 import           Control.Lens
 import           Control.Monad.Except   (MonadError, throwError)
 import           Data.Kind              (Constraint, Type)
 import qualified Data.List              as L (length, null)
 import           Data.Text              (Text)
+import qualified Data.Text              as T
 import           Data.Vector            (Vector)
 import qualified Data.Vector            as V (fromList, length)
 import           GHC.Generics           (Generic)
@@ -61,23 +64,28 @@ import           GHC.TypeLits           (ErrorMessage (..), TypeError)
 -- 'Sequence' represents sequence of objects of type 'a' that
 -- can have different markings of type 'mk' and weights of type 'w'.
 --
-data Sequence mk w a = Sequence { _sequ     :: Vector a      -- ^ sequence itself
-                                , _markings :: [(mk, Range)] -- ^ list of pairs containing marking and 'Range', that corresponds to it
-                                , _weights  :: Vector w      -- ^ weights for all elements in sequence
-                                }
-  deriving (Eq, Show, Generic, Functor)
+data Sequence mk w a
+  = Sequence
+      { _sequ     :: Vector a
+        -- ^ sequence itself
+      , _markings :: [(mk, Range)]
+        -- ^ list of pairs containing marking and 'Range', that corresponds to it
+      , _weights  :: Vector w
+        -- ^ weights for all elements in sequence
+      }
+  deriving (Eq, Show, Generic, NFData, Functor)
 
 instance Semigroup (Sequence mk w a) where
   sequA <> sequB = res
     where
       newSequ     = sequA ^. sequ     <> sequB ^. sequ
-      newMarkings = sequA ^. markings <> fmap (fmap (bimap addInd addInd)) (sequB ^. markings)
+      newMarkings = sequA ^. markings <> fmap (fmap (shiftRange addInd)) (sequB ^. markings)
       newWeights  = sequA ^. weights  <> sequB ^. weights
 
       res = Sequence newSequ newMarkings newWeights
 
-      addInd :: Int -> Int
-      addInd = (+ V.length (sequA ^. sequ))
+      addInd :: Int 
+      addInd = V.length (sequA ^. sequ)
 
 instance Monoid (Sequence mk () a) where
   mempty = Sequence mempty mempty mempty
@@ -302,7 +310,7 @@ type family Unit a :: Constraint where
   Unit _  = TypeError ('Text "cobot-io: this function doesn't work with when not parametrized by ().")
 
 createSequenceInner :: (IsSequence s, MonadError Text m) => Bool -> Bool -> [Element s] -> [(Marking s, Range)] -> [Weight s] -> m s
-createSequenceInner checkMk checkW s markings' weights' | checkMk && not checkRanges     = throwError rangesError
+createSequenceInner checkMk checkW s markings' weights' | checkMk && not checkRanges     = throwError rangesError 
                                                         | checkW && not checkNullWeights = throwError weightsNullError
                                                         | checkW && not checkLenWeights  = throwError weightsLenError
                                                         | otherwise                      = pure resSequence
@@ -313,7 +321,10 @@ createSequenceInner checkMk checkW s markings' weights' | checkMk && not checkRa
     resSequence = fromSequence $ Sequence seqVector markings' weightsVector
 
     checkRanges :: Bool
-    checkRanges = all (checkRange (L.length s)) $ fmap snd markings'
+    checkRanges = null faultyRanges 
+
+    faultyRanges :: [Range]
+    faultyRanges = filter (not . checkRange (L.length s)) $ fmap snd markings'
 
     checkNullWeights :: Bool
     checkNullWeights = not (L.null weights')
@@ -322,7 +333,7 @@ createSequenceInner checkMk checkW s markings' weights' | checkMk && not checkRa
     checkLenWeights = L.length s == L.length weights'
 
     rangesError :: Text
-    rangesError = "Bio.Sequence.Class: invalid 'Range' found in sequence's marking."
+    rangesError = "Bio.Sequence.Class: invalid 'Range' found in sequence's marking: \n" <> T.pack (unlines (show <$> faultyRanges))
 
     weightsNullError :: Text
     weightsNullError = "Bio.Sequence.Class: weights are null for sequence."

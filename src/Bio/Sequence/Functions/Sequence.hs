@@ -12,32 +12,40 @@ module Bio.Sequence.Functions.Sequence
   , (!), (!?)
   ) where
 
-import           Bio.Sequence.Class     (ContainsNoMarking, IsSequence (..),
-                                         markings, sequ, weights,
-                                         _sequenceInner)
-import           Bio.Sequence.Utilities (Range, checkRange, unsafeEither)
 import           Control.Lens
-import           Control.Monad.Except   (MonadError, throwError)
-import qualified Data.Foldable          as F (length, null, toList)
-import qualified Data.List              as L (drop, take)
-import           Data.Maybe             (fromMaybe)
-import           Data.Text              (Text)
-import           Data.Tuple             (swap)
-import qualified Data.Vector            as V (drop, reverse, take, (!?))
-import           Prelude                hiding (drop, length, null, reverse,
-                                         tail, take)
+import           Control.Monad.Except (MonadError, throwError)
+import qualified Data.Foldable        as F (length, null, toList)
+import qualified Data.List            as L (drop, take)
+import           Data.Maybe           (fromMaybe)
+import           Data.Text            (Text)
+import qualified Data.Vector          as V
+import           Prelude              hiding (drop, length, null, reverse, tail, take)
 
--- | Get elements from sequence that belong to given 'Range' (format of range is [a; b)).
+
+import Bio.NucleicAcid.Nucleotide (Complementary (..))
+import Bio.Sequence.Class         (ContainsNoMarking, IsSequence (..), _sequenceInner, markings,
+                                   sequ, weights)
+import Bio.Sequence.Range         (Range (..), RangeBorder (..), checkRange, mapRange, swapRange)
+import Bio.Sequence.Utilities     (unsafeEither)
+
+-- | Get elements from sequence that belong to given 'Range'. If the range is a Span, then both lower and upper bounds are included.
 -- If given 'Range' is out of bounds, an error will be thrown.
 --
 -- > sequ = Sequence ['a', 'a', 'b', 'a'] [("Letter A", (0, 2)), ("Letter A", (3, 4)), ("Letter B", (2, 3))] mempty
 -- > getRange sequ (0, 3) == Just ['a', 'a', 'b']
 --
-getRange :: (IsSequence s, MonadError Text m) => s -> Range -> m [Element s]
-getRange s r@(lInd, rInd) | checkRange (length s) r = pure $ L.take (rInd - lInd) $ L.drop lInd $ toList s
-                          | otherwise               = throwError "Bio.Sequence.Functions.Sequence: invalid range in getRange."
+getRange :: (IsSequence s, MonadError Text m, Complementary (Element s)) => s -> Range -> m [Element s]
+getRange s r | checkRange (length s) r = pure $ extractRange s r 
+             | otherwise               = throwError "Bio.Sequence.Functions.Sequence: invalid range in getRange."
 
-unsafeGetRange :: IsSequence s => s -> Range -> [Element s]
+extractRange :: (IsSequence s, Complementary (Element s)) => s -> Range -> [Element s]
+extractRange s (Point pos)                                  = [s ! pos]
+extractRange s (Span (RangeBorder _ lo) (RangeBorder _ hi)) = L.drop lo . L.take (hi + 1) . toList $ s
+extractRange _ (Between _ _)                                = []
+extractRange s (Join ranges)                                = concatMap (extractRange s) ranges
+extractRange s (Complement range)                           = rcNA $ extractRange s range
+
+unsafeGetRange :: (IsSequence s, Complementary (Element s)) => s -> Range -> [Element s]
 unsafeGetRange s = unsafeEither . getRange s
 
 -- | Unsafe operator to get elemnt at given position in @s@.
@@ -75,10 +83,10 @@ null = F.null . toSequence
 reverse :: IsSequence s => s -> s
 reverse (toSequence -> s) = res
   where
-    newMaxInd = length s
+    newMaxInd = length s - 1
 
     newSequ     = V.reverse $ s ^. sequ
-    newMarkings = fmap (fmap $ swap . bimap ((-) newMaxInd) ((-) newMaxInd)) $ s ^. markings
+    newMarkings = fmap (fmap $ swapRange . mapRange ((-) newMaxInd)) $ s ^. markings
     newWeights  = V.reverse $ s ^. weights
 
     res = fromSequence $ _sequenceInner newSequ newMarkings newWeights
