@@ -202,7 +202,7 @@ gbSeqP :: Parser (MarkedSequence Feature Char)
 gbSeqP = do
     features <- (featuresP <?> "Features parser")
 
-    -- | An extract from the GB specification (https://www.ncbi.nlm.nih.gov/genbank/release/current/):
+    -- An extract from the GB specification (https://www.ncbi.nlm.nih.gov/genbank/release/current/):
     --    NOTE: The BASE COUNT linetype is obsolete and was removed
     --    from the GenBank flatfile format in October 2003.
     --  Anyway, here, in 2021, we still might get plasmids with the BASE COUNT line present.
