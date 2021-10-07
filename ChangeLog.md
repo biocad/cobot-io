@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.4.1] - 2021-10-07
+### Changed
+- CI fix
+
 ## [0.1.4.0] - 2021-09-27
 ### Changed
 - Redesigned the Range type to reflect all possible cases.
