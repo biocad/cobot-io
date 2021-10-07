@@ -119,7 +119,7 @@ featureP = do
 
     props <- some propsP
 
-    -- | Ranges are 1-based, but the underlying Vector in the Feature is 0-based.
+    -- Ranges are 1-based, but the underlying Vector in the Feature is 0-based.
     -- We shift the range left so the numberings match.
     --
     pure (Feature featureName' props, shiftRange (-1) range)
