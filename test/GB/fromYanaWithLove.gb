@@ -17,6 +17,7 @@ FEATURES             Location/Qualifiers
                      /mol_type="other DNA"
      rep_origin      join(1,6551..6951)
                      /label=pUCorigin
+                      and also a multiline property
                      /note="/vntifkey=33"
      enhancer        449..858
                      /label=cmv enhanser

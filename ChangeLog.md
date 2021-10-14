@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.4.2] - 2021-10-14
+### Changed
+- More types of multiline properties are supported.
+
 ## [0.1.4.1] - 2021-10-07
 ### Changed
 - CI fix

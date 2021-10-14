@@ -226,7 +226,7 @@ sophisticatedFeatures =
     , preciseSpan (0, 6950))
 
   , (Feature "rep_origin" 
-      [ ("label", "pUCorigin")
+      [ ("label", "pUCorigin and also a multiline property")
       , ("note", "/vntifkey=33")
       ]
     , Join [Point 0, preciseSpan (6550, 6950)])

@@ -5,17 +5,20 @@ module Bio.GB.Parser
   , rangeP
   ) where
 
-import Bio.GB.Type                (Feature (..), Form (..), GenBankSequence (..), Locus (..),
-                                   Meta (..), Parser, Reference (..), Source (..), Version (..))
-import Bio.Sequence               (Border (..), MarkedSequence, Range (..), RangeBorder (..),
-                                   markedSequence, shiftRange)
-import Control.Monad.Combinators  (many, manyTill, optional, some, (<|>))
-import Data.Char                  (isAlphaNum, isSpace, isUpper)
-import Data.Functor               (($>))
-import Data.Text                  (Text, intercalate, pack, splitOn, unpack)
-import Text.Megaparsec            (option, satisfy, sepBy1, takeWhile1P, takeWhileP, try, (<?>))
-import Text.Megaparsec.Char       (char, digitChar, eol, letterChar, string)
-import Text.Megaparsec.Char.Lexer (decimal)
+import           Bio.GB.Type                (Feature (..), Form (..), GenBankSequence (..),
+                                             Locus (..), Meta (..), Parser, Reference (..),
+                                             Source (..), Version (..))
+import           Bio.Sequence               (Border (..), MarkedSequence, Range (..),
+                                             RangeBorder (..), markedSequence, shiftRange)
+import           Control.Monad.Combinators  (many, manyTill, optional, some, (<|>))
+import           Data.Char                  (isAlphaNum, isSpace, isUpper)
+import           Data.Functor               (($>))
+import           Data.Text                  (Text, intercalate, pack, splitOn, unpack)
+import qualified Data.Text                  as T
+import           Text.Megaparsec            (notFollowedBy, option, satisfy, sepBy1, takeWhile1P,
+                                             takeWhileP, try, (<?>))
+import           Text.Megaparsec.Char       (char, digitChar, eol, letterChar, string)
+import           Text.Megaparsec.Char.Lexer (decimal)
 
 -- | Parser of .gb file.
 --
@@ -164,13 +167,28 @@ propsP = do
     propName <- takeWhile1P Nothing (/= '=')
     _ <- char '='
 
-    propText <- try ((char '\"' *> takeWhile1P Nothing (/= '\"') <* char '\"')
-             <|> textWithSpacesP)
-             <* eolSpaceP
+    propText <- try ((char '\"' *> takeWhile1P Nothing (/= '\"') <* char '\"' <* eolSpaceP)
+             <|> multiLineProp)
 
     let propTextCorrect = mconcat $ filter (/= featureIndent2) $ splitOn featureIndent2 propText
 
     pure (propName, propTextCorrect)
+  where
+    indLine :: Parser Text
+    indLine = do
+        _ <- string featureIndent2
+        notFollowedBy (char '/')
+        text <- textWithSpacesP 
+        eolSpaceP
+        pure text
+
+    multiLineProp :: Parser Text
+    multiLineProp = do
+        fstText <- textWithSpacesP <* eolSpaceP 
+        rest <- many (try indLine)
+        pure $ T.concat (fstText : rest) 
+
+    
 
 -- | First level of identation in FEATURES table file.
 --
