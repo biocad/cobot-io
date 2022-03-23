@@ -12,10 +12,10 @@ extra-source-files:
 - README.md
 - ChangeLog.md
 
-tested-with:
-  - GHC ==8.10.7
-  - GHC ==9.0.2
-  - GHC ==9.2.2
+tested-with: |
+  GHC ==8.10.7
+   || ==9.0.2
+   || ==9.2.2
 
 # Metadata used when publishing your package
 

@@ -36,7 +36,7 @@ jobs:
             compilerKind: ghc
             compilerVersion: 9.2.2
             setup-method: ghcup
-            allow-failure: false
+            allow-failure: true
           - compiler: ghc-9.0.2
             compilerKind: ghc
             compilerVersion: 9.0.2
@@ -129,10 +129,21 @@ jobs:
           rm -f cabal-plan.xz
           chmod a+x $HOME/.cabal/bin/cabal-plan
           cabal-plan --version
+      - name: install hpack
+        run: |
+          curl -sL https://github.com/sol/hpack/releases/download/0.34.2/hpack_linux.gz > hpack_linux.gz
+          gzip -d < hpack_linux.gz > $HOME/.cabal/bin/hpack
+          rm -f hpack_linux.gz
+          chmod a+x $HOME/.cabal/bin/hpack
+          hpack --version
       - name: checkout
         uses: actions/checkout@v2
         with:
           path: source
+      - name: generate cabal file
+        run: |
+          cd $GITHUB_WORKSPACE/source
+          hpack
       - name: initial cabal.project for sdist
         run: |
           touch cabal.project
