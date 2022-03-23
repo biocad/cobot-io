@@ -11,6 +11,13 @@ synopsis:            Biological data file formats and IO
 extra-source-files:
 - README.md
 - ChangeLog.md
+- test/**/*.gb
+- test/**/*.fasta
+- test/**/*.mae
+- test/**/*.pdb
+- test/**/*.ab1
+- test/**/*.txt
+- test/**/*.dms
 
 tested-with: |
   GHC ==8.10.7
