@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.4.3] - 2022-03-23
+### Changed
+- Support GHC-9.2 packages in dependencies.
+
 ## [0.1.4.2] - 2021-10-14
 ### Changed
 - More types of multiline properties are supported.
