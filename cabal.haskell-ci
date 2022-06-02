@@ -4,4 +4,4 @@ branches: master
 
 allow-failures: >=9.2
 
-local-ghc-options: -Wall -Werror
+local-ghc-options: -Wall -Werror -fkeep-going
