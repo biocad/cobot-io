@@ -168,6 +168,10 @@ jobs:
           echo "package cobot-io" >> cabal.project
           echo "    ghc-options: -Werror=missing-methods" >> cabal.project
           cat >> cabal.project <<EOF
+          allow-newer: hyraxAbif:protolude
+
+          package cobot-io
+            ghc-options: -Wall -Werror -fkeep-going
           EOF
           $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: $_ installed\n" unless /^(cobot-io)$/; }' >> cabal.project.local
           cat cabal.project

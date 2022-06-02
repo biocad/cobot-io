@@ -1,5 +1,5 @@
-{-# LANGUAGE AllowAmbiguousTypes  #-}
-{-# LANGUAGE CPP                  #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE CPP                 #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Bio.MAE
@@ -14,34 +14,32 @@ module Bio.MAE
   ) where
 
 import           Bio.MAE.Parser
-import           Bio.MAE.Type           (Block (..), FromMaeValue (..),
-                                         Mae (..), MaeValue (..), Table (..))
-import           Bio.Structure          (Atom (..), Bond (..), Chain (..), Model (..),
-                                         GlobalID (..), LocalID (..),
-                                         Model (..), Residue (..),
-                                         SecondaryStructure (..),
-                                         StructureModels (..))
+import           Bio.MAE.Type           (Block (..), FromMaeValue (..), Mae (..), MaeValue (..),
+                                         Table (..))
+import           Bio.Structure          (Atom (..), Bond (..), Chain (..), GlobalID (..),
+                                         LocalID (..), Model (..), Residue (..),
+                                         SecondaryStructure (..), StructureModels (..))
 import qualified Bio.Utils.Map          as M ((!?!))
 import           Control.Monad          (join)
 import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Attoparsec.Text   (parseOnly)
 import           Data.Bifunctor         (bimap, first)
 import           Data.Function          (on)
-import qualified Data.List              as L (find, groupBy, sortOn)
+import qualified Data.List              as L (find, sortOn)
+import qualified Data.List.NonEmpty     as NE
 import           Data.Map.Strict        (Map)
 import qualified Data.Map.Strict        as M (fromList, lookup)
 import           Data.Maybe             (catMaybes, fromJust)
 import           Data.Text              (Text)
-import qualified Data.Text              as T (head, init, last, null, pack,
-                                              strip, tail)
+import qualified Data.Text              as T (head, init, last, null, pack, strip, tail)
 import qualified Data.Text.IO           as TIO (readFile)
 import           Data.Vector            (Vector)
 import qualified Data.Vector            as V (fromList)
 import           Linear.V3              (V3 (..))
-#if !MIN_VERSION_base(4,13,0)
-import           Control.Monad.Fail     (MonadFail (..))
-import           Prelude                hiding (fail)
-#endif
+
+
+
+
 
 -- | Reads 'Mae' from givem file.
 --
@@ -84,8 +82,8 @@ instance StructureModels Mae where
           stripQuotes t | not (T.null t) && T.head t == T.last t, T.last t == '\"' = T.strip $ T.init $ T.tail t
                         | otherwise                                                = T.strip t
 
-          toGroupsOn :: (Eq b, Ord b) => (a -> b) -> [a] -> [[a]]
-          toGroupsOn f = L.groupBy ((==) `on` f) . L.sortOn f
+          toGroupsOn :: (Eq b, Ord b) => (a -> b) -> [a] -> [NE.NonEmpty a]
+          toGroupsOn f = NE.groupBy ((==) `on` f) . L.sortOn f
 
           bondsTableToGlobalBonds :: Map Text [MaeValue] -> (Map Int [(Int, Int)], Vector (Bond GlobalID))
           bondsTableToGlobalBonds m = bimap toMap V.fromList bonds'
@@ -94,7 +92,7 @@ instance StructureModels Mae where
               bonds'        = unzip $ fmap indexToBond [0 .. numberOfBonds - 1]
 
               toMap :: [(Int, (Int, Int))] -> Map Int [(Int, Int)]
-              toMap = M.fromList . fmap (\l@((k, _) : _) -> (k, fmap snd l)) . toGroupsOn fst
+              toMap = M.fromList . fmap (\l@((k, _) NE.:| _) -> (k, snd <$> NE.toList l)) . toGroupsOn fst
 
               indexToBond :: Int -> ((Int, (Int, Int)), Bond GlobalID)
               indexToBond i = ((x, (y, o)), Bond (GlobalID x) (GlobalID y) o)
@@ -117,13 +115,12 @@ instance StructureModels Mae where
               unsafeGetFromContents :: FromMaeValue a => Text -> Int -> a
               unsafeGetFromContents = unsafeGetFromContentsMap m
 
-              groupToChain :: [Int] -> Chain
-              groupToChain []            = error "Group that is result of List.groupBy can't be empty."
-              groupToChain group@(h : _) = Chain name residues
+              groupToChain :: NE.NonEmpty Int -> Chain
+              groupToChain group@(h NE.:| _) = Chain name residues
                 where
                   name = stripQuotes $ getFromContents defaultChainName "s_m_chain_name" h
 
-                  groupedByResidues = toGroupsOn by group
+                  groupedByResidues = toGroupsOn by $ NE.toList group
                   residues          = V.fromList $ fmap groupToResidue groupedByResidues
 
                   by :: Int -> (Int, Char)
@@ -135,10 +132,10 @@ instance StructureModels Mae where
               defaultInsertionCode :: Char
               defaultInsertionCode = ' '
 
-              groupToResidue :: [Int] -> Residue
-              groupToResidue []            = error "Group that is result of List.groupBy can't be empty."
-              groupToResidue group@(h : _) = Residue name residueNumber insertionCode atoms (V.fromList localBonds) secondary chemCompType
+              groupToResidue :: NE.NonEmpty Int -> Residue
+              groupToResidue groupNE@(h NE.:| _) = Residue name residueNumber insertionCode atoms (V.fromList localBonds) secondary chemCompType
                 where
+                  group         = NE.toList groupNE
                   name          = stripQuotes $ unsafeGetFromContents "s_m_pdb_residue_name" h
                   residueNumber = unsafeGetFromContents "i_m_residue_number" h
                   insertionCode = getFromContents defaultInsertionCode "s_m_insertion_code" h
@@ -190,3 +187,4 @@ elIndToElement = M.fromList $ zip [1 .. 118] [ "H", "He", "Li", "Be", "B", "C", 
                                              , "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds"
                                              , "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og"
                                              ]
+

@@ -86,7 +86,7 @@ parseDE = do
     flags    <- option [] (endOfLine *> parseFlagsDE)
     pure DE{..}
   where
-    -- | Parses name section like RecName, AltName or SubName.
+    -- Parses name section like RecName, AltName or SubName.
     parseNameDE :: Int -> NameType -> Parser Name
     parseNameDE indent nameType = do
         fullName <- parseDELine indent nameType "Full"
@@ -94,12 +94,12 @@ parseDE = do
         ecNumber <- many' $ endOfLine *> parseDELine indent None "EC"
         pure Name{..}
 
-    -- | Parses flag line of DE section
+    -- Parses flag line of DE section
     parseFlagsDE :: Parser [Flag]
     parseFlagsDE = fmap (read . unpack) .
                        ("; " `splitOn`) <$> parseDELine 0 Flags ""
 
-    -- | Parses AltName lines of DE section
+    -- Parses AltName lines of DE section
     parseAltDE :: Int -> Parser AltName
     parseAltDE indent =
       (Simple <$> parseNameDE indent AltName) <|>
@@ -108,7 +108,7 @@ parseDE = do
       (CDAntigen <$> parseDELine indent AltName "CD_antigen") <|>
       (INN <$> parseDELine indent AltName "INN")
 
-    -- | Parses any DE line
+    -- Parses any DE line
     parseDELine :: Int -> NameType -> Text -> Parser Text
     parseDELine indent nameType tpe = do
         string "DE   "
@@ -123,7 +123,7 @@ parseDE = do
         result <- pack . P.init <$> many1 (satisfy (not . isEndOfLine))
         pure . head $ " {ECO" `splitOn` result
 
-    -- | Parses internal DE entities
+    -- Parses internal DE entities
     parseInternal :: Text -> Parser DE
     parseInternal name = do
         string "DE   " >> string name >> char ':'
@@ -148,7 +148,7 @@ parseGN = do
     rest <- option [] $ string "and" *> endOfLine *> parseGN
     pure $ gn:rest
   where
-    -- | Parses any list item of GN line (like `Synonyms` or `ORFNames`)
+    -- Parses any list item of GN line (like `Synonyms` or `ORFNames`)
     parseGNList :: Text -> Parser [Text]
     parseGNList name = splitOn ", " <$> parseDefItem name
 
@@ -356,7 +356,7 @@ parseFT = do
                       (hyphenConcat <$> parseMultiLine "FT" 32))
     pure FT{..}
   where
-    -- | Parse FT endpoint
+    -- Parse FT endpoint
     parseFTEndpoint :: Parser Endpoint
     parseFTEndpoint = (UncertainEP <$> (char '?' *> decimal)) <|>
                       (NTerminalEP <$> (char '<' *> decimal)) <|>
@@ -364,7 +364,7 @@ parseFT = do
                       (ExactEP     <$> decimal) <|>
                       (char '?' $> UnknownEP)
 
-    -- | Split string to tokens by periods outside brackets.
+    -- Split string to tokens by periods outside brackets.
     splitByMagic :: String -> [Text]
     splitByMagic txt = pack <$> splitStr 0 [] txt
       where

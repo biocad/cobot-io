@@ -108,8 +108,8 @@ featurePropToText (nameF, textF) = mainPart
     mainPart = processMany featuresIndent mempty ("/" <> nameF <> "=\"" <> textF <> "\"")
 
 featureRangeToText :: Range -> Text
-featureRangeToText (Point pos) = showText pos 
-featureRangeToText (Span (RangeBorder rbLo lo) (RangeBorder rbHi hi)) = borderToText True rbLo <> showText lo <> ".." <> borderToText False rbHi <> showText hi 
+featureRangeToText (Point pos) = showText pos
+featureRangeToText (Span (RangeBorder rbLo lo) (RangeBorder rbHi hi)) = borderToText True rbLo <> showText lo <> ".." <> borderToText False rbHi <> showText hi
   where
     borderToText :: Bool -> Border -> Text
     borderToText _ Precise      = ""
@@ -146,12 +146,12 @@ originToText text = interNewLine $ mainPart : parts
       where
         indText = showText startInd
 
-    -- | Number of nucleotides in one chunk.
+    -- Number of nucleotides in one chunk.
     --
     lengthOfChunk :: Int
     lengthOfChunk = 10
 
-    -- | Number of chunks per line of sequence in ORIGIN section.
+    -- Number of chunks per line of sequence in ORIGIN section.
     --
     lengthOfLineChunk :: Int
     lengthOfLineChunk = 6
@@ -166,13 +166,14 @@ originIndent = 9
 --------------------------------------------------------------------------------
 
 processMany :: Int -> Text -> Text -> Text
-processMany indent name ""   = toIndent indent name
-processMany indent name text = interNewLine resLines
-  where
-    (x : xs) = T.lines text
-
-    resLines = toIndent indent name <> x
-             : fmap (prependIndent indent) xs
+processMany indent name text =
+  case T.lines text of
+    [] -> toIndent indent name
+    (x:xs) ->
+      let
+        resLines = toIndent indent name <> x
+                 : fmap (prependIndent indent) xs
+      in interNewLine resLines
 
 interNewLine :: [Text] -> Text
 interNewLine = T.intercalate "\n" . filter (not . T.null)
@@ -181,7 +182,7 @@ textFromMaybe :: Maybe Text -> Text
 textFromMaybe = fromMaybe mempty
 
 toIndent :: Int -> Text -> Text
-toIndent indent name = name <> (spaces $ indent - (T.length name))
+toIndent indent name = name <> spaces (indent - T.length name)
 
 prependIndent :: Int -> Text -> Text
 prependIndent = T.append . spaces

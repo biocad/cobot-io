@@ -49,7 +49,7 @@ dependencies:
 - mtl >= 2.2.1 && < 2.3.0
 - parser-combinators >= 1.2.1
 - split
-- text >= 1.2.2.1 && < 1.3
+- text >= 1.2.2.1 && < 2.1
 - vector
 
 library:
@@ -72,6 +72,9 @@ library:
     - TypeOperators
     - TemplateHaskell
     - FlexibleContexts
+  when:
+    - condition: impl(ghc >= 9.0)
+      ghc-options: -haddock -Winvalid-haddock
 
 
 tests:
@@ -89,6 +92,6 @@ tests:
     - cobot-io
     - directory
     - QuickCheck >= 2.9.2 && < 2.15
-    - hspec >= 2.4.1 && < 2.9
+    - hspec >= 2.4.1 && < 2.11
     - neat-interpolation >= 0.3
     - linear
