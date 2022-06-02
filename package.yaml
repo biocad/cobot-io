@@ -72,6 +72,9 @@ library:
     - TypeOperators
     - TemplateHaskell
     - FlexibleContexts
+  when:
+    - condition: impl(ghc >= 9.0)
+      ghc-options: -haddock -Winvalid-haddock
 
 
 tests:
