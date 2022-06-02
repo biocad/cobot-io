@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-orphans -Wno-incomplete-uni-patterns #-}
 
 module StructureSpec where
 
@@ -23,7 +23,7 @@ import           Test.Hspec
 
 structureSpec :: Spec
 structureSpec = describe "Structure spec." $ do
-    let mIO = V.toList . modelsOf <$> fromFile "test/MAE/Capri.mae" >>= \[x] -> pure x
+    let mIO = fromFile "test/MAE/Capri.mae" >>= (\[x] -> pure x) . V.toList . modelsOf
     beforeAll mIO $ do
         it "atoms filtering works correctly. only N, CA, C"  $ \m -> checkFiltering m $ (`elem` ["N", "CA", "C"]) . atomName
         it "atoms filtering works correctly. only CA"        $ \m -> checkFiltering m $ (== "CA") . atomName

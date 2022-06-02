@@ -66,7 +66,10 @@ abiCleanSpec =
         Right dat <- readData path
         S.length dat `shouldBe` lengthBefore
 
-        let Just cleaned = clean dat
+        let cleaned =
+              case clean dat of
+                Just c -> c
+                Nothing -> error "clean failed"
         S.length cleaned `shouldBe` lengthAfter
 
         S.toList cleaned `shouldStartWith` start
