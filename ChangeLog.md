@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.1.4.4] - 2022-06-02
+### Changed
+- Update more dependencies;
+- Fix new warnings in GHC-9.
+
 ## [0.1.4.3] - 2022-03-23
 ### Changed
 - Support GHC-9.2 packages in dependencies.
