@@ -3,7 +3,7 @@
 module Bio.FASTA.Parser
   ( fastaP
   , fastaPGeneric
-  , fastaLine 
+  , fastaLine
   , modificationP
   ) where
 
@@ -11,142 +11,143 @@ import Bio.FASTA.Type       (Fasta, FastaItem (..), ModItem (..), Modification (
                              ParsableFastaToken (..))
 import Bio.Sequence         (BareSequence, bareSequence)
 import Control.Applicative  ((<|>))
-import Data.Attoparsec.Text (Parser, char, choice, endOfInput, endOfLine, many', many1', satisfy,
-                             skipWhile, space, string, takeWhile, try)
-import Data.Char            (isAlphaNum, isLetter, isSpace)
-import Data.Text            (Text, strip)
-import Prelude              hiding (takeWhile)
+import Data.Char            (isAlphaNum, isLetter)
+import Data.Functor         (void, ($>))
+import Data.Text            (Text, pack, strip)
+import Data.Void            (Void)
+import Text.Megaparsec      (Parsec, anySingle, eof, hidden, many, manyTill, satisfy, some, try,
+                             (<?>))
+import Text.Megaparsec.Char (char, eol, hspace, space, string)
+
 
 instance ParsableFastaToken Char where
     parseToken = satisfy
 
 instance ParsableFastaToken ModItem where
-    parseToken predicate = (Mod <$> modificationP) <|> (Letter <$> satisfy predicate)
+    parseToken predicate = Mod <$> modificationP <|> Letter <$> satisfy predicate
 
+type Parser = Parsec Void Text
 
 -- | Parser of .fasta file.
 --
 fastaP :: ParsableFastaToken a => Parser (Fasta a)
-fastaP = many' space *> fastaPGeneric isLetter
+fastaP = hidden space *> fastaPGeneric isLetter
 
 fastaPGeneric :: ParsableFastaToken a => (Char -> Bool) -> Parser (Fasta a)
-fastaPGeneric = many' . item
+fastaPGeneric = many . item
 
 item :: ParsableFastaToken a => (Char -> Bool) -> Parser (FastaItem a)
-item predicate = (FastaItem <$> seqName <*> fastaSeq predicate) <* skipWhile isSpace
+item predicate =
+  FastaItem
+    <$> seqName
+    <*> (fastaSeq predicate <?> "sequence")
 
 seqName :: Parser Text
-seqName = strip <$> (char '>' *> tabs *> takeWhile (`notElem` ['\n', '\r']) <* tabs <* eol)
+seqName = strip . pack <$> (char '>' *> (manyTill anySingle myEnd <?> "sequence name"))
 
 fastaSeq :: ParsableFastaToken a => (Char -> Bool) -> Parser (BareSequence a)
-fastaSeq predicate = bareSequence . mconcat <$> many' (fastaLine predicate)
+fastaSeq predicate = bareSequence . concat <$> many (fastaLine predicate) <* hidden space
 
 fastaLine :: ParsableFastaToken a => (Char -> Bool) -> Parser [a]
-fastaLine predicate = concat <$> many1' (many1' (parseToken predicate) <* many' (char ' ')) <* eol
+fastaLine predicate = concat <$> some (some (parseToken predicate <* hidden hspace)) <* myEnd
 
-eol :: Parser ()
-eol = tabs *> choice [slashN, endOfInput]
-
-slashN :: Parser ()
-slashN = () <$ many1' endOfLine
-
-tabs :: Parser ()
-tabs = () <$ many' (char '\t')
+myEnd :: Parser ()
+myEnd = void (some eol) <|> eof
 
 modificationP :: Parser Modification
-modificationP 
-  =   string "[A*]" *> pure Mod_A_Star
-  <|> string "[C*]" *> pure Mod_C_Star
-  <|> string "[G*]" *> pure Mod_G_Star
-  <|> string "[T*]" *> pure Mod_T_Star
-  <|> string "[rA]" *> pure Mod_rA
-  <|> string "[rC]" *> pure Mod_rC
-  <|> string "[rG]" *> pure Mod_rG
-  <|> string "[rU]" *> pure Mod_rU
-  <|> string "[+A]" *> pure Mod_Plus_A
-  <|> string "[+C]" *> pure Mod_Plus_C
-  <|> string "[+G]" *> pure Mod_Plus_G
-  <|> string "[+T]" *> pure Mod_Plus_T
-  <|> string "[rAf]" *> pure Mod_rAf
-  <|> string "[rCf]" *> pure Mod_rCf
-  <|> string "[rGf]" *> pure Mod_rGf
-  <|> string "[rUf]" *> pure Mod_rUf
-  <|> string "[mA]" *> pure Mod_mA
-  <|> string "[mC]" *> pure Mod_mC
-  <|> string "[mG]" *> pure Mod_mG
-  <|> string "[mU]" *> pure Mod_mU
-  <|> string "[mA*]" *> pure Mod_mA_Star
-  <|> string "[mC*]" *> pure Mod_mC_Star
-  <|> string "[mG*]" *> pure Mod_mG_Star
-  <|> string "[mU*]" *> pure Mod_mU_Star
-  <|> string "[dU]" *> pure Mod_dU
-  <|> string "[5Bio]" *> pure Mod_5Bio
-  <|> string "[iBio]" *> pure Mod_iBio
-  <|> string "[56FAM]" *> pure Mod_56FAM
-  <|> string "[36FAM]" *> pure Mod_36FAM
-  <|> string "[5HEX]" *> pure Mod_5HEX
-  <|> string "[5TMR]" *> pure Mod_5TMR
-  <|> string "[3BHQ1]" *> pure Mod_3BHQ1
-  <|> string "[3BHQ2]" *> pure Mod_3BHQ2
-  <|> string "[5NH2]" *> pure Mod_5NH2
-  <|> string "[3NH2]" *> pure Mod_3NH2
-  <|> string "[5PO4]" *> pure Mod_5PO4
-  <|> string "[3PO4]" *> pure Mod_3PO4
-  <|> string "[3BioTEG]" *> pure Mod_3BioTEG
-  <|> string "[C12]" *> pure Mod_C12
-  <|> string "[NHSdT]" *> pure Mod_NHSdT
-  <|> string "[5Mal]" *> pure Mod_5Mal
-  <|> string "[5thio]" *> pure Mod_5thio
-  <|> string "[3thio]" *> pure Mod_3thio
-  <|> string "[3azide]" *> pure Mod_3azide
-  <|> string "[3alkine]" *> pure Mod_3alkine
-  <|> string "[5CholTEG]" *> pure Mod_5CholTEG
-  <|> string "[3CholTEG]" *> pure Mod_3CholTEG
-  <|> string "[5C10]" *> pure Mod_5C10
-  <|> string "[5Alk]" *> pure Mod_5Alk
-  <|> string "[GC]" *> pure Mod_GC
-  <|> string "[GT]" *> pure Mod_GT
-  <|> string "[AT]" *> pure Mod_AT
-  <|> string "[TG]" *> pure Mod_TG
-  <|> string "[AC]" *> pure Mod_AC
-  <|> string "[CC]" *> pure Mod_CC
-  <|> string "[AA]" *> pure Mod_AA
-  <|> string "[TC]" *> pure Mod_TC
-  <|> string "[TT]" *> pure Mod_TT
-  <|> string "[CG]" *> pure Mod_CG
-  <|> string "[GG]" *> pure Mod_GG
-  <|> string "[AG]" *> pure Mod_AG
-  <|> string "[GA]" *> pure Mod_GA
-  <|> string "[CA]" *> pure Mod_CA
-  <|> string "[CT]" *> pure Mod_CT
-  <|> string "[TA]" *> pure Mod_TA
-  <|> string "[AAA]" *> pure Mod_AAA
-  <|> string "[AAC]" *> pure Mod_AAC
-  <|> string "[ACT]" *> pure Mod_ACT
-  <|> string "[ATC]" *> pure Mod_ATC
-  <|> string "[ATG]" *> pure Mod_ATG
-  <|> string "[CAG]" *> pure Mod_CAG
-  <|> string "[AGA]" *> pure Mod_AGA
-  <|> string "[CAT]" *> pure Mod_CAT
-  <|> string "[CCG]" *> pure Mod_CCG
-  <|> string "[CGT]" *> pure Mod_CGT
-  <|> string "[CTG]" *> pure Mod_CTG
-  <|> string "[GAA]" *> pure Mod_GAA
-  <|> string "[GAC]" *> pure Mod_GAC
-  <|> string "[GCT]" *> pure Mod_GCT
-  <|> string "[GGT]" *> pure Mod_GGT
-  <|> string "[GTT]" *> pure Mod_GTT
-  <|> string "[TAC]" *> pure Mod_TAC
-  <|> string "[TCT]" *> pure Mod_TCT
-  <|> string "[TGC]" *> pure Mod_TGC
-  <|> string "[TGG]" *> pure Mod_TGG
-  <|> string "[TTC]" *> pure Mod_TTC
-  <|> string "[TTT]" *> pure Mod_TTT
+modificationP
+  =   string "[A*]" $> Mod_A_Star
+  <|> string "[C*]" $> Mod_C_Star
+  <|> string "[G*]" $> Mod_G_Star
+  <|> string "[T*]" $> Mod_T_Star
+  <|> string "[rA]" $> Mod_rA
+  <|> string "[rC]" $> Mod_rC
+  <|> string "[rG]" $> Mod_rG
+  <|> string "[rU]" $> Mod_rU
+  <|> string "[+A]" $> Mod_Plus_A
+  <|> string "[+C]" $> Mod_Plus_C
+  <|> string "[+G]" $> Mod_Plus_G
+  <|> string "[+T]" $> Mod_Plus_T
+  <|> string "[rAf]" $> Mod_rAf
+  <|> string "[rCf]" $> Mod_rCf
+  <|> string "[rGf]" $> Mod_rGf
+  <|> string "[rUf]" $> Mod_rUf
+  <|> string "[mA]" $> Mod_mA
+  <|> string "[mC]" $> Mod_mC
+  <|> string "[mG]" $> Mod_mG
+  <|> string "[mU]" $> Mod_mU
+  <|> string "[mA*]" $> Mod_mA_Star
+  <|> string "[mC*]" $> Mod_mC_Star
+  <|> string "[mG*]" $> Mod_mG_Star
+  <|> string "[mU*]" $> Mod_mU_Star
+  <|> string "[dU]" $> Mod_dU
+  <|> string "[5Bio]" $> Mod_5Bio
+  <|> string "[iBio]" $> Mod_iBio
+  <|> string "[56FAM]" $> Mod_56FAM
+  <|> string "[36FAM]" $> Mod_36FAM
+  <|> string "[5HEX]" $> Mod_5HEX
+  <|> string "[5TMR]" $> Mod_5TMR
+  <|> string "[3BHQ1]" $> Mod_3BHQ1
+  <|> string "[3BHQ2]" $> Mod_3BHQ2
+  <|> string "[5NH2]" $> Mod_5NH2
+  <|> string "[3NH2]" $> Mod_3NH2
+  <|> string "[5PO4]" $> Mod_5PO4
+  <|> string "[3PO4]" $> Mod_3PO4
+  <|> string "[3BioTEG]" $> Mod_3BioTEG
+  <|> string "[C12]" $> Mod_C12
+  <|> string "[NHSdT]" $> Mod_NHSdT
+  <|> string "[5Mal]" $> Mod_5Mal
+  <|> string "[5thio]" $> Mod_5thio
+  <|> string "[3thio]" $> Mod_3thio
+  <|> string "[3azide]" $> Mod_3azide
+  <|> string "[3alkine]" $> Mod_3alkine
+  <|> string "[5CholTEG]" $> Mod_5CholTEG
+  <|> string "[3CholTEG]" $> Mod_3CholTEG
+  <|> string "[5C10]" $> Mod_5C10
+  <|> string "[5Alk]" $> Mod_5Alk
+  <|> string "[GC]" $> Mod_GC
+  <|> string "[GT]" $> Mod_GT
+  <|> string "[AT]" $> Mod_AT
+  <|> string "[TG]" $> Mod_TG
+  <|> string "[AC]" $> Mod_AC
+  <|> string "[CC]" $> Mod_CC
+  <|> string "[AA]" $> Mod_AA
+  <|> string "[TC]" $> Mod_TC
+  <|> string "[TT]" $> Mod_TT
+  <|> string "[CG]" $> Mod_CG
+  <|> string "[GG]" $> Mod_GG
+  <|> string "[AG]" $> Mod_AG
+  <|> string "[GA]" $> Mod_GA
+  <|> string "[CA]" $> Mod_CA
+  <|> string "[CT]" $> Mod_CT
+  <|> string "[TA]" $> Mod_TA
+  <|> string "[AAA]" $> Mod_AAA
+  <|> string "[AAC]" $> Mod_AAC
+  <|> string "[ACT]" $> Mod_ACT
+  <|> string "[ATC]" $> Mod_ATC
+  <|> string "[ATG]" $> Mod_ATG
+  <|> string "[CAG]" $> Mod_CAG
+  <|> string "[AGA]" $> Mod_AGA
+  <|> string "[CAT]" $> Mod_CAT
+  <|> string "[CCG]" $> Mod_CCG
+  <|> string "[CGT]" $> Mod_CGT
+  <|> string "[CTG]" $> Mod_CTG
+  <|> string "[GAA]" $> Mod_GAA
+  <|> string "[GAC]" $> Mod_GAC
+  <|> string "[GCT]" $> Mod_GCT
+  <|> string "[GGT]" $> Mod_GGT
+  <|> string "[GTT]" $> Mod_GTT
+  <|> string "[TAC]" $> Mod_TAC
+  <|> string "[TCT]" $> Mod_TCT
+  <|> string "[TGC]" $> Mod_TGC
+  <|> string "[TGG]" $> Mod_TGG
+  <|> string "[TTC]" $> Mod_TTC
+  <|> string "[TTT]" $> Mod_TTT
   <|> unknownP
 
 unknownP :: Parser Modification
 unknownP = try $ do
-    _ <- char '[' 
-    m <- many1' $ satisfy (\c -> isAlphaNum c || c `elem` ['+', '-', '*', '_'])
+    _ <- char '['
+    m <- some (satisfy (\c -> isAlphaNum c || c `elem` ['+', '-', '*', '_'])) <?> "modification name"
     _ <- char ']'
     pure $ Unknown ("[" <> m <> "]")

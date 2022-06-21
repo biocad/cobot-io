@@ -7,10 +7,11 @@ module Bio.FASTA.Type
   , modificationToString
   ) where
 
-import Bio.Sequence         (BareSequence)
-import Data.Attoparsec.Text (Parser)
-import Data.Text            (Text)
-import GHC.Generics         (Generic)
+import Bio.Sequence    (BareSequence)
+import Data.Text       (Text)
+import Data.Void
+import GHC.Generics    (Generic)
+import Text.Megaparsec
 
 -- | Type alias for FASTA file.
 --  satisfies the following format : >(\s|\t)*[^\n\r]+(\s|\t)*(\n|\r)*((\w|\s)(\n|\r)*)*
@@ -29,7 +30,7 @@ data FastaItem a
   deriving (Eq, Show, Functor)
 
 class ParsableFastaToken a where
-    parseToken :: (Char -> Bool) -> Parser a
+    parseToken :: (Char -> Bool) -> Parsec Void Text a
 
 data ModItem
   = Mod Modification

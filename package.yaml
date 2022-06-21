@@ -41,6 +41,7 @@ dependencies:
 - containers >= 0.5.7.1 && < 0.7
 - data-msgpack >= 0.0.9 && < 0.1
 - deepseq >= 1.4 && < 1.5
+- filepath
 - http-conduit >= 2.3 && < 2.4
 - hyraxAbif >= 0.2.3.27 && < 0.2.4.0
 - lens >= 4.16 && < 5.2
