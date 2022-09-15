@@ -50,7 +50,7 @@ item =
     <*> (fastaSeq <?> "sequence")
 
 seqName :: Parser Text
-seqName = strip . pack <$> ((symbol ">" <?> ">") *> (manyTill anySingle myEnd <?> "sequence name"))
+seqName = strip . pack <$> (symbol ">" *> (manyTill anySingle myEnd <?> "sequence name"))
 
 fastaSeq :: ParsableFastaToken a => Parser (BareSequence a)
 fastaSeq = bareSequence . concat <$> many fastaLine <* hidden space

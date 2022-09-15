@@ -70,7 +70,7 @@ sequenceWithWrongName :: Spec
 sequenceWithWrongName = describe "sequenceWithWrongName" $ do
     it "correctly parses incorrect sequence with wrong name" $ do
         let res = parseOnly (fastaP @Char) "123\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE"
-        res `shouldBe` Left "test.fasta:1:1:\n  |\n1 | 123\n  | ^\nunexpected '1'\nexpecting > or end of input\n"
+        res `shouldBe` Left "test.fasta:1:1:\n  |\n1 | 123\n  | ^\nunexpected '1'\nexpecting '>' or end of input\n"
 
 sequenceWithSpacesInName :: Spec
 sequenceWithSpacesInName = describe "sequenceWithSpacesInName" $ do
@@ -121,7 +121,7 @@ toughParserTests = describe "various parser tests" $ do
     it "correctly parses empty lines with tabs" $ checkParser correctTest3 (Right correctAnswer)
     it "correctly parses empty lines with trailing tabs" $ checkParser correctTest4 (Right correctAnswer4)
     it "correctly fails to parse a name without >" $ checkParser incorrectTest1
-      (Left "test.fasta:1:1:\n  |\n1 | test1\n  | ^\nunexpected 't'\nexpecting > or end of input\n")
+      (Left "test.fasta:1:1:\n  |\n1 | test1\n  | ^\nunexpected 't'\nexpecting '>' or end of input\n")
     it "correctly fails to parse a new sequence at the same line" $ checkParser incorrectTest2
       (Left "test.fasta:3:8:\n  |\n3 | GHIJKL >test2\n  |        ^^\nunexpected \">t\"\nexpecting alphanumeric character, end of input, or end of line\n")
 
