@@ -10,8 +10,6 @@ module Bio.FASTA.Parser
 import Bio.FASTA.Type       (Fasta, FastaItem (..), ModItem (..), Modification (..),
                              ParsableFastaToken (..))
 import Bio.Sequence         (BareSequence, bareSequence)
-import Control.Applicative  ((<|>))
-import Data.Char            (isAlphaNum, isLetter)
 import Data.Functor         (void, ($>))
 import Data.Text            (Text, pack, strip)
 import Data.Void            (Void)
