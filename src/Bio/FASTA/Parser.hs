@@ -2,7 +2,6 @@
 
 module Bio.FASTA.Parser
   ( fastaP
-  , fastaPGeneric
   , fastaLine
   , modificationP
   ) where
@@ -18,10 +17,10 @@ import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
 instance ParsableFastaToken Char where
-  parseToken = alphaNumChar
+  parseToken = letterChar
 
 instance ParsableFastaToken ModItem where
-  parseToken = (Mod <$> modificationP <?> "fasta item modification") <|> Letter <$> alphaNumChar
+  parseToken = (Mod <$> modificationP <?> "fasta item modification") <|> Letter <$> letterChar
 
 type Parser = Parsec Void Text
 
@@ -38,10 +37,7 @@ symbol :: Text -> Parser Text
 symbol = L.symbol sc
 
 fastaP :: ParsableFastaToken a => Parser (Fasta a)
-fastaP = fastaPGeneric
-
-fastaPGeneric :: ParsableFastaToken a => Parser (Fasta a)
-fastaPGeneric = many item
+fastaP = many item <* hidden space <* eof
 
 item :: ParsableFastaToken a => Parser (FastaItem a)
 item =
@@ -56,10 +52,10 @@ fastaSeq :: ParsableFastaToken a => Parser (BareSequence a)
 fastaSeq = bareSequence . concat <$> many fastaLine <* hidden space
 
 fastaLine :: ParsableFastaToken a => Parser [a]
-fastaLine = concat <$> some (some (parseToken <* hidden hspace)) <* myEnd
+fastaLine = concat <$> some (some parseToken <* hidden hspace) <* myEnd
 
 myEnd :: Parser ()
-myEnd = void (some eol) <|> eof
+myEnd = void eol <|> eof
 
 modificationP :: Parser Modification
 modificationP

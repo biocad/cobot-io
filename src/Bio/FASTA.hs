@@ -6,7 +6,6 @@ module Bio.FASTA
   , fromFile
   , toFile
   , fastaP
-  , fastaPGeneric
   , fastaLine
   , modificationP
   ) where

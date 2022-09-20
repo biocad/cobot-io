@@ -63,8 +63,8 @@ twoSequences = describe "twoSequences" $ do
 sequenceWithDigit :: Spec
 sequenceWithDigit = describe "sequenceWithDigit" $ do
     it "correctly parses incorrect sequence with digit" $ do
-        let res = parseOnly fastaP ">123\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEE4GITWTLDQSSE"
-        res `shouldBe` Right [FastaItem @Char "123" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEE4GITWTLDQSSE")]
+        let res = parseOnly (fastaP @Char) ">123\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEE4GITWTLDQSSE"
+        res `shouldBe` Left "test.fasta:2:34:\n  |\n2 | IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEE4GITWTLDQSSE\n  |                                  ^^\nunexpected \"4G\"\nexpecting end of input, end of line, or letter\n"
 
 sequenceWithWrongName :: Spec
 sequenceWithWrongName = describe "sequenceWithWrongName" $ do
@@ -80,15 +80,15 @@ sequenceWithSpacesInName = describe "sequenceWithSpacesInName" $ do
 
 sequenceWithSeveralEndOfLine :: Spec
 sequenceWithSeveralEndOfLine = describe "sequenceWithSeveralEndOfLine" $ do
-    it "correctly parses sequence with several \\n after name" $ do
-        let res = parseOnly fastaP ">this is my sequence\n\n\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE"
-        res `shouldBe` Right [FastaItem @Char "this is my sequence" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE")]
+    it "correctly parses incorrect sequence with several \\n after name" $ do
+        let res = parseOnly (fastaP @Char) ">this is my sequence\n\n\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE"
+        res `shouldBe` Left "test.fasta:4:1:\n  |\n4 | IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE\n  | ^\nunexpected 'I'\nexpecting '>' or end of input\n"
 
 sequenceWithSeveralEndOfLineInSequence :: Spec
 sequenceWithSeveralEndOfLineInSequence = describe "sequenceWithSeveralEndOfLineInSequence" $ do
-    it "correctly parses sequence with several \\n between sequence parts" $ do
-        let res = parseOnly fastaP ">this is my sequence\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE\n\n\nYYYYYYYYYYYYYYYYYYYYYYYY"
-        res `shouldBe` Right [FastaItem @Char "this is my sequence" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSEYYYYYYYYYYYYYYYYYYYYYYYY")]
+    it "correctly parses incorrect sequence with several \\n between sequence parts" $ do
+        let res = parseOnly (fastaP @Char) ">this is my sequence\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE\n\n\nYYYYYYYYYYYYYYYYYYYYYYYY"
+        res `shouldBe` Left "test.fasta:5:1:\n  |\n5 | YYYYYYYYYYYYYYYYYYYYYYYY\n  | ^\nunexpected 'Y'\nexpecting '>' or end of input\n"
 
 sequenceWithTabsInName :: Spec
 sequenceWithTabsInName = describe "sequenceWithTabsInName" $ do
@@ -123,7 +123,7 @@ toughParserTests = describe "various parser tests" $ do
     it "correctly fails to parse a name without >" $ checkParser incorrectTest1
       (Left "test.fasta:1:1:\n  |\n1 | test1\n  | ^\nunexpected 't'\nexpecting '>' or end of input\n")
     it "correctly fails to parse a new sequence at the same line" $ checkParser incorrectTest2
-      (Left "test.fasta:3:8:\n  |\n3 | GHIJKL >test2\n  |        ^^\nunexpected \">t\"\nexpecting alphanumeric character, end of input, or end of line\n")
+      (Left "test.fasta:3:8:\n  |\n3 | GHIJKL >test2\n  |        ^^\nunexpected \">t\"\nexpecting end of input, end of line, or letter\n")
 
 correctTest1 :: Text
 correctTest1 = T.unlines
