@@ -4,7 +4,8 @@
 module FastaParserSpec where
 
 import           Bio.FASTA.Parser (fastaP)
-import           Bio.FASTA.Type   (Fasta, FastaItem (..), ModItem (..), Modification (..))
+import           Bio.FASTA.Type   (Fasta, FastaItem (..), ModItem (..),
+                                   Modification (..))
 import           Bio.Sequence     (bareSequence)
 import           Data.Bifunctor
 import           Data.Text        (Text)

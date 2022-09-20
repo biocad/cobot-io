@@ -2,18 +2,19 @@
 
 module FASTASpec where
 
-import Bio.FASTA        (fromFile, toFile, fastaP)
-import Bio.FASTA.Type   (Fasta, FastaItem (..))
-import Bio.Sequence     (bareSequence)
-import Data.Text.IO           (readFile)
-import Control.Monad.IO.Class (MonadIO, liftIO)
-import Prelude          hiding (readFile, writeFile)
-import System.Directory (removeFile)
-import Test.Hspec
-import Data.Text (Text)
+import           Bio.FASTA              (fastaP, fromFile, toFile)
+import           Bio.FASTA.Type         (Fasta, FastaItem (..))
+import           Bio.Sequence           (bareSequence)
+import           Control.Monad.IO.Class (MonadIO, liftIO)
 import           Data.Bifunctor
-import Text.Megaparsec (Parsec, errorBundlePretty, parse, MonadParsec (eof))
-import Data.Void (Void)
+import           Data.Text              (Text)
+import           Data.Text.IO           (readFile)
+import           Data.Void              (Void)
+import           Prelude                hiding (readFile, writeFile)
+import           System.Directory       (removeFile)
+import           Test.Hspec
+import           Text.Megaparsec        (MonadParsec (eof), Parsec,
+                                         errorBundlePretty, parse)
 
 parseOnly :: Parsec Void Text (Fasta a) -> Text -> Either String (Fasta a)
 parseOnly p s = first errorBundlePretty $ parse (p <* eof) "test.fasta" s
@@ -67,7 +68,7 @@ parseBadFile :: FilePath -> Either String (Fasta Char) -> Spec
 parseBadFile path cf = do
     describe "fromFile" $ do
          it "correctly parses fasta from file" $ do
-            res <- liftIO (readFile path) 
+            res <- liftIO (readFile path)
             let badRes = parseOnly fastaP res
             badRes `shouldBe` cf
 

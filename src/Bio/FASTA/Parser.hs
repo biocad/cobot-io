@@ -6,14 +6,15 @@ module Bio.FASTA.Parser
   , modificationP
   ) where
 
-import Bio.FASTA.Type       (Fasta, FastaItem (..), ModItem (..), Modification (..),
-                             ParsableFastaToken (..))
-import Bio.Sequence         (BareSequence, bareSequence)
-import Data.Functor         (void, ($>))
-import Data.Text            (Text, pack, strip)
-import Data.Void            (Void)
-import Text.Megaparsec
-import Text.Megaparsec.Char
+import           Bio.FASTA.Type             (Fasta, FastaItem (..),
+                                             ModItem (..), Modification (..),
+                                             ParsableFastaToken (..))
+import           Bio.Sequence               (BareSequence, bareSequence)
+import           Data.Functor               (void, ($>))
+import           Data.Text                  (Text, pack, strip)
+import           Data.Void                  (Void)
+import           Text.Megaparsec
+import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
 instance ParsableFastaToken Char where
