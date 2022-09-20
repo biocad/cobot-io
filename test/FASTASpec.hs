@@ -5,7 +5,7 @@ module FASTASpec where
 import           Bio.FASTA              (fastaP, fromFile, toFile)
 import           Bio.FASTA.Type         (Fasta, FastaItem (..))
 import           Bio.Sequence           (bareSequence)
-import           Control.Monad.IO.Class (MonadIO, liftIO)
+import           Control.Monad.IO.Class (liftIO)
 import           Data.Bifunctor
 import           Data.Text              (Text)
 import           Data.Text.IO           (readFile)
