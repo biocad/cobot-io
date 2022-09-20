@@ -13,6 +13,7 @@ extra-source-files:
 - ChangeLog.md
 - test/**/*.gb
 - test/**/*.fasta
+- test/**/*.Fasta
 - test/**/*.mae
 - test/**/*.pdb
 - test/**/*.ab1

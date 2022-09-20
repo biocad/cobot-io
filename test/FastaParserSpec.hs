@@ -32,7 +32,7 @@ fastaParserSpec = describe "Fasta format parser" $ do
     toughParserTests
 
 parseOnly :: Parsec Void Text (Fasta a) -> Text -> Either String (Fasta a)
-parseOnly p s = first errorBundlePretty $ parse (p <* eof) "test.fasta" s
+parseOnly p s = first errorBundlePretty $ parse p "test.fasta" s
 
 emptyFasta :: Spec
 emptyFasta = describe "emptyFasta" $ do
@@ -81,15 +81,15 @@ sequenceWithSpacesInName = describe "sequenceWithSpacesInName" $ do
 
 sequenceWithSeveralEndOfLine :: Spec
 sequenceWithSeveralEndOfLine = describe "sequenceWithSeveralEndOfLine" $ do
-    it "correctly parses incorrect sequence with several \\n after name" $ do
+    it "correctly parses sequence with several \\n after name" $ do
         let res = parseOnly (fastaP @Char) ">this is my sequence\n\n\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE"
-        res `shouldBe` Left "test.fasta:4:1:\n  |\n4 | IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE\n  | ^\nunexpected 'I'\nexpecting '>' or end of input\n"
+        res `shouldBe` Right [FastaItem "this is my sequence" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE")]
 
 sequenceWithSeveralEndOfLineInSequence :: Spec
 sequenceWithSeveralEndOfLineInSequence = describe "sequenceWithSeveralEndOfLineInSequence" $ do
-    it "correctly parses incorrect sequence with several \\n between sequence parts" $ do
+    it "correctly parses sequence with several \\n between sequence parts" $ do
         let res = parseOnly (fastaP @Char) ">this is my sequence\nIWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSE\n\n\nYYYYYYYYYYYYYYYYYYYYYYYY"
-        res `shouldBe` Left "test.fasta:5:1:\n  |\n5 | YYYYYYYYYYYYYYYYYYYYYYYY\n  | ^\nunexpected 'Y'\nexpecting '>' or end of input\n"
+        res `shouldBe` Right [FastaItem "this is my sequence" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEGITWTLDQSSEYYYYYYYYYYYYYYYYYYYYYYYY")]
 
 sequenceWithTabsInName :: Spec
 sequenceWithTabsInName = describe "sequenceWithTabsInName" $ do

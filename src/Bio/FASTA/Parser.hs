@@ -56,7 +56,7 @@ fastaLine :: ParsableFastaToken a => Parser [a]
 fastaLine = concat <$> some (some parseToken <* hidden hspace) <* myEnd
 
 myEnd :: Parser ()
-myEnd = void eol <|> eof
+myEnd = void (some eol) <|> eof
 
 modificationP :: Parser Modification
 modificationP
