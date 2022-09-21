@@ -13,8 +13,7 @@ import           Data.Void              (Void)
 import           Prelude                hiding (readFile, writeFile)
 import           System.Directory       (removeFile)
 import           Test.Hspec
-import           Text.Megaparsec        (MonadParsec (eof), Parsec,
-                                         errorBundlePretty, parse)
+import           Text.Megaparsec        (Parsec, errorBundlePretty, parse)
 
 parseOnly :: Parsec Void Text (Fasta a) -> Text -> Either String (Fasta a)
 parseOnly p s = first errorBundlePretty $ parse p "test.fasta" s
