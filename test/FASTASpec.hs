@@ -55,7 +55,7 @@ fastaSpec = describe "Fasta files parser." $ do
     writeFile "test/FASTA/test.fasta" correctFasta5
     parseBadFile "test/FASTA/order6.fasta" badFasta6
     parseBadFile "test/FASTA/order7.fasta" badFasta7
-    parseBadFile "test/FASTA/Ампликон_28_07_22.FASTA" badFasta8
+    parseBadFile "test/FASTA/order8.fasta" badFasta8
 
 parseFile :: FilePath -> Fasta Char -> Spec
 parseFile path cf = do
