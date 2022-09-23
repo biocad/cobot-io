@@ -30,7 +30,7 @@ data FastaItem a
   deriving (Eq, Show, Functor)
 
 class ParsableFastaToken a where
-    parseToken :: Parsec Void Text a
+    parseToken :: (Char -> Bool) -> Parsec Void Text a
 
 data ModItem
   = Mod Modification

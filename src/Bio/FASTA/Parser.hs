@@ -3,6 +3,7 @@
 module Bio.FASTA.Parser
   ( fastaP
   , fastaLine
+  , parseOnly
   , modificationP
   ) where
 
@@ -10,6 +11,8 @@ import           Bio.FASTA.Type             (Fasta, FastaItem (..),
                                              ModItem (..), Modification (..),
                                              ParsableFastaToken (..))
 import           Bio.Sequence               (BareSequence, bareSequence)
+import           Data.Bifunctor             (first)
+import           Data.Char                  (isLetter)
 import           Data.Functor               (void, ($>))
 import           Data.Text                  (Text, pack, strip)
 import           Data.Void                  (Void)
@@ -18,15 +21,18 @@ import           Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
 instance ParsableFastaToken Char where
-  parseToken = letterChar
+  parseToken p = satisfy p <?> "letter"
 
 instance ParsableFastaToken ModItem where
-  parseToken = (Mod <$> modificationP <?> "fasta item modification") <|> Letter <$> letterChar
+  parseToken p = (Mod <$> modificationP <?> "fasta item modification") <|> (Letter <$> satisfy p <?> "letter")
 
 type Parser = Parsec Void Text
 
 -- | Parser of .fasta file.
 --
+
+parseOnly :: Parsec Void Text (Fasta a) -> Text -> Either String (Fasta a)
+parseOnly p s = first errorBundlePretty $ parse p "input.fasta" s
 
 sc :: Parser ()
 sc = L.space space1 empty empty
@@ -38,22 +44,25 @@ symbol :: Text -> Parser Text
 symbol = L.symbol sc
 
 fastaP :: ParsableFastaToken a => Parser (Fasta a)
-fastaP = many item <* hidden space <* eof
+fastaP = many (item isLetter) <* hidden space <* eof
 
-item :: ParsableFastaToken a => Parser (FastaItem a)
-item =
+fastaPGeneric :: ParsableFastaToken a => (Char -> Bool) -> Parser (Fasta a)
+fastaPGeneric = many . item
+
+item :: ParsableFastaToken a => (Char -> Bool) -> Parser (FastaItem a)
+item p =
   FastaItem
     <$> seqName
-    <*> (fastaSeq <?> "sequence")
+    <*> (fastaSeq p <?> "sequence")
 
 seqName :: Parser Text
 seqName = strip . pack <$> (symbol ">" *> (manyTill anySingle myEnd <?> "sequence name"))
 
-fastaSeq :: ParsableFastaToken a => Parser (BareSequence a)
-fastaSeq = bareSequence . concat <$> many fastaLine <* hidden space
+fastaSeq :: ParsableFastaToken a => (Char -> Bool) -> Parser (BareSequence a)
+fastaSeq p = bareSequence . concat <$> many (fastaLine p) <* hidden space
 
-fastaLine :: ParsableFastaToken a => Parser [a]
-fastaLine = concat <$> some (some parseToken <* hidden hspace) <* myEnd
+fastaLine :: ParsableFastaToken a => (Char -> Bool) -> Parser [a]
+fastaLine p = concat <$> some (some (parseToken p) <* hidden hspace) <* myEnd
 
 myEnd :: Parser ()
 myEnd = void (some eol) <|> eof
