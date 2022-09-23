@@ -8,6 +8,7 @@ module Bio.FASTA
   , fastaP
   , fastaLine
   , modificationP
+  , Parser
   ) where
 
 import Control.Monad.IO.Class (MonadIO, liftIO)

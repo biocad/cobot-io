@@ -6,6 +6,7 @@ module Bio.FASTA.Parser
   , parseOnly
   , modificationP
   , fastaPGeneric
+  , Parser
   ) where
 
 import           Bio.FASTA.Type             (Fasta, FastaItem (..),
