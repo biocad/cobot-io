@@ -47,7 +47,7 @@ fastaP :: ParsableFastaToken a => Parser (Fasta a)
 fastaP = many (item isLetter) <* hidden space <* eof
 
 fastaPGeneric :: ParsableFastaToken a => (Char -> Bool) -> Parser (Fasta a)
-fastaPGeneric = many . item
+fastaPGeneric = many . item <* hidden space <* eof
 
 item :: ParsableFastaToken a => (Char -> Bool) -> Parser (FastaItem a)
 item p =

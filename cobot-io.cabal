@@ -31,6 +31,14 @@ extra-source-files:
     test/GB/pAAV_CMV_RPE65_PolyA_linkers.gb
     test/GB/pIntA-TRBV.gb
     test/FASTA/correct.fasta
+    test/FASTA/order1.fasta
+    test/FASTA/order2.fasta
+    test/FASTA/order3.fasta
+    test/FASTA/order4.fasta
+    test/FASTA/order5.fasta
+    test/FASTA/order6.fasta
+    test/FASTA/order7.fasta
+    test/FASTA/order8.fasta
     test/MAE/Capri.mae
     test/MAE/docking_1.mae
     test/MAE/docking_1_2.mae
