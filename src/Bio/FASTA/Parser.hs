@@ -33,7 +33,7 @@ type Parser = Parsec Void Text
 -- | Parser of .fasta file.
 --
 
-parseOnly :: Parsec Void Text (Fasta a) -> Text -> Either String (Fasta a)
+parseOnly :: Parsec Void Text a -> Text -> Either String a
 parseOnly p s = first errorBundlePretty $ parse p "input.fasta" s
 
 sc :: Parser ()
