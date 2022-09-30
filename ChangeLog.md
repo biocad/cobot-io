@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.5.0] - 2022-09-30
+### Changed
+- Update FASTA parser to megaparsec.
+
 ## [0.1.4.4] - 2022-06-02
 ### Changed
 - Update more dependencies;
