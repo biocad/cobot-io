@@ -22,6 +22,10 @@ correctFasta1 = [ FastaItem "3HMX:A|PDBID|CHAIN|SEQUENCE" (bareSequence "IWELKKD
                 , FastaItem "Empty_ha_ha_ha" (bareSequence "")
                 ]
 
+badFasta2 :: Either String (Fasta Char)
+badFasta2 = Left "input.fasta:2:5:\n  |\n2 | ACGT....TCG\r\n  |     ^^\nunexpected \"..\"\nexpecting end of input, end of line, or letter\n"
+
+
 correctFasta3 :: Fasta Char
 correctFasta3 = [ FastaItem "N-His-E4Orf6-7-R2(115)" (bareSequence "TGATGGTGATGGTGATGcatGTGGTAAACTCGACTTTCACTTTTCTCTATCACTGATAGGGAGTGGTAAACTCGACTTTCACTTTTCTCTATCACTGATAGGGAaacagtcagcc")
                 ]
@@ -45,6 +49,7 @@ fastaSpec :: Spec
 fastaSpec = describe "Fasta files parser." $ do
     parseFile "test/FASTA/order1.fasta" correctFasta1
     writeFile "test/FASTA/input.fasta" correctFasta1
+    parseBadFile "test/FASTA/order2.fasta" badFasta2
     parseFile "test/FASTA/order3.fasta" correctFasta3
     writeFile "test/FASTA/input.fasta" correctFasta3
     parseBadFile "test/FASTA/order4.fasta" badFasta4
