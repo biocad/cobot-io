@@ -2,18 +2,15 @@
 
 module FASTASpec where
 
-import           Bio.FASTA              (fastaP, fromFile, toFile)
-import           Bio.FASTA.Type         (Fasta, FastaItem (..))
-import           Bio.FASTA.Parser (parseOnly)
-import           Bio.Sequence           (bareSequence)
-import           Control.Monad.IO.Class (liftIO)
-import           Data.Text              (Text)
-import           Data.Text.IO           (readFile)
-import           Data.Void              (Void)
-import           Prelude                hiding (readFile, writeFile)
-import           System.Directory       (removeFile)
-import           Test.Hspec
-import           Text.Megaparsec        (Parsec, errorBundlePretty, parse)
+import Bio.FASTA              (fastaP, fromFile, toFile)
+import Bio.FASTA.Parser       (parseOnly)
+import Bio.FASTA.Type         (Fasta, FastaItem (..))
+import Bio.Sequence           (bareSequence)
+import Control.Monad.IO.Class (liftIO)
+import Data.Text.IO           (readFile)
+import Prelude                hiding (readFile, writeFile)
+import System.Directory       (removeFile)
+import Test.Hspec
 
 correctFasta1 :: Fasta Char
 correctFasta1 = [ FastaItem "3HMX:A|PDBID|CHAIN|SEQUENCE" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEDGITWTLDQSSEVLGSGKTLTIQVKEFGDAGQYTCHKGGEVLSHSLL")
