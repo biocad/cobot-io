@@ -4,15 +4,13 @@
 module FastaParserSpec where
 
 import           Bio.FASTA.Parser (fastaP, parseOnly)
-import           Bio.FASTA.Type   (Fasta, FastaItem (..), ModItem (..),
-                                   Modification (..))
+import           Bio.FASTA.Type   (Fasta, FastaItem (..), ModItem (..), Modification (..))
 import           Bio.Sequence     (bareSequence)
 import           Data.Bifunctor
 import           Data.Text        (Text)
 import qualified Data.Text        as T
-import           Data.Void        (Void)
 import           Test.Hspec
-import           Text.Megaparsec  (Parsec, eof, errorBundlePretty, parse)
+import           Text.Megaparsec  (eof, errorBundlePretty, parse)
 
 fastaParserSpec :: Spec
 fastaParserSpec = describe "Fasta format parser" $ do
