@@ -9,4 +9,5 @@ bcd-lts.mkBiocadProject {
   shellArgs = {
     buildInputs = [ bcd-lts.pkgs.RNA ];
   };
+  compiler = "ghc925";
 }
