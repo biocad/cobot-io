@@ -137,6 +137,8 @@ jobs:
       - name: install hpack
         run: |
           curl -sL https://github.com/sol/hpack/releases/download/0.34.2/hpack_linux.gz > hpack_linux.gz
+          sha256sum hpack_linux.gz
+          file hpack_linux.gz
           echo 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  hpack_linux.gz' | sha256sum -c -
           gzip -d < hpack_linux.gz > $HOME/.cabal/bin/hpack
           rm -f hpack_linux.gz
