@@ -148,9 +148,8 @@ jobs:
           path: source
       - name: generate cabal from package.yaml
         run: |
-          PKGDIR_cobot_io="$(find "$GITHUB_WORKSPACE/unpacked" -maxdepth 1 -type d -regex '.*/cobot-io-[0-9.]*')"
-          echo "PKGDIR_cobot_io=${PKGDIR_cobot_io}" >> "$GITHUB_ENV"
-          (cd ${PKGDIR_cobot_io} && if [ -e package.yaml ]; then hpack; fi)
+          PKGDIR_cobot_io_original="$(find "$GITHUB_WORKSPACE/source" -maxdepth 1 -type d -regex '.*/cobot-io-[0-9.]*')"
+          (cd ${PKGDIR_cobot_io_original} && if [ -e package.yaml ]; then hpack; fi)
       - name: initial cabal.project for sdist
         run: |
           touch cabal.project
