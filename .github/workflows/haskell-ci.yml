@@ -150,6 +150,8 @@ jobs:
           path: source
       - name: generate cabal from package.yaml
         run: |
+          echo ${PKGDIR_cobot_io}
+          ls -l ${PKGDIR_cobot_io}
           (cd ${PKGDIR_cobot_io} && if [ -e package.yaml ]; then hpack; fi)
       - name: initial cabal.project for sdist
         run: |
