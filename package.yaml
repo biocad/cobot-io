@@ -22,7 +22,8 @@ extra-source-files:
 tested-with: |
   GHC ==8.10.7
    || ==9.0.2
-   || ==9.2.2
+   || ==9.2.5
+   || ==9.4.4
 
 # Metadata used when publishing your package
 
@@ -44,10 +45,10 @@ dependencies:
 - filepath
 - http-conduit >= 2.3 && < 2.4
 - hyraxAbif >= 0.2.3.27 && < 0.2.4.0
-- lens >= 4.16 && < 5.2
-- linear >= 1.20 && < 1.22
+- lens >= 4.16 && < 5.3
+- linear >= 1.20 && < 1.23
 - megaparsec >= 9.0.1
-- mtl >= 2.2.1 && < 2.3.0
+- mtl >= 2.2.1 && < 2.4
 - parser-combinators >= 1.2.1
 - split
 - text >= 1.2.2.1 && < 2.1
