@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.1.5.1] - 2023-01-17
+- Update dependencies for Haskell LTS-20.4.
+
 ## [0.1.5.0] - 2022-09-30
 ### Changed
 - Update FASTA parser to megaparsec.

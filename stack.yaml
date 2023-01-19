@@ -1,4 +1,4 @@
-resolver: lts-17.5
+resolver: lts-20.4
 
 packages:
 - .
@@ -6,8 +6,8 @@ packages:
 extra-deps:
 - data-msgpack-0.0.13
 - data-msgpack-types-0.0.3
-- hyraxAbif-0.2.3.27
 - cobot-0.1.1.7
+- hyraxAbif-0.2.4.2
 
 ghc-options:
   $locals: -Wall -fdiagnostics-color=always
