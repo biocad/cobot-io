@@ -43,36 +43,37 @@ badFasta8 :: Either String (Fasta Char)
 badFasta8 = Left "input.fasta:21:5:\n   |\n21 | CMV + enhMCK + prcTnT-2\r\n   |     ^^\nunexpected \"+ \"\nexpecting end of input, end of line, or letter\n"
 
 fastaSpec :: Spec
-fastaSpec = describe "Fasta files parser." $ do
-    parseFile "test/FASTA/order1.fasta" correctFasta1
-    writeFile "test/FASTA/input.fasta" correctFasta1
-    parseBadFile "test/FASTA/order2.fasta" badFasta2
-    parseFile "test/FASTA/order3.fasta" correctFasta3
-    writeFile "test/FASTA/input.fasta" correctFasta3
-    parseBadFile "test/FASTA/order4.fasta" badFasta4
-    parseFile  "test/FASTA/order5.fasta" correctFasta5
-    writeFile "test/FASTA/input.fasta" correctFasta5
-    parseBadFile "test/FASTA/order6.fasta" badFasta6
-    parseBadFile "test/FASTA/order7.fasta" badFasta7
-    parseBadFile "test/FASTA/order8.fasta" badFasta8
+fastaSpec = describe "Fasta files parser" $ do
+    describe "fromFile" $ do
+      parseFile "test/FASTA/order1.fasta" correctFasta1
+      parseBadFile "test/FASTA/order2.fasta" badFasta2
+      parseFile "test/FASTA/order3.fasta" correctFasta3
+      parseBadFile "test/FASTA/order4.fasta" badFasta4
+      parseFile  "test/FASTA/order5.fasta" correctFasta5
+      parseBadFile "test/FASTA/order6.fasta" badFasta6
+      parseBadFile "test/FASTA/order7.fasta" badFasta7
+      parseBadFile "test/FASTA/order8.fasta" badFasta8
+
+    describe "toFile" $ do
+      writeFile "test/FASTA/input.fasta" correctFasta5
+      writeFile "test/FASTA/input.fasta" correctFasta1
+      writeFile "test/FASTA/input.fasta" correctFasta3
 
 parseFile :: FilePath -> Fasta Char -> Spec
-parseFile path cf = do
-    describe "fromFile" $ do
-        it "correctly parses fasta from file" $ do
-            fasta <- fromFile path
-            fasta `shouldBe` cf
+parseFile path cf =
+    it ("correctly parses good fasta from file " <> path) $ do
+        fasta <- fromFile path
+        fasta `shouldBe` cf
 
 parseBadFile :: FilePath -> Either String (Fasta Char) -> Spec
-parseBadFile path cf = do
-    describe "fromFile" $ do
-         it "correctly parses fasta from file" $ do
-            res <- liftIO (readFile path)
-            let badRes = parseOnly fastaP res
-            badRes `shouldBe` cf
+parseBadFile path cf =
+    it ("correctly parses bad fasta from file " <> path) $ do
+        res <- liftIO (readFile path)
+        let badRes = parseOnly fastaP res
+        badRes `shouldBe` cf
 
 writeFile :: FilePath -> Fasta Char -> Spec
-writeFile path cf = describe "writeFile" $ do
+writeFile path cf =
     it "correctly write fasta into file" $ do
         toFile cf path
         fasta <- fromFile path

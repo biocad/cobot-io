@@ -100,3 +100,6 @@ tests:
     - hspec >= 2.4.1 && < 2.11
     - neat-interpolation >= 0.3
     - linear
+# megaparsec-9.3 changed something in error messages
+# so that our tests do not pass.
+    - megaparsec < 9.3
