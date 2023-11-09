@@ -73,7 +73,7 @@ data Sequence mk w a
       , _weights  :: Vector w
         -- ^ weights for all elements in sequence
       }
-  deriving (Eq, Show, Generic, NFData, Functor)
+  deriving (Eq, Ord, Show, Generic, NFData, Functor)
 
 instance Semigroup (Sequence mk w a) where
   sequA <> sequB = res

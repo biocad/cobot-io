@@ -27,7 +27,7 @@ data FastaItem a
       , sequ :: BareSequence a
         -- ^ bare sequence
       }
-  deriving (Eq, Show, Functor)
+  deriving (Eq, Ord, Show, Functor)
 
 class ParsableFastaToken a where
     parseToken :: (Char -> Bool) -> Parsec Void Text a

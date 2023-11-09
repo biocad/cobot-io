@@ -35,7 +35,7 @@ import GHC.Generics    (Generic)
 data Border
   = Precise
   | Exceeded
-  deriving (Eq, Show, Generic, NFData)
+  deriving (Eq, Ord, Show, Generic, NFData)
 
 -- | The end point of a range with indication whether it is @Precise@ of @Exceeded@ (see @Border@).
 --
@@ -44,7 +44,7 @@ data RangeBorder
       { _borderType     :: Border
       , _borderLocation :: Int
       }
-  deriving (Eq, Show, Generic, NFData)
+  deriving (Eq, Ord, Show, Generic, NFData)
 
 makeLenses ''RangeBorder
 
@@ -80,7 +80,7 @@ data Range
       }
   -- ^ Indicates that the range is complementary.
   -- Example in GB:  rep             complement(69..420)
-  deriving (Eq, Show, Generic, NFData)
+  deriving (Eq, Ord, Show, Generic, NFData)
 
 makeLenses ''Range
 
