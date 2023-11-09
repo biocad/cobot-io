@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.1.5.2] - 2023-11-09
+- Add Ord for Fasta and related types.
+
 ## [0.1.5.1] - 2023-01-17
 - Update dependencies for Haskell LTS-20.4.
 
