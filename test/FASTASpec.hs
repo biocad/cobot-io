@@ -2,15 +2,18 @@
 
 module FASTASpec where
 
-import Bio.FASTA              (fastaP, fromFile, toFile)
-import Bio.FASTA.Parser       (parseOnly)
-import Bio.FASTA.Type         (Fasta, FastaItem (..))
-import Bio.Sequence           (bareSequence)
-import Control.Monad.IO.Class (liftIO)
-import Data.Text.IO           (readFile)
-import Prelude                hiding (readFile, writeFile)
-import System.Directory       (removeFile)
-import Test.Hspec
+import           Control.Monad.IO.Class (liftIO)
+import           Data.Bifunctor         (first)
+import qualified Data.Text              as T
+import           Data.Text.IO           (readFile)
+import           Prelude                hiding (readFile, writeFile)
+import           System.Directory       (removeFile)
+import           Test.Hspec
+
+import Bio.FASTA        (fastaP, fromFile, toFile)
+import Bio.FASTA.Parser (parseOnly)
+import Bio.FASTA.Type   (Fasta, FastaItem (..))
+import Bio.Sequence     (bareSequence)
 
 correctFasta1 :: Fasta Char
 correctFasta1 = [ FastaItem "3HMX:A|PDBID|CHAIN|SEQUENCE" (bareSequence "IWELKKDVYVVELDWYPDAPGEMVVLTCDTPEEDGITWTLDQSSEVLGSGKTLTIQVKEFGDAGQYTCHKGGEVLSHSLL")
@@ -70,7 +73,7 @@ parseBadFile path cf =
     it ("correctly parses bad fasta from file " <> path) $ do
         res <- liftIO (readFile path)
         let badRes = parseOnly fastaP res
-        badRes `shouldBe` cf
+        noSpaces badRes `shouldBe` noSpaces cf
 
 writeFile :: FilePath -> Fasta Char -> Spec
 writeFile path cf =
@@ -79,3 +82,7 @@ writeFile path cf =
         fasta <- fromFile path
         removeFile path
         fasta `shouldBe` cf
+
+-- | megaparsec >= 9.3 added more spaces to error messages, so that our old ones do not match.
+noSpaces :: Either String a -> Either String a
+noSpaces = first $ T.unpack . T.replace " " "" . T.pack
