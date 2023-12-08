@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.1.5.3] - 2023-12-08
+- Update tests and dependencies.
+
 ## [0.1.5.2] - 2023-11-09
 - Add Ord for Fasta and related types.
 

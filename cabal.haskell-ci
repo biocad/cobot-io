@@ -2,6 +2,6 @@ distribution: focal
 
 branches: master
 
-allow-failures: >=9.2
+allow-failures: >=9.8
 
 local-ghc-options: -Wall -Werror -fkeep-going
