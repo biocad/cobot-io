@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
@@ -9,8 +10,13 @@ module Bio.Uniprot.Parser where
 import           Prelude              hiding (null)
 import qualified Prelude              as P (concat, init, last, null, tail)
 
-import           Bio.Uniprot.Type
+#if MIN_VERSION_base(4, 18, 0)
+import           Control.Applicative  ((<|>))
+#else
 import           Control.Applicative  (liftA2, (<|>))
+#endif
+
+import           Bio.Uniprot.Type
 import           Control.Monad        (unless)
 import           Data.Attoparsec.Text
 import           Data.Bifunctor       (second)
