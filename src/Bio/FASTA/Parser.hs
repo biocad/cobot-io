@@ -127,6 +127,7 @@ modificationP
   , string "[3CholTEG]" $> Mod_3CholTEG
   , string "[5C10]" $> Mod_5C10
   , string "[5Alk]" $> Mod_5Alk
+  , string "[5ROX]" $> Mod_5ROX
   , string "[GC]" $> Mod_GC
   , string "[GT]" $> Mod_GT
   , string "[AT]" $> Mod_AT

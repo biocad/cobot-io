@@ -87,6 +87,7 @@ data Modification
   | Mod_3CholTEG
   | Mod_5C10
   | Mod_5Alk
+  | Mod_5ROX
   | Mod_GC
   | Mod_GT
   | Mod_AT
@@ -178,6 +179,7 @@ modificationToString Mod_5CholTEG = "[5CholTEG]"
 modificationToString Mod_3CholTEG = "[3CholTEG]"
 modificationToString Mod_5C10     = "[5C10]"
 modificationToString Mod_5Alk     = "[5Alk]"
+modificationToString Mod_5ROX     = "[5ROX]"
 modificationToString Mod_GC       = "[GC]"
 modificationToString Mod_GT       = "[GT]"
 modificationToString Mod_AT       = "[AT]"
