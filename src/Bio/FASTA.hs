@@ -28,7 +28,7 @@ import Bio.FASTA.Writer (WritableFastaToken (..), fastaToText)
 
 -- | Reads 'FastaSequence' from given file.
 --
-fromFile :: (MonadFail m, MonadIO m) => FilePath -> m (Fasta Char)
+fromFile :: (MonadFail m, MonadIO m, ParsableFastaToken a) => FilePath -> m (Fasta a)
 fromFile f = liftIO (readFile f) >>= either (fail . errorBundlePretty) pure . parse fastaP (takeBaseName f)
 
 -- | Writes 'FastaSequence' to file.

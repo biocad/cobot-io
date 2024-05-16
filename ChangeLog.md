@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.1.5.4] - 2024-05-16
+- Fix Fasta parser for unknown modifications on the end of the line.
+
 ## [0.1.5.3] - 2023-12-08
 - Update tests and dependencies.
 
