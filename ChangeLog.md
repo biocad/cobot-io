@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.1.5.5] - 2024-05-16
+- Add `5ROX` modification to Fasta parser.
+
 ## [0.1.5.4] - 2024-05-16
 - Fix Fasta parser for unknown modifications on the end of the line.
 
