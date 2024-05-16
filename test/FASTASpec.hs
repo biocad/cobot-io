@@ -10,9 +10,9 @@ import           Prelude                hiding (readFile, writeFile)
 import           System.Directory       (removeFile)
 import           Test.Hspec
 
-import Bio.FASTA        (fastaP, fromFile, toFile)
+import Bio.FASTA        (ParsableFastaToken, fastaP, fromFile, toFile)
 import Bio.FASTA.Parser (parseOnly)
-import Bio.FASTA.Type   (Fasta, FastaItem (..))
+import Bio.FASTA.Type   (Fasta, FastaItem (..), ModItem (..), Modification (..))
 import Bio.Sequence     (bareSequence)
 
 correctFasta1 :: Fasta Char
@@ -45,6 +45,16 @@ badFasta7 = Left "input.fasta:2:1:\n  |\n2 | 5\8217-CTTCAAGAGAGAGACCTGCGT-3\8217
 badFasta8 :: Either String (Fasta Char)
 badFasta8 = Left "input.fasta:21:5:\n   |\n21 | CMV + enhMCK + prcTnT-2\r\n   |     ^^\nunexpected \"+ \"\nexpecting end of input, end of line, or letter\n"
 
+correctFasta9 :: Fasta ModItem
+correctFasta9 =
+  [ FastaItem "mol1" $ bareSequence [Mod (Unknown "[FAM]"),Letter 'A',Letter 'C',Letter 'G',Letter 'T',Mod (Unknown "[UNK]")]
+  , FastaItem "mol2" $ bareSequence [Mod (Unknown "[HEX]"),Letter 'A',Letter 'C',Letter 'C',Letter 'G',Letter 'T']
+  , FastaItem "mol3" $ bareSequence [Mod (Unknown "[HEX]"),Letter 'A',Letter 'C',Letter 'G',Letter 'T',Letter 'C',Letter 'A',Mod (Unknown "[UNK]")]
+  ]
+
+badFasta10 :: Either String (Fasta ModItem)
+badFasta10 = Left "input.fasta:2:16:\n|\n2|[FAM]ACGT[UNK][\n|^\nunexpectednewline\nexpectingmodificationname\n"
+
 fastaSpec :: Spec
 fastaSpec = describe "Fasta files parser" $ do
     describe "fromFile" $ do
@@ -56,19 +66,21 @@ fastaSpec = describe "Fasta files parser" $ do
       parseBadFile "test/FASTA/order6.fasta" badFasta6
       parseBadFile "test/FASTA/order7.fasta" badFasta7
       parseBadFile "test/FASTA/order8.fasta" badFasta8
+      parseFile "test/FASTA/order9.fasta" correctFasta9
+      parseBadFile "test/FASTA/order10.fasta" badFasta10
 
     describe "toFile" $ do
       writeFile "test/FASTA/input.fasta" correctFasta5
       writeFile "test/FASTA/input.fasta" correctFasta1
       writeFile "test/FASTA/input.fasta" correctFasta3
 
-parseFile :: FilePath -> Fasta Char -> Spec
+parseFile :: (Show a, Eq a, ParsableFastaToken a) => FilePath -> Fasta a -> Spec
 parseFile path cf =
     it ("correctly parses good fasta from file " <> path) $ do
         fasta <- fromFile path
         fasta `shouldBe` cf
 
-parseBadFile :: FilePath -> Either String (Fasta Char) -> Spec
+parseBadFile :: (Show a, Eq a, ParsableFastaToken a) => FilePath -> Either String (Fasta a) -> Spec
 parseBadFile path cf =
     it ("correctly parses bad fasta from file " <> path) $ do
         res <- liftIO (readFile path)

@@ -36,8 +36,14 @@ type Parser = Parsec Void Text
 parseOnly :: Parsec Void Text a -> Text -> Either String a
 parseOnly p s = first errorBundlePretty $ parse p "input.fasta" s
 
+-- Using 'hspace1' instead of just 'space1' because our 'fastaLine' parser
+-- expects each line to end with line-ending or end of file. But if 'sc' consumes end-of-line,
+-- 'lexeme' in 'unknownP' also will and 'fastaLine' will not know that line has ended and will
+-- expect more symbols.
+--
+-- 'hspace1' consumes only "horizontal" space, leaving line-ending for 'fastaLine'.
 sc :: Parser ()
-sc = L.space space1 empty empty
+sc = L.space hspace1 empty empty
 
 lexeme :: Parser a -> Parser a
 lexeme = L.lexeme sc
