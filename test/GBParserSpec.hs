@@ -335,4 +335,4 @@ spacesInLocusName path =
   describe "should correct parse gb with spaces in plasmid name in locus" $
   it "" $ do
     mt <- meta <$> fromFile path
-    name (locus mt) `shouldBe` "AB32-36 pIntA_BC"
+    name (locus mt) `shouldBe` "BLABLA BLABLA BLABLA"

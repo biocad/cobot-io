@@ -1,0 +1,20 @@
+LOCUS       BLABLA BLABLA BLABLA        100 bp DNA     circular SYN 11-SEP-2024
+DEFINITION  synthetic circular DNA.
+ACCESSION   .
+VERSION     .
+KEYWORDS    .
+SOURCE      synthetic DNA construct
+  ORGANISM  synthetic DNA construct
+REFERENCE   1  (bases 1 to 100)
+  AUTHORS   hhh
+  TITLE     Direct Submission
+  JOURNAL   Exported Sep 12, 2024 from SnapGene 6.1.0
+            https://www.snapgene.com
+FEATURES             Location/Qualifiers
+     source          1..100
+                     /mol_type="other DNA"
+                     /organism="plasmid"
+ORIGIN
+        1 cctacagcgt cctacagcgt cctacagcgt cctacagcgt cctacagcgt cctacagcgt
+       61 cctacagcgt cctacagcgt cctacagcgt cctacagcgt
+//
