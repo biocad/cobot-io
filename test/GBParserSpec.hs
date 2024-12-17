@@ -14,12 +14,12 @@ import Text.Megaparsec (eof, errorBundlePretty, parse)
 
 gbParserSpec :: Spec
 gbParserSpec = describe "GenBank format parser." $ do
-    -- rangeTests
-    -- pAAVGFPSpecP "test/GB/pAAV-GFP-CellBioLab.gb"
-    -- pAAVCMVSpecP "test/GB/pAAV_CMV_RPE65_PolyA_linkers.gb"
-    -- dottedMetaSpecP "test/GB/pAAV-GFP-CellBioLab-dots.gb"
-    -- unknownFieldsSpecP "test/GB/pIntA-TRBV.gb"
-    -- baseCountWithSophisticatedRangesAndMultilineFeatures "test/GB/fromYanaWithLove.gb"
+    rangeTests
+    pAAVGFPSpecP "test/GB/pAAV-GFP-CellBioLab.gb"
+    pAAVCMVSpecP "test/GB/pAAV_CMV_RPE65_PolyA_linkers.gb"
+    dottedMetaSpecP "test/GB/pAAV-GFP-CellBioLab-dots.gb"
+    unknownFieldsSpecP "test/GB/pIntA-TRBV.gb"
+    baseCountWithSophisticatedRangesAndMultilineFeatures "test/GB/fromYanaWithLove.gb"
     spacesInLocusName "test/GB/spaces_in_locus.gb"
 
 rangeTests :: Spec

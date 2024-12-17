@@ -16,7 +16,7 @@ import           Data.Functor               (($>))
 import           Data.Text                  (Text, intercalate, pack, splitOn, unpack)
 import qualified Data.Text                  as T
 import           Text.Megaparsec            (notFollowedBy, option, satisfy, sepBy1, takeWhile1P,
-                                             takeWhileP, try, (<?>), chunk)
+                                             takeWhileP, try, (<?>))
 import           Text.Megaparsec.Char       (char, digitChar, eol, letterChar, string)
 import           Text.Megaparsec.Char.Lexer (decimal)
 
@@ -46,7 +46,6 @@ metaP = do
 
   pure $ Meta locus' definitionM accessionM versionM keywordsM sourceM referencesL commentsL
 
--- LOCUS       AB32-36 pIntA_BC        6260 bp DNA     circular SYN 11-SEP-2024
 locusP :: Parser Locus
 locusP = string "LOCUS" *> space *> (Locus
        <$> nameP <* space                                      -- name
