@@ -25,9 +25,7 @@ import           Data.Text                       (Text)
 import           Data.Vector                     (Vector)
 import qualified Data.Vector                     as V (drop, length, take,
                                                        toList, (!))
-import           Prelude                         hiding (drop, head, length,
-                                                  null, reverse, tail, take,
-                                                  (!!))
+import           Prelude                         hiding (drop, length, take, (!!))
 
 -- | Range of form [a, b].
 --

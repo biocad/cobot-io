@@ -140,7 +140,8 @@ restoreChainIntraResidueBonds :: [[PDB.Atom]] -> [Bond PDB.Atom]
 restoreChainIntraResidueBonds = concatMap restoreIntraResidueBonds
 
 restoreIntraResidueBonds :: [PDB.Atom] -> [Bond PDB.Atom]
-restoreIntraResidueBonds residueAtoms = catMaybes $ constructBond <$> residueBonds
+restoreIntraResidueBonds [] = []
+restoreIntraResidueBonds residueAtoms@(firstAtom : _) = catMaybes $ constructBond <$> residueBonds
   where
     -- TODO: support bond order somehow
     constructBond :: (Text, Text) -> Maybe (Bond PDB.Atom)
@@ -153,7 +154,7 @@ restoreIntraResidueBonds residueAtoms = catMaybes $ constructBond <$> residueBon
     atomNameToAtom = M.fromList $ (\atom@PDB.Atom{..} -> (T.strip atomName, atom)) <$> residueAtoms
 
     residueBonds :: [(Text, Text)]
-    residueBonds = intraResidueBonds . T.strip . PDB.atomResName $ head residueAtoms
+    residueBonds = intraResidueBonds . T.strip . PDB.atomResName $ firstAtom
 
 intraResidueBonds :: Text -> [(Text, Text)]
 intraResidueBonds "NMA" = [("CA", "N")]
