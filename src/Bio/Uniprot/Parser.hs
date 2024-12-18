@@ -8,7 +8,7 @@
 module Bio.Uniprot.Parser where
 
 import           Prelude              hiding (null)
-import qualified Prelude              as P (concat, init, last, null, tail)
+import qualified Prelude              as P (concat, init, last)
 
 #if MIN_VERSION_base(4, 18, 0)
 import           Control.Applicative  ((<|>))
@@ -127,7 +127,9 @@ parseDE = do
             string "="
             pure ()
         result <- pack . P.init <$> many1 (satisfy (not . isEndOfLine))
-        pure . head $ " {ECO" `splitOn` result
+        case " {ECO" `splitOn` result of
+          [] -> pure ""
+          (txt : _) -> pure txt
 
     -- Parses internal DE entities
     parseInternal :: Text -> Parser DE
@@ -235,9 +237,11 @@ parseOH = do
     taxId <- pack <$> many1 (notChar ';')
     char ';'
     hostName' <- many' (satisfy $ not . isEndOfLine)
-    let hostName = pack $ if P.null hostName'
-                            then ""
-                            else P.tail . P.init $ hostName'
+    let hostName = pack $
+          case hostName' of
+            [] -> ""
+            [x] -> ""
+            (x : xs) -> init xs
     pure OH{..}
 
 -- | Parses RN, RP, RC, RX, RG, RA, RT and RL lines of UniProt-KB text file.
@@ -300,7 +304,11 @@ parseCC = do
     topic <- pack <$> many1 (notChar ':')
     char ':'
     (char ' ' $> ()) <|> (endOfLine >> string "CC" >> count 7 space $> ())
-    comment <- head . (" {ECO" `splitOn`) . pack <$> parseMultiLineComment "CC" 7
+    splitedComments <- (" {ECO" `splitOn`) . pack <$> parseMultiLineComment "CC" 7
+    let comment =
+          case splitedComments of
+            [] -> ""
+            (x : _) -> x
     pure CC{..}
 
 -- | UniProt-KB copyright comment
@@ -494,7 +502,10 @@ parseBreak txt = ((endOfLine >> string txt >> string "   ") <|> string " ") $> (
 parseDefItem :: Text -> Parser Text
 parseDefItem name = do
     string name >> char '='
-    head . (" {" `splitOn`) . pack <$> parseTillChar ';'
+    txt <- (" {" `splitOn`) . pack <$> parseTillChar ';'
+    case txt of
+      [] -> return ""
+      (x : _) -> return x
 
 -- | Parses line till specific char (e.g. semicolon or dot) before space/endOfLine/endOfInput.
 parseTillChar :: Char -> Parser String
@@ -524,8 +535,8 @@ hyphenConcat [x]      = x
 hyphenConcat (x:y:ys) = x ++ hyphenConcat (sy:ys)
   where
     sy :: String
-    sy | last x == '-'                  = tail y
-       | isAA (last x) && isAA (y !! 1) = tail y
+    sy | last x == '-'                  = drop 1 y
+       | isAA (last x) && isAA (y !! 1) = drop 1 y
        | otherwise                      = y
 
     isAA :: Char -> Bool

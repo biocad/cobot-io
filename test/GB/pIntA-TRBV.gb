@@ -1,6 +1,6 @@
-LOCUS       P2-32_pIntA-TRBV5-1_J1-1-Fc-lama-knob-EPEA 5960 bp   circular 27-NOV-2020
-SOURCE      
-  ORGANISM  
+LOCUS       P2-32_pIntA-TRBV5-1_J1-1-Fc-lama-knob-EPEA    5960 bp   circular 27-NOV-2020
+SOURCE
+  ORGANISM
 COMMENT     This file is created by Vector NTI
             http://www.invitrogen.com/
 COMMENT     ORIGDB|GenBank
@@ -9,7 +9,7 @@ COMMENT     VNTDBDATE|-13020134|
 COMMENT     LSOWNER|
 COMMENT     VNTNAME|pIntA-mIgK-GFP-stuffer-KpnI-EPEA|
 COMMENT     VNTAUTHORNAME|Demo User|
-BASE COUNT     1711 a      1577 c      1543 g      1830 t 
+BASE COUNT     1711 a      1577 c      1543 g      1830 t
 EMBL_ID     P1-79_pIntA-mIgK-GFP-stuffer-KpnI-EPEA 5945 bp   circular 14-OCT-2020
 EMBL_ID     P1-79_pIntA-mIgK-GFP-stuffer-KpnI-EPEA 6661 bp   circular 29-JAN-2020
 EMBL_ID     pIntA-mIgK-GFP-s        6661 bp    DNA     circular      4-OCT-2019

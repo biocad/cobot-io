@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.1.5.6] - 2024-12-18
+- Fix for gb-parser: spaces in name in LOCUS
+
 ## [0.1.5.5] - 2024-05-16
 - Add `5ROX` modification to Fasta parser.
 
@@ -64,12 +67,12 @@ Added ASN hydrogen names sometimes set by Scho
 - Update dependency versions.
 
 ## [0.1.3.20] - 2021-06-04
-### Changed 
-- YLAB2-629: Fasta parser is now able to parse empty lines in the beginning. 
+### Changed
+- YLAB2-629: Fasta parser is now able to parse empty lines in the beginning.
 
 ## [0.1.3.19] - 2021-04-30
-### Changed 
-- Exports and instances for Biosset. 
+### Changed
+- Exports and instances for Biosset.
 
 ## [0.1.3.18] - 2021-03-09
 ### Fixed
@@ -110,7 +113,7 @@ Added ASN hydrogen names sometimes set by Scho
 
 ## [0.1.3.9] - 2020-10-27
 ### Fixed
-- FASTA parser can now parse empty lines with spaces. 
+- FASTA parser can now parse empty lines with spaces.
 
 ## [0.1.3.8] - 2020-10-22
 ### Fixed

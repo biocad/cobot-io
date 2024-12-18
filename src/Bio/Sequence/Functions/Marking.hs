@@ -16,7 +16,7 @@ import           Data.List            (nub)
 import           Data.List.NonEmpty   (NonEmpty (..))
 import           Data.Text            (Text)
 import qualified Data.Vector          as V (toList)
-import           Prelude              hiding (drop, head, length, null, reverse, tail, take, (!!))
+import           Prelude              hiding (length)
 
 import Bio.NucleicAcid.Nucleotide      (Complementary (..))
 import Bio.Sequence.Class              (ContainsMarking, IsBareSequence, IsMarkedSequence,
