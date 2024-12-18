@@ -8,7 +8,7 @@
 module Bio.Uniprot.Parser where
 
 import           Prelude              hiding (null)
-import qualified Prelude              as P (concat, init, last, null, tail)
+import qualified Prelude              as P (concat, init, last)
 
 #if MIN_VERSION_base(4, 18, 0)
 import           Control.Applicative  ((<|>))
