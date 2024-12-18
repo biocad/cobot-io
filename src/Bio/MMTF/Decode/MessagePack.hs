@@ -43,7 +43,11 @@ asStr _ (ObjectStr s) = pure s
 asStr m _             = fail $ T.unpack m <> ": not a string data"
 
 asChar :: MonadFail m => Text -> Object -> m Char
-asChar m = (head . T.unpack <$>) . asStr m
+asChar txt obj = do
+  str <- asStr txt obj
+  case T.unpack str of
+    []      -> return ' '
+    (c : _) -> return c
 
 asInt :: (MonadFail m, Integral a) => Text -> Object -> m a
 asInt _ (ObjectInt i)  = pure (fromIntegral i)

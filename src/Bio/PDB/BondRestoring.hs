@@ -42,25 +42,28 @@ restoreChainLocalBonds' chainAtoms = residueIDToLocalBonds
     residueIDToLocalBonds = do
       (residueAtoms, residueBonds) <- zip chainAtomsGroupedByResidue intraResidueGlobalBonds
       let localBonds = V.fromList $ convertGlobalsToLocals residueAtoms residueBonds
-      let _residueID = residueID $ head residueAtoms
+      let _residueID =
+            case residueAtoms of
+              [] -> ""
+              (atom : _) -> residueID atom
       pure (_residueID, localBonds)
-    
+
     intraResidueGlobalBonds :: [[Bond PDB.Atom]]
     intraResidueGlobalBonds = fmap restoreIntraResidueBonds chainAtomsGroupedByResidue
-    
+
     chainAtomsGroupedByResidue :: [[PDB.Atom]]
     chainAtomsGroupedByResidue = groupChainByResidue chainAtoms
-    
+
     convertGlobalsToLocals :: [PDB.Atom] -> [Bond PDB.Atom] -> [Bond LocalID]
     convertGlobalsToLocals residueAtoms = map convertGlobalToLocal
       where
         convertGlobalToLocal :: Bond PDB.Atom -> Bond LocalID
-        convertGlobalToLocal (Bond from to order) = 
+        convertGlobalToLocal (Bond from to order) =
           Bond (LocalID $ atomToLocalIdMap ! from) (LocalID $ atomToLocalIdMap ! to) order
-        
+
         atomToLocalIdMap :: Map PDB.Atom Int
         atomToLocalIdMap = M.fromList $ zip sortedAtoms [0..]
-        
+
         sortedAtoms :: [PDB.Atom]
         sortedAtoms = sort residueAtoms
 
@@ -70,19 +73,19 @@ restoreModelGlobalBonds atomToNilBasedIndex chains = convertToGlobalIDs atomToNi
   where
     convertToGlobalIDs :: Map PDB.Atom Int -> Vector (Bond PDB.Atom) -> Vector (Bond GlobalID)
     convertToGlobalIDs mapping = reindexBonds (\atom -> GlobalID $ mapping ! atom)
-    
+
     reindexBonds :: (a -> b) -> Vector (Bond a) -> Vector (Bond b)
     reindexBonds convertID = fmap (\(Bond from to order) -> Bond (convertID from) (convertID to) order)
 
     chainAtomsGroupedByResidue :: Vector [[PDB.Atom]]
     chainAtomsGroupedByResidue = fmap groupChainByResidue chains
-    
+
     _intraResidueBonds :: [Bond PDB.Atom]
     _intraResidueBonds = concatMap restoreChainIntraResidueBonds chainAtomsGroupedByResidue
-    
+
     peptideBonds :: [Bond PDB.Atom]
     peptideBonds = concatMap restoreChainPeptideBonds chainAtomsGroupedByResidue
-    
+
     disulfideBonds :: [Bond PDB.Atom]
     disulfideBonds = restoreDisulfideBonds . concat $ V.toList chainAtomsGroupedByResidue
 
@@ -116,7 +119,7 @@ restoreChainPeptideBonds atomsGroupedByResidue = catMaybes $ restoreChainPeptide
     restoreChainPeptideBonds' :: [[PDB.Atom]] -> [Maybe (Bond PDB.Atom)] -> [Maybe (Bond PDB.Atom)]
     restoreChainPeptideBonds' [] acc = acc
     restoreChainPeptideBonds' [_] acc = acc
-    restoreChainPeptideBonds' (residue1:residue2:residues) acc = 
+    restoreChainPeptideBonds' (residue1:residue2:residues) acc =
       restoreChainPeptideBonds' (residue2:residues) (constructBond residue1 residue2 : acc)
 
     constructBond :: [PDB.Atom] -> [PDB.Atom] -> Maybe (Bond PDB.Atom)
@@ -129,7 +132,7 @@ restoreChainPeptideBonds atomsGroupedByResidue = catMaybes $ restoreChainPeptide
         guard $ distance (coords carbonAtom1) (coords nitrogenAtom2) < peptideBondMaxLength
 
         pure $ Bond carbonAtom1 nitrogenAtom2 1
-    
+
     getAtomByName :: [PDB.Atom] -> Text -> Maybe PDB.Atom
     getAtomByName atoms atomNameToFind = find ((atomNameToFind ==) . T.strip . PDB.atomName) atoms
 
@@ -142,13 +145,13 @@ restoreIntraResidueBonds residueAtoms = catMaybes $ constructBond <$> residueBon
     -- TODO: support bond order somehow
     constructBond :: (Text, Text) -> Maybe (Bond PDB.Atom)
     constructBond (fromAtomName, toAtomName) = Bond <$> constructAtom fromAtomName <*> constructAtom toAtomName <*> Just 1
-    
+
     constructAtom :: Text -> Maybe PDB.Atom
     constructAtom atomName = atomNameToAtom !? atomName
-    
+
     atomNameToAtom :: Map Text PDB.Atom
     atomNameToAtom = M.fromList $ (\atom@PDB.Atom{..} -> (T.strip atomName, atom)) <$> residueAtoms
-    
+
     residueBonds :: [(Text, Text)]
     residueBonds = intraResidueBonds . T.strip . PDB.atomResName $ head residueAtoms
 

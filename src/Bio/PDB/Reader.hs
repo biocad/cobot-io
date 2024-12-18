@@ -48,7 +48,7 @@ isMdlLine line = elem (T.take 6 line) modelStrings || elem (T.take 5 line) model
 
 checkRow :: [Int] -> Bool
 checkRow [] = True
-checkRow xs = last xs - head xs + 1 == L.length xs
+checkRow row@(x : xs) = last row - x + 1 == L.length row
 
 checkMdlLines :: ([PDBWarnings], Text) -> Bool
 checkMdlLines warnings'n'text = checkRow mdlLineNumbers
