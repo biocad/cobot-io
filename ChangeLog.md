@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [0.1.5.7] - 2026-02-02
+- Update dependencies for GHC 9.10.
+
 ## [0.1.5.6] - 2024-12-18
 - Fix for gb-parser: spaces in name in LOCUS
 
