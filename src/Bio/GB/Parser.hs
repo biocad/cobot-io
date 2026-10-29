@@ -37,7 +37,7 @@ metaP = do
   locus'      <- locusP <?> "Locus parser"
 
   definitionM <- optional definitionP <?> "Definition parser"
-  accessionM  <- optional accessionP <?> "Accession parser"
+  accessionM  <- join <$> optional accessionP <?> "Accession parser"
   versionM    <- optional versionP <?> "Version parser"
   keywordsM   <- optional keywordsP <?> "Keywords parser"
   sourceM     <- optional sourceP <?> "Source parser"
@@ -67,10 +67,12 @@ locusP = string "LOCUS" *> space *> (Locus
 definitionP :: Parser Text
 definitionP =  string "DEFINITION" *> space *> (try emptyP <|> someLinesP)
 
-accessionP :: Parser Text
-accessionP =  string "ACCESSION" *> space *> (try emptyP <|> (pack
-          <$> some (try alphaNumChar <|> char '_')
-          <*  eolSpaceP))
+accessionP :: Parser (Maybe Text)
+accessionP = string "ACCESSION" *> space *> (try (Just <$> valueP) <|> (Nothing <$ skipLineP))
+  where
+    valueP = try emptyP
+          <|> (pack <$> some (try alphaNumChar <|> char '_' <|> char '<' <|> char '>') <* eolSpaceP)
+    skipLineP = void (manyTill anySingle eol)
 
 versionP :: Parser Version
 versionP =  string "VERSION" *> space
