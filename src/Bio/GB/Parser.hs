@@ -10,13 +10,14 @@ import           Bio.GB.Type                (Feature (..), Form (..), GenBankSeq
                                              Source (..), Version (..))
 import           Bio.Sequence               (Border (..), MarkedSequence, Range (..),
                                              RangeBorder (..), markedSequence, shiftRange)
+import           Control.Monad              (join, void)
 import           Control.Monad.Combinators  (many, manyTill, optional, some, (<|>))
 import           Data.Char                  (isAlphaNum, isSpace, isUpper)
 import           Data.Functor               (($>))
 import           Data.Text                  (Text, intercalate, pack, splitOn, unpack)
 import qualified Data.Text                  as T
 import           Text.Megaparsec            (notFollowedBy, option, satisfy, sepBy1, takeWhile1P,
-                                             takeWhileP, try, (<?>))
+                                             takeWhileP, try, (<?>), anySingle)
 import           Text.Megaparsec.Char       (char, digitChar, eol, letterChar, string)
 import           Text.Megaparsec.Char.Lexer (decimal)
 

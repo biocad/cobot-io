@@ -27,7 +27,7 @@ unknownAccessionSpecP :: FilePath -> Spec
 unknownAccessionSpecP path = describe "unknownAccession" $ do
     it "correctly parses meta information" $ do
         mt <- meta <$> fromFile path
-        accession (mt) `shouldBe` "<unknown"
+        accession mt `shouldBe` (Just "<unknown")
 
 rangeTests :: Spec
 rangeTests = describe "Range parser" $ do
