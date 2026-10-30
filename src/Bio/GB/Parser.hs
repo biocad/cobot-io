@@ -18,7 +18,7 @@ import           Data.Text                  (Text, intercalate, pack, splitOn, u
 import qualified Data.Text                  as T
 import           Text.Megaparsec            (notFollowedBy, option, satisfy, sepBy1, takeWhile1P,
                                              takeWhileP, try, (<?>), anySingle)
-import           Text.Megaparsec.Char       (char, digitChar, eol, letterChar, string)
+import           Text.Megaparsec.Char       (char, digitChar, eol, letterChar, string, hspace)
 import           Text.Megaparsec.Char.Lexer (decimal)
 
 -- | Parser of .gb file.
@@ -69,7 +69,7 @@ definitionP :: Parser Text
 definitionP =  string "DEFINITION" *> space *> (try emptyP <|> someLinesP)
 
 accessionP :: Parser (Maybe Text)
-accessionP = string "ACCESSION" *> space *> (try (Just <$> valueP) <|> (Nothing <$ skipLineP))
+accessionP = string "ACCESSION" *> hspace *> (try (Just <$> valueP) <|> (Nothing <$ skipLineP))
   where
     valueP = try emptyP
           <|> (pack <$> some (try alphaNumChar <|> char '_' <|> char '<' <|> char '>') <* eolSpaceP)
