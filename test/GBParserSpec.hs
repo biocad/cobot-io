@@ -21,6 +21,13 @@ gbParserSpec = describe "GenBank format parser." $ do
     unknownFieldsSpecP "test/GB/pIntA-TRBV.gb"
     baseCountWithSophisticatedRangesAndMultilineFeatures "test/GB/fromYanaWithLove.gb"
     spacesInLocusName "test/GB/spaces_in_locus.gb"
+    unknownAccessionSpecP "test/GB/pAAV-GFP-Unknown_Accession.gb"
+
+unknownAccessionSpecP :: FilePath -> Spec
+unknownAccessionSpecP path = describe "unknownAccession" $ do
+    it "correctly parses meta information" $ do
+        mt <- meta <$> fromFile path
+        accession mt `shouldBe` (Just "<unknown")
 
 rangeTests :: Spec
 rangeTests = describe "Range parser" $ do

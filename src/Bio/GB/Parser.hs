@@ -10,14 +10,15 @@ import           Bio.GB.Type                (Feature (..), Form (..), GenBankSeq
                                              Source (..), Version (..))
 import           Bio.Sequence               (Border (..), MarkedSequence, Range (..),
                                              RangeBorder (..), markedSequence, shiftRange)
+import           Control.Monad              (join, void)
 import           Control.Monad.Combinators  (many, manyTill, optional, some, (<|>))
 import           Data.Char                  (isAlphaNum, isSpace, isUpper)
 import           Data.Functor               (($>))
 import           Data.Text                  (Text, intercalate, pack, splitOn, unpack)
 import qualified Data.Text                  as T
 import           Text.Megaparsec            (notFollowedBy, option, satisfy, sepBy1, takeWhile1P,
-                                             takeWhileP, try, (<?>))
-import           Text.Megaparsec.Char       (char, digitChar, eol, letterChar, string)
+                                             takeWhileP, try, (<?>), anySingle)
+import           Text.Megaparsec.Char       (char, digitChar, eol, letterChar, string, hspace)
 import           Text.Megaparsec.Char.Lexer (decimal)
 
 -- | Parser of .gb file.
@@ -37,7 +38,7 @@ metaP = do
   locus'      <- locusP <?> "Locus parser"
 
   definitionM <- optional definitionP <?> "Definition parser"
-  accessionM  <- optional accessionP <?> "Accession parser"
+  accessionM  <- join <$> optional accessionP <?> "Accession parser"
   versionM    <- optional versionP <?> "Version parser"
   keywordsM   <- optional keywordsP <?> "Keywords parser"
   sourceM     <- optional sourceP <?> "Source parser"
@@ -67,10 +68,12 @@ locusP = string "LOCUS" *> space *> (Locus
 definitionP :: Parser Text
 definitionP =  string "DEFINITION" *> space *> (try emptyP <|> someLinesP)
 
-accessionP :: Parser Text
-accessionP =  string "ACCESSION" *> space *> (try emptyP <|> (pack
-          <$> some (try alphaNumChar <|> char '_')
-          <*  eolSpaceP))
+accessionP :: Parser (Maybe Text)
+accessionP = string "ACCESSION" *> hspace *> (try (Just <$> valueP) <|> (Nothing <$ skipLineP))
+  where
+    valueP = try emptyP
+          <|> (pack <$> some (try alphaNumChar <|> char '_' <|> char '<' <|> char '>') <* eolSpaceP)
+    skipLineP = void (manyTill anySingle eol)
 
 versionP :: Parser Version
 versionP =  string "VERSION" *> space

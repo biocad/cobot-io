@@ -1,6 +1,8 @@
 # Changelog for cobot-io
 
 ## [Unreleased]
+## [0.1.5.8] - 2026-10-29
+- Fix Gb prase for unknown char in ACCESSION tag
 
 ## [0.1.5.7] - 2026-02-02
 - Update dependencies for GHC 9.10.
